@@ -1,0 +1,33 @@
+version: 1
+id: git-branching
+title: Branch and Merge Safely
+summary: Create a feature branch, commit a fix, and merge back to main without rewriting shared history.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [git-recovery]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git >/dev/null"
+  - "cd /workspace && git init -b main && git config user.email lab@platformforge.local && git config user.name 'Lab User'"
+  - "printf 'version=1.0.0\n' > /workspace/app.env && git add app.env && git commit -m 'release: v1.0.0'"
+  - "git checkout -b feature/timeout && printf 'version=1.0.1\nTIMEOUT=30\n' > /workspace/app.env"
+tasks:
+  - id: merge-fix
+    title: Land the feature branch
+    description: Commit the staged app.env change on feature/timeout, merge into main, and ensure main contains TIMEOUT=30.
+    hints:
+      - git commit -am saves changes on the current branch.
+      - git checkout main && git merge feature/timeout
+    checks:
+      - type: command
+        name: On main branch
+        command: git -C /workspace branch --show-current | grep -q main
+      - type: file
+        name: Timeout configured
+        path: /workspace/app.env
+        value: TIMEOUT=30
+      - type: command
+        name: Feature branch merged
+        command: git -C /workspace branch --merged main | grep -q feature/timeout
+limits: {cpus: "0.5", memory: 256m, pids: 128, timeout: 1800, network: true}

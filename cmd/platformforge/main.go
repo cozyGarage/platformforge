@@ -89,13 +89,16 @@ func serveCmd(args []string) {
 
 	_, engine, store := openEngine()
 	defer store.Close()
-	catalog := content.NewCatalog(filepath.Join(repoRoot(), "content"))
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	log.Printf("PlatformForge serving on http://%s", *addr)
-	if err := api.Serve(ctx, *addr, repoRoot(), catalog, engine, store); err != nil {
+	contentRoot := filepath.Join(repoRoot(), "content")
+	if err := api.Serve(ctx, *addr, repoRoot(),
+		content.NewCatalog(contentRoot),
+		content.NewPathCatalog(contentRoot),
+		engine, store); err != nil {
 		log.Fatal(err)
 	}
 }

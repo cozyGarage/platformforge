@@ -1,0 +1,33 @@
+version: 1
+id: linux-filesystems
+title: Filesystem Discovery
+summary: Find large files and document disk usage patterns before a node runs out of space.
+difficulty: beginner
+estimatedMinutes: 20
+prerequisites: [linux-pipelines]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/data/cache /workspace/data/archive"
+  - "dd if=/dev/zero of=/workspace/data/cache/temp.bin bs=1M count=5 2>/dev/null"
+  - "dd if=/dev/zero of=/workspace/data/archive/backup.bin bs=1M count=2 2>/dev/null"
+  - "printf 'small\n' > /workspace/data/readme.txt"
+tasks:
+  - id: disk-audit
+    title: Audit workspace usage
+    description: Create /workspace/disk-audit.txt listing the total size of /workspace/data in human-readable form using du, and list files larger than 1M under /workspace/data in /workspace/large-files.txt.
+    hints:
+      - du -sh summarizes directory size.
+      - find supports -size +1M.
+    checks:
+      - type: file
+        name: Disk audit exists
+        path: /workspace/disk-audit.txt
+      - type: command
+        name: Audit mentions data directory
+        command: grep -q data /workspace/disk-audit.txt
+      - type: file
+        name: Large files list exists
+        path: /workspace/large-files.txt
+        value: temp.bin
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

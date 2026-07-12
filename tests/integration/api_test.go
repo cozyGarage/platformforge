@@ -23,7 +23,7 @@ func TestHealthAndCatalog(t *testing.T) {
 	defer store.Close()
 	engine := lab.NewEngine(catalog, store)
 
-	handler, err := api.NewHandler(catalog, engine, store)
+	handler, err := api.NewHandler(catalog, content.NewPathCatalog(filepath.Join(root, "content")), engine, store)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,8 +48,8 @@ func TestHealthAndCatalog(t *testing.T) {
 	if err := json.NewDecoder(resp.Body).Decode(&labs); err != nil {
 		t.Fatal(err)
 	}
-	if len(labs) < 7 {
-		t.Fatalf("expected at least 7 labs, got %d", len(labs))
+	if len(labs) < 15 {
+		t.Fatalf("expected at least 15 labs, got %d", len(labs))
 	}
 }
 

@@ -19,8 +19,8 @@ func TestCatalogLoadsAllContent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(labs) < 7 {
-		t.Fatalf("expected at least 7 labs, got %d", len(labs))
+	if len(labs) < 15 {
+		t.Fatalf("expected at least 15 labs, got %d", len(labs))
 	}
 	for _, lab := range labs {
 		full, err := catalog.Get(lab.ID)

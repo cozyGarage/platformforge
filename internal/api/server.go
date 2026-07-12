@@ -21,6 +21,7 @@ import (
 
 type server struct {
 	catalog *content.Catalog
+	paths   *content.PathCatalog
 	engine  *lab.Engine
 	store   *progress.Store
 }
@@ -31,8 +32,8 @@ type terminalControl struct {
 	Cols int    `json:"cols"`
 }
 
-func Serve(ctx context.Context, addr, _ string, catalog *content.Catalog, engine *lab.Engine, store *progress.Store) error {
-	s := &server{catalog: catalog, engine: engine, store: store}
+func Serve(ctx context.Context, addr, _ string, catalog *content.Catalog, paths *content.PathCatalog, engine *lab.Engine, store *progress.Store) error {
+	s := &server{catalog: catalog, paths: paths, engine: engine, store: store}
 	r, err := s.routes()
 	if err != nil {
 		return err
@@ -56,8 +57,8 @@ func Serve(ctx context.Context, addr, _ string, catalog *content.Catalog, engine
 	return err
 }
 
-func NewHandler(catalog *content.Catalog, engine *lab.Engine, store *progress.Store) (http.Handler, error) {
-	s := &server{catalog: catalog, engine: engine, store: store}
+func NewHandler(catalog *content.Catalog, paths *content.PathCatalog, engine *lab.Engine, store *progress.Store) (http.Handler, error) {
+	s := &server{catalog: catalog, paths: paths, engine: engine, store: store}
 	return s.routes()
 }
 
@@ -75,6 +76,8 @@ func (s *server) routes() (*mux.Router, error) {
 	api.HandleFunc("/labs/{id}/stop", s.stop).Methods(http.MethodPost)
 	api.HandleFunc("/labs/{id}/terminal", s.terminal)
 	api.HandleFunc("/progress", s.progress).Methods(http.MethodGet)
+	api.HandleFunc("/paths", s.pathList).Methods(http.MethodGet)
+	api.HandleFunc("/paths/{id}", s.pathDetail).Methods(http.MethodGet)
 	dist, err := fs.Sub(ui.Assets, "dist")
 	if err != nil {
 		return nil, err
@@ -178,6 +181,24 @@ func (s *server) progress(w http.ResponseWriter, _ *http.Request) {
 	v, err := s.store.List()
 	if err != nil {
 		fail(w, 500, err)
+		return
+	}
+	respond(w, 200, v)
+}
+
+func (s *server) pathList(w http.ResponseWriter, _ *http.Request) {
+	v, err := s.paths.List()
+	if err != nil {
+		fail(w, 500, err)
+		return
+	}
+	respond(w, 200, v)
+}
+
+func (s *server) pathDetail(w http.ResponseWriter, r *http.Request) {
+	v, err := s.paths.Get(mux.Vars(r)["id"])
+	if err != nil {
+		fail(w, 404, err)
 		return
 	}
 	respond(w, 200, v)

@@ -1,0 +1,30 @@
+version: 1
+id: docker-volumes
+title: Persist Data with Volumes
+summary: Fix a Compose file so application data survives container restarts using named volumes.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [docker-networking]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "printf 'services:\\n  api:\\n    image: nginx:alpine\\n    ports:\\n      - \"8080:80\"\\n' > /workspace/compose.yaml"
+tasks:
+  - id: volume-persist
+    title: Add durable storage
+    description: Update compose.yaml to mount a named volume at /usr/share/nginx/html for the api service and declare the volume at the top level.
+    hints:
+      - volumes can be defined under services.api.volumes and in the top-level volumes block.
+      - Use a named volume like webdata.
+    checks:
+      - type: file
+        name: Named volume declared
+        path: /workspace/compose.yaml
+        value: webdata
+      - type: command
+        name: Mount path configured
+        command: grep -q '/usr/share/nginx/html' /workspace/compose.yaml
+      - type: command
+        name: Service still defined
+        command: "grep -q 'image: nginx' /workspace/compose.yaml"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

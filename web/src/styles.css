@@ -23,4 +23,18 @@ main { max-width: 1440px; margin: auto; padding: clamp(1.5rem, 4vw, 4rem); }
 .check { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem 0; border-top: 1px solid #25314a; }.check span { color: #94a4c3; }.pass strong, .success { color: #57e3c1; }.fail strong, .error { color: #ff758f; }
 .stat { display: inline-flex; flex-direction: column; padding: 1.5rem 3rem; background: #101a2e; border: 1px solid #26344e; border-radius: 12px; }.stat strong { font-size: 3rem; color: #57e3c1; }.progress-list { margin-top: 2rem; max-width: 700px; }.progress-list div { display: flex; justify-content: space-between; border-bottom: 1px solid #26344e; padding: 1rem; }.progress-list span { color: #94a4c3; text-transform: capitalize; }
 .loading { color: #94a4c3; }
+.meta, .phase-summary, .module-head .module-source { color: #8293b3; font-size: .92rem; }
+.done { color: #57e3c1; }
+.path-hero { margin-bottom: 2rem; }
+.path-phase { margin-bottom: 3rem; }
+.path-phase h2 { font-size: 2rem; letter-spacing: -.03em; margin-bottom: .5rem; }
+.path-module { border: 1px solid #273550; border-radius: 12px; padding: 1.2rem 1.4rem; margin: 1rem 0; background: #0d1629aa; }
+.path-module h3 { margin: 0 0 .4rem; font-size: 1.2rem; }
+.module-head { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
+.lab-list { list-style: none; padding: 0; margin: 1rem 0 0; }
+.lab-list li { display: flex; justify-content: space-between; padding: .65rem 0; border-top: 1px solid #25314a; }
+.lab-list li a { color: #dce7ff; }
+.lab-list li a:hover { color: #57e3c1; }
+.lab-list li.soon { color: #6d7f9d; font-style: italic; }
+.lab-list li.done a { color: #57e3c1; }
 @media (max-width: 850px) { .lesson { grid-template-columns: 1fr; }.lesson aside { max-height: none; }.terminal { height: 330px; } }

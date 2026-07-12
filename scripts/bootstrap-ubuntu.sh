@@ -80,4 +80,8 @@ fi
 log "k3d: $(k3d version 2>/dev/null | head -1 || echo present)"
 log "kubectl: $(kubectl version --client 2>/dev/null | head -1 || echo present)"
 
+if [[ -f scripts/install-e2e-deps.sh ]]; then
+  bash scripts/install-e2e-deps.sh || true
+fi
+
 log "Bootstrap complete. Run: ./bin/platformforge serve"

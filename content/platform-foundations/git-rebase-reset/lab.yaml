@@ -1,0 +1,34 @@
+version: 1
+id: git-rebase-reset
+title: Rebase and Reset Without Panic
+summary: Squash noisy commits with interactive rebase and recover from a bad commit using reset.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [git-branching]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git >/dev/null"
+  - "cd /workspace && git init -b main && git config user.email lab@platformforge.local && git config user.name 'Lab User'"
+  - "printf 'api=1\n' > /workspace/config.env && git add config.env && git commit -m 'wip'"
+  - "printf 'api=2\n' > /workspace/config.env && git add config.env && git commit -m 'fix typo'"
+  - "printf 'api=2\nretries=3\n' > /workspace/config.env && git add config.env && git commit -m 'add retries'"
+tasks:
+  - id: squash-history
+    title: Clean up commit history
+    description: 'Use interactive rebase to squash the last two commits into one with message "feat: add retries". Ensure config.env still contains retries=3.'
+    hints:
+      - git rebase -i HEAD~2 lets you mark commits as squash or fixup.
+      - 'Keep the final commit message as feat: add retries.'
+    checks:
+      - type: file
+        name: Retries configured
+        path: /workspace/config.env
+        value: retries=3
+      - type: command
+        name: Two commits on main
+        command: "test \"$(git -C /workspace rev-list --count HEAD)\" -eq 2"
+      - type: command
+        name: Squashed message present
+        command: "git -C /workspace log -1 --pretty=%s | grep -q 'feat: add retries'"
+limits: {cpus: "0.5", memory: 256m, pids: 128, timeout: 1800, network: true}

@@ -1,0 +1,104 @@
+version: 1
+id: devops-engineer
+title: DevOps Engineer Path
+summary: Learn platform engineering through Linux, Git, containers, Kubernetes, CI/CD, and observability — inspired by Boot.dev and adapted for local hands-on labs.
+source: "Structure inspired by Boot.dev DevOps path; extended with 90DaysOfDevOps topics and FinTech platform roadmap (Proxmox, PostgreSQL, Kafka)."
+phases:
+  - id: foundations
+    title: Phase 1 — Foundations
+    summary: Terminal fluency, Git recovery, and the DevOps feedback loop.
+    modules:
+      - id: learn-linux
+        title: Learn Linux
+        summary: Command line, filesystems, permissions, and pipelines.
+        source: "Boot.dev — Learn Linux"
+        labs:
+          - linux-shell-basics
+          - linux-navigation
+          - linux-pipelines
+          - linux-filesystems
+      - id: learn-git
+        title: Learn Git
+        summary: History recovery, branching, and safe collaboration.
+        source: "Boot.dev — Learn Git"
+        labs:
+          - git-recovery
+          - git-branching
+          - git-rebase-reset
+        comingSoon:
+          - git-remotes
+  - id: containers
+    title: Phase 2 — Containers & Networking
+    summary: Debug images, compose multi-container apps, and reason about connectivity.
+    modules:
+      - id: learn-docker
+        title: Learn Docker
+        summary: Dockerfiles, debugging, and Compose networking.
+        source: "Boot.dev — Learn Docker"
+        labs:
+          - docker-debugging
+          - docker-networking
+          - docker-volumes
+  - id: kubernetes
+    title: Phase 3 — Kubernetes
+    summary: Deploy reliable workloads on live k3d clusters.
+    modules:
+      - id: learn-kubernetes
+        title: Learn Kubernetes
+        summary: Deployments, Services, and ConfigMaps with kubectl.
+        source: "Boot.dev — Learn Kubernetes"
+        labs:
+          - kubernetes-deploy
+          - kubernetes-service
+          - kubernetes-configmap
+          - kubernetes-scaling
+        comingSoon:
+          - kubernetes-namespaces
+  - id: delivery
+    title: Phase 4 — Delivery & Reliability
+    summary: CI/CD pipelines, structured logging, and incident response.
+    modules:
+      - id: learn-cicd
+        title: Learn CI/CD
+        summary: Fix broken pipelines and ship safely.
+        source: "Boot.dev — Learn CI/CD"
+        labs:
+          - cicd-pipeline-fix
+        comingSoon:
+          - cicd-security-scan
+      - id: learn-observability
+        title: Logging & Observability
+        summary: Structured logs, metrics mindset, and on-call debugging.
+        source: "Boot.dev — Learn Logging and Observability"
+        labs:
+          - observability-structured-logs
+        comingSoon:
+          - observability-metrics-alerts
+      - id: capstone
+        title: Incident Capstone
+        summary: Multi-layer production incident across Git, containers, and config.
+        labs:
+          - incident-capstone
+  - id: platform-engineering
+    title: Phase 5 — Platform Engineering (Roadmap)
+    summary: Advanced topics from your 5-year FinTech architect roadmap — added over time.
+    modules:
+      - id: data-platform
+        title: Data & Streaming
+        comingSoon:
+          - postgresql-pitr
+          - kafka-debezium-cdc
+          - compliance-masking
+        labs: []
+      - id: compliance
+        title: Compliance & Security
+        comingSoon:
+          - dora-evidence
+          - pci-dss-basics
+        labs: []
+      - id: bare-metal
+        title: Bare Metal & Virtualization
+        comingSoon:
+          - proxmox-planning
+          - debian-platform-baseline
+        labs: []

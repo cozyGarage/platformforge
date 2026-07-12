@@ -1,0 +1,30 @@
+version: 1
+id: cicd-pipeline-fix
+title: Fix a Broken CI Pipeline
+summary: Repair a GitHub Actions workflow missing test and lint stages before deploy.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [git-branching]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/.github/workflows"
+  - "printf 'name: ci\\non: [push]\\njobs:\\n  deploy:\\n    runs-on: ubuntu-latest\\n    steps:\\n      - run: echo deploy\\n' > /workspace/.github/workflows/ci.yaml"
+tasks:
+  - id: pipeline
+    title: Add quality gates
+    description: Update ci.yaml to add test and lint jobs that run before deploy. Each job needs runs-on ubuntu-latest and at least one step.
+    hints:
+      - Use needs deploy pattern or run test/lint as separate jobs before deploy.
+      - job names should include test and lint.
+    checks:
+      - type: command
+        name: Test job present
+        command: grep -q 'test' /workspace/.github/workflows/ci.yaml
+      - type: command
+        name: Lint job present
+        command: grep -q 'lint' /workspace/.github/workflows/ci.yaml
+      - type: command
+        name: Deploy still present
+        command: grep -q 'deploy' /workspace/.github/workflows/ci.yaml
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

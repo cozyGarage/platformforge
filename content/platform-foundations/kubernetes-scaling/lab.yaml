@@ -1,0 +1,33 @@
+version: 1
+id: kubernetes-scaling
+title: Scale a Deployment Horizontally
+summary: Increase replica count and verify all pods become ready in your k3d cluster.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [kubernetes-configmap]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl apply -f - <<'EOF'\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\nEOF"
+tasks:
+  - id: scale-out
+    title: Run three replicas
+    description: Scale the api Deployment to 3 replicas, save your manifest change to /workspace/deployment.yaml, and wait until all pods are ready.
+    hints:
+      - kubectl scale deploy/api --replicas=3
+      - kubectl get deploy api -o yaml > /workspace/deployment.yaml
+      - kubectl wait --for=condition=ready pod -l app=api --timeout=120s
+    checks:
+      - type: file
+        name: Manifest saved
+        path: /workspace/deployment.yaml
+        value: "replicas: 3"
+      - type: kubernetes
+        name: Deployment scaled
+        command: "kubectl get deploy api -o jsonpath='{.spec.replicas}' | grep -q 3"
+      - type: kubernetes
+        name: All pods ready
+        command: kubectl wait --for=condition=ready pod -l app=api --timeout=120s
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

@@ -1,0 +1,32 @@
+version: 1
+id: kubernetes-configmap
+title: Inject Configuration with ConfigMaps
+summary: Mount a ConfigMap as environment variables for a Deployment running in k3d.
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [kubernetes-service]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl apply -f - <<'EOF'\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\nEOF"
+tasks:
+  - id: configmap
+    title: Wire runtime configuration
+    description: Create ConfigMap api-config with LOG_LEVEL=debug, save manifests to /workspace/configmap.yaml and /workspace/deployment-patch.yaml, apply both, and ensure the api pod has LOG_LEVEL set.
+    hints:
+      - ConfigMap data keys become env vars via envFrom or env.valueFrom.
+      - kubectl apply -f for both manifests.
+    checks:
+      - type: file
+        name: ConfigMap manifest saved
+        path: /workspace/configmap.yaml
+        value: LOG_LEVEL
+      - type: kubernetes
+        name: ConfigMap applied
+        command: kubectl get configmap api-config
+      - type: kubernetes
+        name: Pod has LOG_LEVEL
+        command: kubectl exec deploy/api -- printenv LOG_LEVEL | grep -q debug
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

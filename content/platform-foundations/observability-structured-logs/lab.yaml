@@ -1,0 +1,33 @@
+version: 1
+id: observability-structured-logs
+title: Parse Structured Logs
+summary: Query JSON log lines to find failing requests and produce an on-call summary file.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [linux-pipelines]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache jq >/dev/null"
+  - "mkdir -p /workspace/logs"
+  - "printf '{\"level\":\"info\",\"path\":\"/health\",\"status\":200}\n{\"level\":\"error\",\"path\":\"/pay\",\"status\":500}\n{\"level\":\"error\",\"path\":\"/pay\",\"status\":500}\n' > /workspace/logs/api.jsonl"
+tasks:
+  - id: json-query
+    title: Build error summary
+    description: Use jq to write all log lines with status 500 to /workspace/errors.jsonl and write the count of 500 responses to /workspace/error-count.txt.
+    hints:
+      - jq 'select(.status == 500)' filters objects.
+      - jq -s 'length' counts array entries.
+    checks:
+      - type: file
+        name: Errors file exists
+        path: /workspace/errors.jsonl
+        value: '"status":500'
+      - type: command
+        name: Two 500 errors
+        command: test "$(wc -l < /workspace/errors.jsonl)" -eq 2
+      - type: file
+        name: Count file correct
+        path: /workspace/error-count.txt
+        value: "2"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

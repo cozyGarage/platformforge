@@ -1,0 +1,32 @@
+version: 1
+id: linux-pipelines
+title: Log Pipelines and Redirection
+summary: Use pipes, redirection, and filters to turn noisy application logs into an actionable incident summary.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [linux-navigation]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/logs"
+  - "printf 'ERROR payment timeout user=42\nINFO health ok\nERROR payment timeout user=7\nWARN disk 81%%\nERROR db connection reset\n' > /workspace/logs/app.log"
+tasks:
+  - id: filter-errors
+    title: Extract and count errors
+    description: Create /workspace/error-report.txt containing only ERROR lines from app.log, then write the error count to /workspace/error-count.txt.
+    hints:
+      - grep supports fixed-string and extended regex modes.
+      - wc -l counts lines; redirect with >.
+    checks:
+      - type: file
+        name: Error report exists
+        path: /workspace/error-report.txt
+        value: ERROR
+      - type: command
+        name: Report has three errors
+        command: test "$(wc -l < /workspace/error-report.txt)" -eq 3
+      - type: file
+        name: Error count recorded
+        path: /workspace/error-count.txt
+        value: "3"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
