@@ -1,0 +1,40 @@
+version: 1
+id: kubernetes-deploy
+title: Deploy a Reliable Workload to Kubernetes
+summary: Fix a broken Deployment manifest, apply it to a live k3d cluster, and verify probes and resource limits.
+difficulty: intermediate
+estimatedMinutes: 40
+prerequisites: [docker-networking]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "mkdir -p /workspace"
+  - "printf 'apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n' > /workspace/deployment.yaml"
+tasks:
+  - id: reliability
+    title: Harden and deploy the workload
+    description: Add readiness and liveness HTTP probes plus CPU and memory requests/limits to deployment.yaml, then apply it with kubectl.
+    hints:
+      - Run kubectl apply -f /workspace/deployment.yaml after editing the manifest.
+      - Both probes can target path / on port 80.
+      - resources has requests and limits maps under the container spec.
+    checks:
+      - type: kubernetes
+        name: Deployment applied
+        command: kubectl get deploy api
+      - type: kubernetes
+        name: Readiness probe configured
+        command: kubectl get deploy api -o yaml | grep -q readinessProbe
+      - type: kubernetes
+        name: Liveness probe configured
+        command: kubectl get deploy api -o yaml | grep -q livenessProbe
+      - type: kubernetes
+        name: Resource requests configured
+        command: kubectl get deploy api -o yaml | grep -q 'requests:'
+      - type: kubernetes
+        name: Pods become ready
+        command: kubectl wait --for=condition=ready pod -l app=api --timeout=90s
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}
+attribution: "Scenario inspired by 90DaysOfDevOps Kubernetes topics; interactive lab authored by PlatformForge."

@@ -1,0 +1,26 @@
+version: 1
+id: docker-networking
+title: Repair Service Networking
+summary: Fix a Compose topology so an API uses service discovery instead of loopback.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [docker-debugging]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "printf 'services:\\n  api:\\n    image: alpine:3.21\\n    environment:\\n      DATABASE_URL: postgres://app@localhost:5432/app\\n  database:\\n    image: postgres:17-alpine\\n' > /workspace/compose.yaml"
+tasks:
+  - id: discovery
+    title: Use Compose DNS
+    description: Change the API database hostname from localhost to the database service and add a dependency.
+    hints:
+      - Inside a container, localhost refers to that same container.
+      - Compose service names are DNS names on the default network.
+    checks:
+      - type: command
+        name: API targets database service
+        command: grep -q 'postgres://app@database:5432/app' /workspace/compose.yaml
+      - type: command
+        name: API declares its dependency
+        command: grep -q 'depends_on:' /workspace/compose.yaml
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

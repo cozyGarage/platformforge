@@ -1,0 +1,42 @@
+version: 1
+id: linux-navigation
+title: Linux Navigation and Permissions
+summary: Repair a deployment workspace using paths, ownership, modes, and pipelines.
+difficulty: beginner
+estimatedMinutes: 20
+prerequisites: []
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - mkdir -p /workspace/releases /workspace/logs
+  - printf '#!/bin/sh\necho deployed\n' > /workspace/releases/deploy.sh
+  - chmod 0644 /workspace/releases/deploy.sh
+  - printf 'INFO ready\nERROR disk\nERROR timeout\n' > /workspace/logs/app.log
+tasks:
+  - id: executable
+    title: Restore the deployment command
+    description: Make releases/deploy.sh executable without making it writable by everyone.
+    hints:
+      - Inspect the current mode with ls -l.
+      - chmod 755 grants execute while limiting writes to the owner.
+    checks:
+      - type: command
+        name: Deployment script is executable
+        command: test -x /workspace/releases/deploy.sh
+      - type: command
+        name: Deployment script is not world-writable
+        command: test "$(stat -c %a /workspace/releases/deploy.sh)" = 755
+  - id: pipeline
+    title: Extract incident signals
+    description: Use a pipeline to write only ERROR lines to /workspace/errors.txt.
+    hints:
+      - grep can select lines by a fixed word.
+    checks:
+      - type: file
+        name: Error report exists
+        path: /workspace/errors.txt
+        value: ERROR disk
+      - type: command
+        name: Error report has two lines
+        command: test "$(wc -l < /workspace/errors.txt)" -eq 2
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

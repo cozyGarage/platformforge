@@ -1,0 +1,32 @@
+version: 1
+id: linux-shell-basics
+title: Linux Shell and File Basics
+summary: Practice core terminal skills—navigation, file creation, and output redirection—in an isolated environment.
+difficulty: beginner
+estimatedMinutes: 20
+prerequisites: []
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/logs"
+tasks:
+  - id: navigation
+    title: Explore and organize files
+    description: Create /workspace/notes.txt containing the word platformforge and copy it to /workspace/logs/notes.bak using shell commands only.
+    hints:
+      - echo can write single-line files.
+      - cp copies files between paths.
+    checks:
+      - type: file
+        name: notes.txt exists
+        path: /workspace/notes.txt
+        value: platformforge
+      - type: file
+        name: backup exists
+        path: /workspace/logs/notes.bak
+        value: platformforge
+      - type: command
+        name: logs directory present
+        command: test -d /workspace/logs
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+attribution: "Adapted from 90DaysOfDevOps Linux fundamentals (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge scenario."

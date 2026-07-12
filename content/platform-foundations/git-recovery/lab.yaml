@@ -1,0 +1,34 @@
+version: 1
+id: git-recovery
+title: Recover a Broken Git Release
+summary: Use Git history and the index to restore a deleted production configuration.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [linux-navigation]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - apk add --no-cache git
+  - cd /workspace && git init -q && git config user.email learner@platformforge.local && git config user.name Learner
+  - cd /workspace && printf 'PORT=8080\nMODE=production\n' > app.env && git add app.env && git commit -qm 'add production config'
+  - cd /workspace && printf 'PlatformForge service\n' > README.md && git add README.md && git commit -qm 'document service'
+  - cd /workspace && rm app.env
+tasks:
+  - id: restore
+    title: Restore the tracked configuration
+    description: Recover app.env from repository history and commit the recovery.
+    hints:
+      - git status shows what was deleted.
+      - git restore can recover a tracked path.
+    checks:
+      - type: file
+        name: Production configuration restored
+        path: /workspace/app.env
+        value: MODE=production
+      - type: command
+        name: Working tree is clean
+        command: cd /workspace && test -z "$(git status --porcelain)"
+      - type: command
+        name: Recovery commit exists
+        command: cd /workspace && test "$(git rev-list --count HEAD)" -ge 3
+limits: {cpus: "0.5", memory: 192m, pids: 64, timeout: 1800, network: true}

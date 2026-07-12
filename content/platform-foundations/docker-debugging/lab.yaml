@@ -1,0 +1,33 @@
+version: 1
+id: docker-debugging
+title: Debug a Container Image
+summary: Diagnose a broken image definition and produce a safe, reproducible container specification.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [git-recovery]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - printf 'FROM alpine:latest\nUSER root\nCOPY . /app\nCMD sleep infinity\n' > /workspace/Dockerfile
+  - printf '#!/bin/sh\necho healthy\n' > /workspace/server.sh
+tasks:
+  - id: image
+    title: Harden the image definition
+    description: Pin Alpine 3.21, create and use a non-root app user, copy server.sh, and run it as the container command.
+    hints:
+      - Replace latest with an explicit tag.
+      - Add adduser, USER, COPY, and CMD instructions.
+    checks:
+      - type: command
+        name: Base image is pinned
+        command: grep -Eq '^FROM alpine:3\.21$' /workspace/Dockerfile
+      - type: command
+        name: Runtime user is non-root
+        command: grep -Eq '^USER (app|1000)$' /workspace/Dockerfile
+      - type: command
+        name: Server is the image command
+        command: grep -Eq '^(CMD|ENTRYPOINT).*server\.sh' /workspace/Dockerfile
+      - type: command
+        name: Broad context copy removed
+        command: '! grep -Eq "^COPY \\. " /workspace/Dockerfile'
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

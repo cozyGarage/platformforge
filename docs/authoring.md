@@ -1,0 +1,22 @@
+# Authoring PlatformForge labs
+
+Each lab is a directory containing `lab.yaml` and `lesson.md`. Validate authored content with:
+
+```bash
+make lint
+```
+
+Manifests follow `schemas/lab.schema.json`. Use versioned, minimal images and deterministic setup. Prefer typed checks:
+
+- `command`: a bounded command exits successfully;
+- `file`: a path exists and optionally contains a fixed value;
+- `process`: a matching process exists;
+- `port`: a TCP listener exists;
+- `http`: an endpoint responds;
+- `docker` and `kubernetes`: domain-specific declarative commands.
+
+Never place credentials in a lab, mount the host Docker socket, request privileged containers, or rely on hidden learner command history. Validate the desired end state so learners can discover alternative correct solutions.
+
+Every task needs a clear objective, progressive hints, actionable validation names, deterministic reset through setup commands, and a lesson explaining the operational reason behind the exercise.
+
+Adapted material belongs only in `content/90days`. Include the source URL, original author, modification notes, an `attribution` manifest field, and CC BY-NC-SA 4.0 licensing.

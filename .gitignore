@@ -1,0 +1,12 @@
+/bin/
+internal/ui/dist/
+web/dist/
+web/node_modules/
+tests/e2e/node_modules/
+tests/e2e/test-results/
+*.db
+.platformforge/
+.DS_Store
+coverage/
+*.out
+.write-ready

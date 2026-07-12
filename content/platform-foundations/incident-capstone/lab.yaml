@@ -1,0 +1,50 @@
+version: 1
+id: incident-capstone
+title: Capstone — Restore the Checkout Platform
+summary: Triage a multi-layer release failure and leave an auditable incident record.
+difficulty: capstone
+estimatedMinutes: 60
+prerequisites: [linux-navigation, git-recovery, docker-debugging, docker-networking, kubernetes-deploy]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - apk add --no-cache git
+  - cd /workspace && git init -q && git config user.email learner@platformforge.local && git config user.name Learner
+  - "printf 'services:\\n  checkout:\\n    image: checkout:latest\\n    environment:\\n      REDIS_URL: redis://localhost:6379\\n  redis:\\n    image: redis:7-alpine\\n' > /workspace/compose.yaml"
+  - "printf 'apiVersion: apps/v1\\nkind: Deployment\\nmetadata:\\n  name: checkout\\nspec:\\n  replicas: 1\\n' > /workspace/deployment.yaml"
+  - cd /workspace && git add . && git commit -qm 'broken release'
+tasks:
+  - id: contain
+    title: Repair the release configuration
+    description: Pin checkout to 1.4.2, target the redis service, and scale the Kubernetes deployment to three replicas.
+    hints:
+      - Fix the service hostname before changing anything else.
+      - Replace moving image tags with the supplied release version.
+    checks:
+      - type: command
+        name: Checkout image is pinned
+        command: "grep -q 'image: checkout:1.4.2' /workspace/compose.yaml"
+      - type: command
+        name: Redis service discovery is correct
+        command: grep -q 'redis://redis:6379' /workspace/compose.yaml
+      - type: kubernetes
+        name: Checkout has three replicas
+        command: "grep -q 'replicas: 3' /workspace/deployment.yaml"
+  - id: evidence
+    title: Record and commit the incident outcome
+    description: Create incident.md with sections Root cause, Mitigation, and Follow-up, then commit all changes.
+    hints:
+      - Use Markdown headings so the record is easy to scan.
+      - Confirm git status is clean after committing.
+    checks:
+      - type: file
+        name: Incident record identifies root cause
+        path: /workspace/incident.md
+        value: Root cause
+      - type: command
+        name: Incident record includes mitigation and follow-up
+        command: grep -q 'Mitigation' /workspace/incident.md && grep -q 'Follow-up' /workspace/incident.md
+      - type: command
+        name: Recovery is committed
+        command: cd /workspace && test "$(git rev-list --count HEAD)" -ge 2 && test -z "$(git status --porcelain)"
+limits: {cpus: "0.75", memory: 192m, pids: 96, timeout: 3600, network: true}
