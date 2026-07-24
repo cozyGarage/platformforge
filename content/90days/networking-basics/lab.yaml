@@ -1,0 +1,44 @@
+version: 1
+id: networking-basics
+title: Trace a Service Connection Path
+summary: Map hostname, port, and health URL for a payments API using 90Days-style networking fundamentals.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [bash-automation-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache curl >/dev/null"
+  - "mkdir -p /workspace/net"
+  - "printf '127.0.0.1 payments.local\\n' > /workspace/net/hosts.snippet"
+tasks:
+  - id: connection-map
+    title: Document the path to payments
+    description: 'Create /workspace/net/path.env with HOST=payments.local, PORT=8080, and HEALTH_URL=http://payments.local:8080/health. Write /workspace/net/NOTES.md explaining that DNS/hosts resolves the name before TCP connects to the port.'
+    hints:
+      - path.env should use KEY=value lines.
+      - NOTES.md should mention DNS or hosts and TCP or port.
+      - HEALTH_URL must include /health.
+    checks:
+      - type: file
+        name: Host set
+        path: /workspace/net/path.env
+        value: HOST=payments.local
+      - type: file
+        name: Port set
+        path: /workspace/net/path.env
+        value: PORT=8080
+      - type: file
+        name: Health URL set
+        path: /workspace/net/path.env
+        value: "HEALTH_URL=http://payments.local:8080/health"
+      - type: file
+        name: Notes mention resolution
+        path: /workspace/net/NOTES.md
+        value: hosts
+      - type: file
+        name: Notes mention port path
+        path: /workspace/net/NOTES.md
+        value: port
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+attribution: "Adapted from 90DaysOfDevOps networking fundamentals (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge scenario."

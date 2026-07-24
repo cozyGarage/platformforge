@@ -16,26 +16,28 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 | Phase | Focus | PlatformForge labs |
 |-------|-------|-------------------|
-| Foundations | Linux, terminal, 90Days bridges, Git | 13 labs |
+| Foundations | Linux, terminal, 90Days bridges, Git | 16 labs |
 | Containers | Docker | 3 labs |
-| HTTP & Go | Health, JSON API, tests | 3 labs |
+| App development | Go, Python, SQL | 6 labs |
 | Kubernetes | Core + CKA drills | 11 labs (live k3d) |
 | Delivery | CI/CD, observability, leadership, portfolio | 11 labs + incident capstone |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (50 interactive + 1 capstone)
+### Lab inventory (56 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
 **Terminal** — `terminal-tmux`, `terminal-neovim`
 
-**90Days bridges** — `bash-automation-basics`, `docker-tagging-basics`, `kubernetes-yaml-basics`
+**90Days bridges** — `bash-automation-basics`, `docker-tagging-basics`, `kubernetes-yaml-basics`, `networking-basics`, `monitoring-basics`, `cloud-tagging-basics`
 
 **Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
 **Docker** — `docker-debugging`, `docker-networking`, `docker-volumes`
 
 **HTTP & Go** — `http-health-server`, `http-json-api`, `go-testing-basics`
+
+**Python & SQL** — `python-health-server`, `python-json-api`, `sql-query-basics`
 
 **Kubernetes** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
 
@@ -68,9 +70,9 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn CI/CD | ✅ 2 labs |
 | Learn Logging & Observability | ✅ 2 labs |
 | Learn AWS | ✅ 3 local simulation labs |
-| Learn HTTP Servers | ✅ `http-health-server`, `http-json-api` |
+| Learn HTTP Servers | ✅ Go + Python health/JSON labs |
 | Learn Go | ✅ `go-testing-basics` (+ HTTP labs in Go) |
-| Learn Python / SQL | 📋 Planned |
+| Learn Python / SQL | ✅ `python-health-server`, `python-json-api`, `sql-query-basics` |
 | Portfolio projects | ✅ 4-lab payments demo path |
 
 ## Your 5-year roadmap → PlatformForge phases
@@ -96,14 +98,17 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 | Git / version control | `git-recovery`, `git-branching` |
 | Containers | `docker-tagging-basics` + docker module |
 | Kubernetes | `kubernetes-yaml-basics` + kubernetes/CKA modules |
+| Networking | `networking-basics` |
+| Monitoring | `monitoring-basics` |
+| Cloud | `cloud-tagging-basics` + AWS local sims |
 | CI/CD culture | `cicd-pipeline-fix`, `cicd-security-scan` |
 
 ## Next authoring priorities
 
-1. More 90Days day conversions (networking, monitoring, cloud days)
-2. Learn Python / SQL service labs
-3. Optional etcd snapshot lab when local control-plane tooling allows
-4. Portfolio polish (real image build/push when registry tooling is available)
+1. Optional etcd snapshot lab when local control-plane tooling allows
+2. Portfolio polish (real image build/push when registry tooling is available)
+3. Deeper SQL (joins, indexes, explain) and Python packaging labs
+4. Additional 90Days day conversions as needed
 
 ## How to add a lab
 

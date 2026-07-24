@@ -1,0 +1,36 @@
+version: 1
+id: python-health-server
+title: Serve a Python Health Endpoint
+summary: Write a tiny Python HTTP server that listens on :8080 and answers /health with ok.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [linux-pipelines]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache wget iproute2 >/dev/null"
+  - "mkdir -p /workspace"
+tasks:
+  - id: health-server
+    title: Implement and run /health
+    description: 'Create /workspace/server.py using http.server or similar that listens on :8080 and responds to GET /health with body ok. Start it in the background and verify the endpoint.'
+    hints:
+      - BaseHTTPRequestHandler can override do_GET.
+      - 'HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()'
+      - Run with python /workspace/server.py &
+    checks:
+      - type: file
+        name: Server module present
+        path: /workspace/server.py
+        value: "/health"
+      - type: file
+        name: Uses HTTP server APIs
+        path: /workspace/server.py
+        value: http.server
+      - type: port
+        name: Port 8080 listening
+        port: 8080
+      - type: command
+        name: Health returns ok
+        command: "wget -qO- http://127.0.0.1:8080/health | grep -q '^ok$'"
+limits: {cpus: "1.0", memory: 256m, pids: 128, timeout: 1800, network: true}
