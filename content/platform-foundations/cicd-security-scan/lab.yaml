@@ -1,0 +1,40 @@
+version: 1
+id: cicd-security-scan
+title: Add a Supply Chain Security Gate
+summary: Stop a leaked secret from shipping and require a vulnerability scan job before deploy.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [cicd-pipeline-fix]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/.github/workflows"
+  - "printf 'name: ci\\non: [push]\\njobs:\\n  test:\\n    runs-on: ubuntu-latest\\n    steps:\\n      - run: echo test\\n  lint:\\n    runs-on: ubuntu-latest\\n    steps:\\n      - run: echo lint\\n  deploy:\\n    runs-on: ubuntu-latest\\n    needs: [test, lint]\\n    steps:\\n      - run: echo deploy\\n' > /workspace/.github/workflows/ci.yaml"
+  - "printf 'API_KEY=sk-live-do-not-commit\\n' > /workspace/secrets.env"
+  - "printf 'node_modules/\\n' > /workspace/.gitignore"
+tasks:
+  - id: security-gate
+    title: Scan before deploy and remove secrets
+    description: 'Add a security job to ci.yaml that runs before deploy (include a step mentioning trivy or npm audit), update deploy needs so security is required, delete secrets.env, and ignore secrets.env in .gitignore.'
+    hints:
+      - 'Add a security job with runs-on: ubuntu-latest and a step that runs trivy or npm audit.'
+      - 'Update deploy needs to include security, for example needs: [test, lint, security].'
+      - Remove secrets.env and add secrets.env to .gitignore.
+    checks:
+      - type: command
+        name: Security job present
+        command: grep -Eq '^[[:space:]]*security:' /workspace/.github/workflows/ci.yaml
+      - type: command
+        name: Scanner step present
+        command: grep -Eqi 'trivy|npm audit' /workspace/.github/workflows/ci.yaml
+      - type: command
+        name: Deploy needs security
+        command: grep -Eq 'needs:.*security' /workspace/.github/workflows/ci.yaml
+      - type: command
+        name: Secret file removed
+        command: test ! -e /workspace/secrets.env
+      - type: file
+        name: Secrets ignored
+        path: /workspace/.gitignore
+        value: secrets.env
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

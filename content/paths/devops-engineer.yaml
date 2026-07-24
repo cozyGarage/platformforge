@@ -58,19 +58,17 @@ phases:
     modules:
       - id: learn-cicd
         title: Learn CI/CD
-        summary: Fix broken pipelines and ship safely.
+        summary: Fix broken pipelines, add security gates, and ship safely.
         source: "Boot.dev — Learn CI/CD"
         labs:
           - cicd-pipeline-fix
-        comingSoon:
           - cicd-security-scan
       - id: learn-observability
         title: Logging & Observability
-        summary: Structured logs, metrics mindset, and on-call debugging.
+        summary: Structured logs, metrics, alerts, and on-call debugging.
         source: "Boot.dev — Learn Logging and Observability"
         labs:
           - observability-structured-logs
-        comingSoon:
           - observability-metrics-alerts
       - id: capstone
         title: Incident Capstone
@@ -83,11 +81,11 @@ phases:
     modules:
       - id: data-platform
         title: Data & Streaming
-        comingSoon:
+        labs:
           - postgresql-pitr
+        comingSoon:
           - kafka-debezium-cdc
           - compliance-masking
-        labs: []
       - id: compliance
         title: Compliance & Security
         comingSoon:
