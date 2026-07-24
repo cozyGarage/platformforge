@@ -28,6 +28,14 @@ for path in sorted(pathlib.Path("content").rglob("lab.yaml")):
     if not data.get("tasks"):
         print(f"FAIL {path}: requires tasks", file=sys.stderr)
         sys.exit(1)
+    for task in data.get("tasks", []):
+        for hint in task.get("hints", []) or []:
+            if not isinstance(hint, str):
+                print(f"FAIL {path}: hints must be strings (quote values with ':')", file=sys.stderr)
+                sys.exit(1)
+    if "content/90days/" in str(path) and not data.get("attribution"):
+        print(f"FAIL {path}: 90days labs require attribution", file=sys.stderr)
+        sys.exit(1)
     print(f"OK   {path}")
 PY
 

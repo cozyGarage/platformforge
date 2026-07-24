@@ -1,0 +1,44 @@
+version: 1
+id: python-packaging-basics
+title: Package a Python Module
+summary: Turn fee logic into an importable package with pyproject metadata and a passing unit test.
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [python-json-api]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace"
+tasks:
+  - id: package-fees
+    title: Create an installable fees package
+    description: 'Create package layout payments_fees/__init__.py exporting fee_cents(amount) = amount*2//100, write pyproject.toml with project name payments-fees and version 0.1.0, add tests/test_fees.py expecting fee_cents(1000)==20, then run python -m unittest discover -s tests and save output to /workspace/test-output.txt.'
+    hints:
+      - 'def fee_cents(amount: int) -> int: return amount * 2 // 100'
+      - pyproject.toml needs [project] name and version fields.
+      - python -m unittest discover -s tests
+    checks:
+      - type: file
+        name: Package module present
+        path: /workspace/payments_fees/__init__.py
+        value: fee_cents
+      - type: file
+        name: Project name set
+        path: /workspace/pyproject.toml
+        value: payments-fees
+      - type: file
+        name: Version set
+        path: /workspace/pyproject.toml
+        value: "0.1.0"
+      - type: file
+        name: Test present
+        path: /workspace/tests/test_fees.py
+        value: fee_cents
+      - type: command
+        name: Tests pass
+        command: "cd /workspace && PYTHONPATH=/workspace python -m unittest discover -s tests"
+      - type: file
+        name: Output captured
+        path: /workspace/test-output.txt
+        value: OK
+limits: {cpus: "1.0", memory: 256m, pids: 128, timeout: 1800, network: false}

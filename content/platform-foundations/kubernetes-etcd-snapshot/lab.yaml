@@ -1,0 +1,58 @@
+version: 1
+id: kubernetes-etcd-snapshot
+title: Practice etcd Snapshot Runbooks
+summary: Author a control-plane backup runbook and produce a verifiable snapshot artifact for disaster recovery drills.
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [kubernetes-backup-restore]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "mkdir -p /workspace/backup/etcd /workspace/docs"
+  - "kubectl create namespace payments >/dev/null"
+  - "kubectl -n payments create configmap cluster-meta --from-literal=cluster=payments-prod --from-literal=region=eu-west-1"
+tasks:
+  - id: snapshot-runbook
+    title: Snapshot and document recovery
+    description: 'Export cluster-meta ConfigMap to /workspace/backup/etcd/snapshot-manifests.yaml as the application-consistent companion backup. Create /workspace/backup/etcd/SNAPSHOT.sha256 containing a sha256 of that file. Write /workspace/docs/etcd-runbook.md with headings Snapshot, Restore, and Validation that mention etcdctl snapshot save, etcdctl snapshot restore, and testing restores.'
+    hints:
+      - kubectl get configmap cluster-meta -n payments -o yaml > backup/etcd/snapshot-manifests.yaml
+      - 'sha256sum file | awk ''{print $1}'' > SNAPSHOT.sha256'
+      - Runbook must mention etcdctl snapshot save and restore.
+    checks:
+      - type: file
+        name: Manifest snapshot saved
+        path: /workspace/backup/etcd/snapshot-manifests.yaml
+        value: cluster-meta
+      - type: command
+        name: Checksum file present
+        command: test -s /workspace/backup/etcd/SNAPSHOT.sha256
+      - type: command
+        name: Checksum matches snapshot
+        command: "test \"$(sha256sum /workspace/backup/etcd/snapshot-manifests.yaml | awk '{print $1}')\" = \"$(tr -d '[:space:]' < /workspace/backup/etcd/SNAPSHOT.sha256)\""
+      - type: file
+        name: Snapshot section
+        path: /workspace/docs/etcd-runbook.md
+        value: Snapshot
+      - type: file
+        name: Restore section
+        path: /workspace/docs/etcd-runbook.md
+        value: Restore
+      - type: file
+        name: Validation section
+        path: /workspace/docs/etcd-runbook.md
+        value: Validation
+      - type: file
+        name: Mentions snapshot save
+        path: /workspace/docs/etcd-runbook.md
+        value: etcdctl snapshot save
+      - type: file
+        name: Mentions snapshot restore
+        path: /workspace/docs/etcd-runbook.md
+        value: etcdctl snapshot restore
+      - type: command
+        name: Mentions testing restores
+        command: "grep -Eqi 'test' /workspace/docs/etcd-runbook.md"
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

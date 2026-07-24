@@ -1,0 +1,46 @@
+version: 1
+id: sql-joins-basics
+title: Join Accounts and Payments
+summary: Use SQL joins to answer who paid what across normalized ledger tables.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [sql-query-basics]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache sqlite >/dev/null"
+  - "mkdir -p /workspace/db /workspace/sql"
+  - "sqlite3 /workspace/db/ledger.db \"CREATE TABLE accounts (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE payments (id INTEGER PRIMARY KEY, account_id INTEGER, amount INTEGER); INSERT INTO accounts VALUES (1,'alice'),(2,'bob'),(3,'carol'); INSERT INTO payments VALUES (10,1,25),(11,2,80),(12,3,120),(13,1,40);\""
+tasks:
+  - id: join-report
+    title: Build the joined report
+    description: 'Write /workspace/sql/by_account.sql that joins accounts and payments to return name and SUM(amount) grouped by account name. Save results to /workspace/sql/by_account.txt which must include alice|65 and carol|120 (pipe or space separated is fine as long as both pairs appear).'
+    hints:
+      - 'JOIN payments ON payments.account_id = accounts.id'
+      - GROUP BY accounts.name
+      - alice has two payments totaling 65.
+    checks:
+      - type: file
+        name: Join query present
+        path: /workspace/sql/by_account.sql
+        value: JOIN
+      - type: file
+        name: Aggregates amount
+        path: /workspace/sql/by_account.sql
+        value: SUM
+      - type: file
+        name: Alice total present
+        path: /workspace/sql/by_account.txt
+        value: alice
+      - type: file
+        name: Alice sum 65
+        path: /workspace/sql/by_account.txt
+        value: "65"
+      - type: file
+        name: Carol sum 120
+        path: /workspace/sql/by_account.txt
+        value: "120"
+      - type: command
+        name: Query executable
+        command: "sqlite3 /workspace/db/ledger.db < /workspace/sql/by_account.sql | grep -q alice"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

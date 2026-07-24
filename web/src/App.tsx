@@ -63,6 +63,8 @@ function LearningPathView() {
   useEffect(() => {
     request<LearningPath[]>('/api/paths').then(paths => setPath(paths[0])).catch(e => setLoadError(e.message))
   }, [])
+  const pathLabs = useMemo(() => path?.phases.flatMap(phase => phase.modules.flatMap(module => module.labs || [])) || [], [path])
+  const completedCount = pathLabs.filter(labId => statusFor(labId) === 'completed').length
   if (loadError) return <p className="error">{loadError}</p>
   if (!path) return <p className="loading">Loading learning path…</p>
   return <>
@@ -70,6 +72,7 @@ function LearningPathView() {
       <p className="eyebrow">DEVOPS ENGINEER PATH</p>
       <h1>{path.title}</h1>
       <p>{path.summary}</p>
+      <p className="meta">Progress: {completedCount}/{pathLabs.length} labs completed</p>
       {path.source && <p className="meta">{path.source}</p>}
     </section>
     {error && <p className="error">{error}</p>}
