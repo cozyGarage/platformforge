@@ -1,0 +1,40 @@
+version: 1
+id: bash-automation-basics
+title: Automate a Backup with Bash
+summary: Write a small shell script that archives a directory and records a success marker — a 90Days-style automation drill.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [linux-shell-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/data /workspace/bin"
+  - "printf 'ledger=ok\\n' > /workspace/data/app.env"
+tasks:
+  - id: backup-script
+    title: Script the backup
+    description: 'Create an executable /workspace/bin/backup.sh that archives /workspace/data into /workspace/backup.tar.gz and writes OK to /workspace/backup.status. Run the script once successfully.'
+    hints:
+      - 'Use tar -czf /workspace/backup.tar.gz -C /workspace data'
+      - chmod +x makes the script executable.
+      - Echo OK into backup.status at the end of the script.
+    checks:
+      - type: file
+        name: Script exists
+        path: /workspace/bin/backup.sh
+        value: tar
+      - type: command
+        name: Script is executable
+        command: test -x /workspace/bin/backup.sh
+      - type: command
+        name: Archive created
+        command: test -f /workspace/backup.tar.gz
+      - type: file
+        name: Status marker written
+        path: /workspace/backup.status
+        value: OK
+      - type: command
+        name: Archive contains app.env
+        command: tar -tzf /workspace/backup.tar.gz | grep -q 'app.env'
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+attribution: "Adapted from 90DaysOfDevOps Linux/automation fundamentals (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge scenario."

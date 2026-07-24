@@ -1,0 +1,41 @@
+version: 1
+id: go-testing-basics
+title: Prove Behavior with Go Tests
+summary: Extract a pure function and add a failing-then-passing unit test for payment fee calculation.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [http-json-api]
+image: golang:1.22-alpine
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace"
+  - "cd /workspace && go mod init platformforge.local/fees >/dev/null"
+tasks:
+  - id: fee-tests
+    title: Test FeeCents
+    description: 'Create /workspace/fee.go with function FeeCents(amount int) int that returns 2% of amount in cents (integer math: amount*2/100). Create /workspace/fee_test.go with a test that expects FeeCents(1000) == 20. Run go test ./... successfully and write the output to /workspace/test-output.txt.'
+    hints:
+      - 'Package name can be fees or main; keep files in the same package.'
+      - 'func TestFeeCents(t *testing.T) in fee_test.go'
+      - go test ./... | tee /workspace/test-output.txt
+    checks:
+      - type: file
+        name: Fee function defined
+        path: /workspace/fee.go
+        value: FeeCents
+      - type: file
+        name: Test file present
+        path: /workspace/fee_test.go
+        value: TestFeeCents
+      - type: file
+        name: Expects 20
+        path: /workspace/fee_test.go
+        value: "20"
+      - type: command
+        name: Tests pass
+        command: "cd /workspace && go test ./..."
+      - type: file
+        name: Output captured
+        path: /workspace/test-output.txt
+        value: PASS
+limits: {cpus: "1.0", memory: 512m, pids: 128, timeout: 1800, network: false}

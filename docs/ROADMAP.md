@@ -16,21 +16,26 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 | Phase | Focus | PlatformForge labs |
 |-------|-------|-------------------|
-| Foundations | Linux, terminal, Git | 10 labs |
+| Foundations | Linux, terminal, 90Days bridges, Git | 13 labs |
 | Containers | Docker | 3 labs |
+| HTTP & Go | Health, JSON API, tests | 3 labs |
 | Kubernetes | Core + CKA drills | 11 labs (live k3d) |
 | Delivery | CI/CD, observability, leadership | 7 labs + incident capstone |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (40 interactive + 1 capstone)
+### Lab inventory (46 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
 **Terminal** — `terminal-tmux`, `terminal-neovim`
 
+**90Days bridges** — `bash-automation-basics`, `docker-tagging-basics`, `kubernetes-yaml-basics`
+
 **Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
 **Docker** — `docker-debugging`, `docker-networking`, `docker-volumes`
+
+**HTTP & Go** — `http-health-server`, `http-json-api`, `go-testing-basics`
 
 **Kubernetes** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
 
@@ -61,9 +66,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn CI/CD | ✅ 2 labs |
 | Learn Logging & Observability | ✅ 2 labs |
 | Learn AWS | ✅ 3 local simulation labs |
-| Learn Go / Python / SQL | 📋 Planned |
-| Learn HTTP Servers | 📋 Planned |
-| Portfolio projects | 📋 After core path |
+| Learn HTTP Servers | ✅ `http-health-server`, `http-json-api` |
+| Learn Go | ✅ `go-testing-basics` (+ HTTP labs in Go) |
+| Learn Python / SQL | 📋 Planned |
+| Portfolio projects | 📋 Next priority |
 
 ## Your 5-year roadmap → PlatformForge phases
 
@@ -74,7 +80,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | 2026–2027 | PostgreSQL PITR | ✅ `postgresql-pitr` |
 | 2027 | Kafka CDC / Debezium | ✅ `kafka-debezium-cdc` |
 | 2027 | Compliance masking | ✅ `compliance-masking` |
-| 2027–2028 | CKA prep | ✅ NetworkPolicy, RBAC, troubleshooting, Ingress, storage, backup/restore |
+| 2027–2028 | CKA prep | ✅ NetworkPolicy through backup/restore |
 | 2028+ | DORA / PCI-DSS evidence | ✅ `dora-evidence`, `pci-dss-basics` |
 | 2028+ | Leadership capstones | ✅ `leadership-adr`, `leadership-postmortem` |
 
@@ -84,17 +90,17 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 
 | 90Days topic area | PlatformForge lab |
 |-------------------|-------------------|
-| Linux fundamentals | `linux-shell-basics` |
+| Linux fundamentals | `linux-shell-basics`, `bash-automation-basics` |
 | Git / version control | `git-recovery`, `git-branching` |
-| Containers | docker module |
-| Kubernetes | kubernetes + CKA modules |
+| Containers | `docker-tagging-basics` + docker module |
+| Kubernetes | `kubernetes-yaml-basics` + kubernetes/CKA modules |
 | CI/CD culture | `cicd-pipeline-fix`, `cicd-security-scan` |
 
 ## Next authoring priorities
 
-1. More 90Days day-by-day conversions (scenario rewrite + validators)
-2. Learn HTTP Servers / Go service labs
-3. Portfolio projects that stitch multiple labs into a public demo
+1. Portfolio project labs that stitch HTTP + Docker + Kubernetes into a public demo path
+2. More 90Days day conversions (networking, monitoring, cloud days)
+3. Learn Python / SQL service labs
 4. Optional etcd snapshot lab when local control-plane tooling allows
 
 ## How to add a lab

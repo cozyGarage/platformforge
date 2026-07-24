@@ -1,0 +1,46 @@
+version: 1
+id: kubernetes-yaml-basics
+title: Author a First Kubernetes Manifest
+summary: Write a valid Deployment YAML for a simple web workload using 90Days Kubernetes fundamentals.
+difficulty: beginner
+estimatedMinutes: 30
+prerequisites: [docker-tagging-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/k8s"
+tasks:
+  - id: write-deployment
+    title: Describe the desired state
+    description: 'Create /workspace/k8s/web.yaml defining a Deployment named web with labels app=web, one replica, and container image nginx:1.27-alpine exposing containerPort 80. Also write /workspace/k8s/README.md stating that kubectl apply makes desired state concrete.'
+    hints:
+      - 'kind must be Deployment under apiVersion apps/v1'
+      - selector.matchLabels and template labels should both use app=web
+      - README should mention kubectl apply.
+    checks:
+      - type: file
+        name: Deployment kind
+        path: /workspace/k8s/web.yaml
+        value: "kind: Deployment"
+      - type: file
+        name: Named web
+        path: /workspace/k8s/web.yaml
+        value: "name: web"
+      - type: file
+        name: App label
+        path: /workspace/k8s/web.yaml
+        value: "app: web"
+      - type: file
+        name: Pinned nginx image
+        path: /workspace/k8s/web.yaml
+        value: "nginx:1.27-alpine"
+      - type: file
+        name: Container port
+        path: /workspace/k8s/web.yaml
+        value: "containerPort: 80"
+      - type: file
+        name: README explains apply
+        path: /workspace/k8s/README.md
+        value: kubectl apply
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+attribution: "Adapted from 90DaysOfDevOps Kubernetes fundamentals (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge scenario."

@@ -1,0 +1,42 @@
+version: 1
+id: http-json-api
+title: Build a Tiny JSON API in Go
+summary: Extend HTTP skills with a /payments endpoint that returns JSON and a content-type header.
+difficulty: intermediate
+estimatedMinutes: 40
+prerequisites: [http-health-server]
+image: golang:1.22-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache wget iproute2 >/dev/null"
+  - "mkdir -p /workspace"
+tasks:
+  - id: payments-api
+    title: Serve JSON payments
+    description: 'Write /workspace/main.go that listens on :8080, keeps /health returning ok, and adds GET /payments returning JSON [{"id":1,"amount":25}] with Content-Type application/json. Run it in the background.'
+    hints:
+      - encoding/json or a raw JSON string both work.
+      - Set Header Content-Type to application/json before Write.
+      - Keep /health working for probes.
+    checks:
+      - type: file
+        name: Payments route present
+        path: /workspace/main.go
+        value: "/payments"
+      - type: file
+        name: Content-Type set
+        path: /workspace/main.go
+        value: application/json
+      - type: port
+        name: Port 8080 listening
+        port: 8080
+      - type: command
+        name: Health still ok
+        command: "wget -qO- http://127.0.0.1:8080/health | grep -q ok"
+      - type: command
+        name: Payments JSON body
+        command: "wget -qO- http://127.0.0.1:8080/payments | grep -q '\"amount\":25'"
+      - type: command
+        name: JSON content type
+        command: "wget -S -qO- http://127.0.0.1:8080/payments 2>&1 | grep -qi 'content-type: application/json'"
+limits: {cpus: "1.0", memory: 512m, pids: 128, timeout: 1800, network: true}
