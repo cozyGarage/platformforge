@@ -60,11 +60,14 @@ phases:
           - kubernetes-namespaces
       - id: cka-prep
         title: CKA-Style Scenarios
-        summary: NetworkPolicy, RBAC, and release troubleshooting drills.
+        summary: NetworkPolicy, RBAC, troubleshooting, Ingress, storage, and backup/restore drills.
         labs:
           - kubernetes-networkpolicy
           - kubernetes-rbac
           - kubernetes-troubleshooting
+          - kubernetes-ingress
+          - kubernetes-storage
+          - kubernetes-backup-restore
   - id: delivery
     title: Phase 4 — Delivery & Reliability
     summary: CI/CD pipelines, structured logging, and incident response.
@@ -88,6 +91,12 @@ phases:
         summary: Multi-layer production incident across Git, containers, and config.
         labs:
           - incident-capstone
+      - id: leadership
+        title: Leadership Capstones
+        summary: Capture decisions and run blameless learning reviews.
+        labs:
+          - leadership-adr
+          - leadership-postmortem
   - id: platform-engineering
     title: Phase 5 — Platform Engineering
     summary: Data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.
@@ -115,3 +124,4 @@ phases:
           - aws-iam-basics
           - aws-s3-basics
           - aws-vpc-basics
+

@@ -1,0 +1,44 @@
+version: 1
+id: kubernetes-storage
+title: Persist Data with PVC and Volume Mounts
+summary: Create a PersistentVolumeClaim and mount it into the api Deployment at /data.
+difficulty: advanced
+estimatedMinutes: 40
+prerequisites: [kubernetes-ingress]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl apply -f - <<'EOF'\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\nEOF"
+tasks:
+  - id: mount-pvc
+    title: Attach durable storage
+    description: 'Create PVC api-data requesting 1Gi ReadWriteOnce, save it to /workspace/pvc.yaml, patch the api Deployment to mount that claim at /data, save /workspace/deployment.yaml, apply both, and verify the pod mounts /data from api-data.'
+    hints:
+      - 'PVC needs accessModes ReadWriteOnce and resources.requests.storage 1Gi'
+      - Use volume claimName api-data and volumeMount mountPath /data.
+      - k3d provides a default StorageClass, so storageClassName is optional.
+    checks:
+      - type: file
+        name: PVC manifest saved
+        path: /workspace/pvc.yaml
+        value: PersistentVolumeClaim
+      - type: file
+        name: Storage requested
+        path: /workspace/pvc.yaml
+        value: 1Gi
+      - type: file
+        name: Mount path configured
+        path: /workspace/deployment.yaml
+        value: "/data"
+      - type: kubernetes
+        name: PVC bound or pending provision
+        command: kubectl get pvc api-data
+      - type: kubernetes
+        name: Volume mounted
+        command: "kubectl get deploy api -o yaml | grep -q 'claimName: api-data' && kubectl get deploy api -o yaml | grep -q 'mountPath: /data'"
+      - type: kubernetes
+        name: Pod ready with volume
+        command: kubectl wait --for=condition=ready pod -l app=api --timeout=120s
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

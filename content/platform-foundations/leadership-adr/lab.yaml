@@ -1,0 +1,54 @@
+version: 1
+id: leadership-adr
+title: Write an Architecture Decision Record
+summary: Capture a durable ADR for choosing Kubernetes Ingress over NodePort for the payments API edge.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [kubernetes-ingress]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/docs/adr /workspace/context"
+  - "printf 'We need a stable hostname for the payments API.\\nNodePort works in the lab but does not map hostnames.\\nSecurity wants TLS termination at a single edge.\\n' > /workspace/context/notes.txt"
+tasks:
+  - id: author-adr
+    title: Record the edge routing decision
+    description: 'Create /workspace/docs/adr/0001-ingress-edge.md with headings Status, Context, Decision, and Consequences. Status must be Accepted. Decision must choose Ingress (not NodePort). Consequences must mention TLS. Also write /workspace/docs/adr/README.md linking to 0001-ingress-edge.md.'
+    hints:
+      - 'ADRs stay short: context, decision, consequences.'
+      - Status line/heading value should include Accepted.
+      - README can be a one-line markdown link.
+    checks:
+      - type: file
+        name: ADR exists
+        path: /workspace/docs/adr/0001-ingress-edge.md
+        value: Status
+      - type: file
+        name: Context section
+        path: /workspace/docs/adr/0001-ingress-edge.md
+        value: Context
+      - type: file
+        name: Decision section
+        path: /workspace/docs/adr/0001-ingress-edge.md
+        value: Decision
+      - type: file
+        name: Consequences section
+        path: /workspace/docs/adr/0001-ingress-edge.md
+        value: Consequences
+      - type: file
+        name: Accepted status
+        path: /workspace/docs/adr/0001-ingress-edge.md
+        value: Accepted
+      - type: file
+        name: Chooses Ingress
+        path: /workspace/docs/adr/0001-ingress-edge.md
+        value: Ingress
+      - type: file
+        name: Mentions TLS
+        path: /workspace/docs/adr/0001-ingress-edge.md
+        value: TLS
+      - type: file
+        name: Index links ADR
+        path: /workspace/docs/adr/README.md
+        value: 0001-ingress-edge.md
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
