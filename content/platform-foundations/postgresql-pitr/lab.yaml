@@ -1,0 +1,46 @@
+version: 1
+id: postgresql-pitr
+title: Point-in-Time Recovery Drill
+summary: Reconstruct a payments table to a recovery target by replaying a base backup and WAL segments, stopping before the bad change.
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [linux-pipelines]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/backup /workspace/wal /workspace/data"
+  - "printf 'id,account,balance\\n1,alice,100\\n2,bob,50\\n' > /workspace/backup/base.csv"
+  - "printf 'UPDATE accounts SET balance=90 WHERE id=1;\\n' > /workspace/wal/000001.sql"
+  - "printf 'INSERT INTO accounts VALUES (3,carol,25);\\n' > /workspace/wal/000002.sql"
+  - "printf 'DELETE FROM accounts;\\n' > /workspace/wal/000003.sql"
+  - "printf '2026-07-24T12:00:00Z\\n' > /workspace/backup/base.timestamp"
+  - "printf '2026-07-24T12:05:00Z\\n' > /workspace/wal/000001.timestamp"
+  - "printf '2026-07-24T12:10:00Z\\n' > /workspace/wal/000002.timestamp"
+  - "printf '2026-07-24T12:15:00Z\\n' > /workspace/wal/000003.timestamp"
+  - "printf '2026-07-24T12:12:00Z\\n' > /workspace/recovery.target"
+  - "printf 'CORRUPTED\\n' > /workspace/data/accounts.csv"
+tasks:
+  - id: restore-to-target
+    title: Recover accounts before the wipe
+    description: 'Restore /workspace/data/accounts.csv to the state at recovery.target (2026-07-24T12:12:00Z) by applying base.csv plus WAL segments with timestamps at or before the target. Do not apply the DELETE in 000003.sql. Final CSV must include alice balance 90, bob 50, and carol 25.'
+    hints:
+      - recovery.target is 12:12, so apply base, 000001, and 000002 only.
+      - Start from backup/base.csv, set alice to 90, then add carol,25.
+      - Write the recovered CSV header and three rows to data/accounts.csv.
+    checks:
+      - type: file
+        name: Alice balance restored
+        path: /workspace/data/accounts.csv
+        value: "1,alice,90"
+      - type: file
+        name: Bob retained
+        path: /workspace/data/accounts.csv
+        value: "2,bob,50"
+      - type: file
+        name: Carol inserted
+        path: /workspace/data/accounts.csv
+        value: "3,carol,25"
+      - type: command
+        name: Not wiped
+        command: "! grep -q '^CORRUPTED$' /workspace/data/accounts.csv && test \"$(grep -c ',' /workspace/data/accounts.csv)\" -ge 3"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

@@ -1,0 +1,46 @@
+version: 1
+id: proxmox-planning
+title: Plan a Proxmox Homelab Platform
+summary: Turn a blank inventory into a concrete Proxmox node and VM placement plan for a FinTech lab.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [linux-filesystems]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/plan"
+  - "printf 'nodes:\\n  - name: REPLACE\\n    cpu: 0\\n    memory_gb: 0\\n    storage_gb: 0\\nvms:\\n  - name: REPLACE\\n    node: REPLACE\\n    role: REPLACE\\n' > /workspace/plan/inventory.yaml"
+tasks:
+  - id: inventory-plan
+    title: Fill the platform inventory
+    description: 'Update plan/inventory.yaml with node pve01 (cpu 8, memory_gb 64, storage_gb 1000) and VMs db01 (role postgres) plus kafka01 (role kafka) both placed on pve01. Also write plan/network.md mentioning a management VLAN and a storage VLAN.'
+    hints:
+      - Node name must be pve01 with the exact resource numbers.
+      - VM names db01 and kafka01 must appear with roles postgres and kafka.
+      - network.md should mention management and storage VLANs.
+    checks:
+      - type: file
+        name: Node named
+        path: /workspace/plan/inventory.yaml
+        value: pve01
+      - type: file
+        name: CPU planned
+        path: /workspace/plan/inventory.yaml
+        value: "cpu: 8"
+      - type: file
+        name: Memory planned
+        path: /workspace/plan/inventory.yaml
+        value: "memory_gb: 64"
+      - type: file
+        name: DB VM planned
+        path: /workspace/plan/inventory.yaml
+        value: db01
+      - type: file
+        name: Kafka VM planned
+        path: /workspace/plan/inventory.yaml
+        value: kafka01
+      - type: file
+        name: Network plan mentions VLANs
+        path: /workspace/plan/network.md
+        value: VLAN
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

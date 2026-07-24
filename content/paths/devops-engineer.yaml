@@ -19,13 +19,12 @@ phases:
           - linux-filesystems
       - id: learn-git
         title: Learn Git
-        summary: History recovery, branching, and safe collaboration.
+        summary: History recovery, branching, remotes, and safe collaboration.
         source: "Boot.dev — Learn Git"
         labs:
           - git-recovery
           - git-branching
           - git-rebase-reset
-        comingSoon:
           - git-remotes
   - id: containers
     title: Phase 2 — Containers & Networking
@@ -45,14 +44,13 @@ phases:
     modules:
       - id: learn-kubernetes
         title: Learn Kubernetes
-        summary: Deployments, Services, and ConfigMaps with kubectl.
+        summary: Deployments, Services, ConfigMaps, scaling, and namespaces with kubectl.
         source: "Boot.dev — Learn Kubernetes"
         labs:
           - kubernetes-deploy
           - kubernetes-service
           - kubernetes-configmap
           - kubernetes-scaling
-        comingSoon:
           - kubernetes-namespaces
   - id: delivery
     title: Phase 4 — Delivery & Reliability
@@ -60,19 +58,17 @@ phases:
     modules:
       - id: learn-cicd
         title: Learn CI/CD
-        summary: Fix broken pipelines and ship safely.
+        summary: Fix broken pipelines, add security gates, and ship safely.
         source: "Boot.dev — Learn CI/CD"
         labs:
           - cicd-pipeline-fix
-        comingSoon:
           - cicd-security-scan
       - id: learn-observability
         title: Logging & Observability
-        summary: Structured logs, metrics mindset, and on-call debugging.
+        summary: Structured logs, metrics, alerts, and on-call debugging.
         source: "Boot.dev — Learn Logging and Observability"
         labs:
           - observability-structured-logs
-        comingSoon:
           - observability-metrics-alerts
       - id: capstone
         title: Incident Capstone
@@ -80,25 +76,22 @@ phases:
         labs:
           - incident-capstone
   - id: platform-engineering
-    title: Phase 5 — Platform Engineering (Roadmap)
-    summary: Advanced topics from your 5-year FinTech architect roadmap — added over time.
+    title: Phase 5 — Platform Engineering
+    summary: Data, compliance, and bare-metal platform skills from the FinTech architect roadmap.
     modules:
       - id: data-platform
         title: Data & Streaming
-        comingSoon:
+        labs:
           - postgresql-pitr
           - kafka-debezium-cdc
-          - compliance-masking
-        labs: []
       - id: compliance
         title: Compliance & Security
-        comingSoon:
+        labs:
+          - compliance-masking
           - dora-evidence
           - pci-dss-basics
-        labs: []
       - id: bare-metal
         title: Bare Metal & Virtualization
-        comingSoon:
+        labs:
           - proxmox-planning
           - debian-platform-baseline
-        labs: []

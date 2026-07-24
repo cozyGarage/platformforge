@@ -16,23 +16,29 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 | Phase | Boot.dev equivalent | PlatformForge labs |
 |-------|---------------------|-------------------|
-| Foundations | Learn Linux, Learn Git | 6 labs (linux + git) |
+| Foundations | Learn Linux, Learn Git | 8 labs (linux + git) |
 | Containers | Learn Docker | 3 labs |
-| Kubernetes | Learn Kubernetes | 3 labs (live k3d) |
-| Delivery | CI/CD + Observability | 3 labs + capstone |
-| Platform Engineering | AWS, SQL, Go (future) | coming soon |
+| Kubernetes | Learn Kubernetes | 5 labs (live k3d) |
+| Delivery | CI/CD + Observability | 5 labs + capstone |
+| Platform Engineering | Data, compliance, bare metal | 7 labs |
 
-### Lab inventory (17 interactive + 1 capstone)
+### Lab inventory (28 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
-**Git** — `git-recovery`, `git-branching`, `git-rebase-reset`
+**Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
 **Docker** — `docker-debugging`, `docker-networking`, `docker-volumes`
 
-**Kubernetes (k3d)** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`
+**Kubernetes (k3d)** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
 
-**CI/CD & Observability** — `cicd-pipeline-fix`, `observability-structured-logs`
+**CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
+
+**Data platform** — `postgresql-pitr`, `kafka-debezium-cdc`
+
+**Compliance** — `compliance-masking`, `dora-evidence`, `pci-dss-basics`
+
+**Bare metal** — `proxmox-planning`, `debian-platform-baseline`
 
 **Capstone** — `incident-capstone`
 
@@ -41,29 +47,27 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Boot.dev course | Status |
 |-----------------|--------|
 | Learn Linux | ✅ 4 labs |
-| Learn Git | ✅ 3 labs (more planned) |
+| Learn Git | ✅ 4 labs |
 | Learn Docker | ✅ 3 labs |
-| Learn Kubernetes | ✅ 4 labs |
-| Learn CI/CD | ✅ 1 lab |
-| Learn Logging & Observability | ✅ 1 lab |
-| Learn Go / Python / SQL | 📋 Planned |
+| Learn Kubernetes | ✅ 5 labs |
+| Learn CI/CD | ✅ 2 labs |
+| Learn Logging & Observability | ✅ 2 labs |
+| Learn Go / Python / SQL | 📋 Planned (PITR + CDC cover data ops drills) |
 | Learn AWS | 📋 Planned (local simulations first) |
 | Learn HTTP Servers | 📋 Planned |
 | Portfolio projects | 📋 After core path |
 
 ## Your 5-year roadmap → PlatformForge phases
 
-From your FinTech architect roadmap (`gemini-code` context):
-
 | Year / Phase | Topic | PlatformForge plan |
 |--------------|-------|-------------------|
-| 2026 H2 | Proxmox/Debian platform execution | `proxmox-planning` (config exercises, homelab provider later) |
+| 2026 H2 | Proxmox/Debian platform execution | ✅ `proxmox-planning`, `debian-platform-baseline` |
 | 2026 H2 | Terminal mastery (Neovim/Tmux) | Optional editor labs after Linux path |
-| 2026–2027 | PostgreSQL PITR | `postgresql-pitr` lab pack |
-| 2027 | Kafka CDC / Debezium | `kafka-debezium-cdc` |
-| 2027 | Compliance masking | `compliance-masking` |
+| 2026–2027 | PostgreSQL PITR | ✅ `postgresql-pitr` |
+| 2027 | Kafka CDC / Debezium | ✅ `kafka-debezium-cdc` |
+| 2027 | Compliance masking | ✅ `compliance-masking` |
 | 2027–2028 | CKA prep | Expand Kubernetes track (CKA-style scenarios) |
-| 2028+ | DORA / PCI-DSS evidence | `dora-evidence`, `pci-dss-basics` |
+| 2028+ | DORA / PCI-DSS evidence | ✅ `dora-evidence`, `pci-dss-basics` |
 | 2028+ | Leadership capstones | Architecture decision records, postmortems |
 
 ## 90DaysOfDevOps attribution
@@ -76,15 +80,14 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 | Git / version control | `git-recovery`, `git-branching` |
 | Containers | docker module |
 | Kubernetes | kubernetes module |
-| CI/CD culture | `cicd-pipeline-fix` |
+| CI/CD culture | `cicd-pipeline-fix`, `cicd-security-scan` |
 
 ## Next authoring priorities
 
-1. `git-rebase-reset`, `git-remotes` — complete Git track
-2. `kubernetes-scaling`, `kubernetes-namespaces` — Boot.dev K8s depth
-3. `postgresql-pitr` — aligns with your Phase 1 database goal
-4. `cicd-security-scan` — supply chain basics
-5. More 90Days day-by-day conversions (scenario rewrite + validators)
+1. CKA-style Kubernetes scenarios (network policies, RBAC, troubleshooting)
+2. Optional Neovim/Tmux terminal mastery labs
+3. Local AWS simulations (IAM, S3, VPC mental models)
+4. More 90Days day-by-day conversions (scenario rewrite + validators)
 
 ## How to add a lab
 

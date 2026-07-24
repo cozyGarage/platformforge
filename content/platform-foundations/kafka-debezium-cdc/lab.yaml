@@ -1,0 +1,39 @@
+version: 1
+id: kafka-debezium-cdc
+title: Capture Database Changes with CDC
+summary: Configure a Debezium-style connector and materialize change events into a sink table file.
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [postgresql-pitr]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache jq >/dev/null"
+  - "mkdir -p /workspace/connector /workspace/events /workspace/sink"
+  - "printf '{\"name\":\"payments-connector\",\"config\":{\"connector.class\":\"io.debezium.connector.postgresql.PostgresConnector\",\"database.hostname\":\"db\",\"topic.prefix\":\"\",\"table.include.list\":\"public.payments\"}}\\n' > /workspace/connector/payments.json"
+  - "printf '{\"op\":\"c\",\"after\":{\"id\":1,\"amount\":25}}\\n{\"op\":\"u\",\"after\":{\"id\":1,\"amount\":40}}\\n{\"op\":\"d\",\"before\":{\"id\":2,\"amount\":10}}\\n' > /workspace/events/payments.jsonl"
+tasks:
+  - id: cdc-pipeline
+    title: Wire connector and sink
+    description: 'Set topic.prefix to fintech in connector/payments.json, write /workspace/sink/payments.csv with header id,amount,op containing only create/update rows from events (final amounts), and write the event count to /workspace/sink/event-count.txt.'
+    hints:
+      - 'topic.prefix should be the string fintech.'
+      - Keep ops c and u; skip deletes (op d).
+      - Final CSV should reflect id 1 with amount 40 after the update.
+    checks:
+      - type: file
+        name: Topic prefix set
+        path: /workspace/connector/payments.json
+        value: fintech
+      - type: file
+        name: Sink has create/update row
+        path: /workspace/sink/payments.csv
+        value: "1,40,"
+      - type: command
+        name: Deletes excluded
+        command: "! grep -q ',d$' /workspace/sink/payments.csv && ! grep -q '^2,' /workspace/sink/payments.csv"
+      - type: file
+        name: Event count recorded
+        path: /workspace/sink/event-count.txt
+        value: "3"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

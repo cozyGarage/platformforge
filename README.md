@@ -75,7 +75,7 @@ curl http://127.0.0.1:8080/api/labs/linux-navigation/status
 
 The server binds to loopback by default. Review third-party course packs before running them.
 
-The original `platform-foundations` course includes five guided labs and an incident capstone spanning Linux, Git, containers, networking, Kubernetes, and incident response.
+The `platform-foundations` pack and DevOps Engineer path include guided labs spanning Linux, Git, containers, Kubernetes, CI/CD, observability, data/CDC, compliance, bare-metal planning, and an incident capstone.
 
 ## Development
 

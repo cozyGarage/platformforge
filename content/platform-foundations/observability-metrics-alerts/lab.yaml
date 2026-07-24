@@ -1,0 +1,39 @@
+version: 1
+id: observability-metrics-alerts
+title: Turn Metrics into an Alert
+summary: Compute an HTTP error rate from Prometheus-style metrics and author a threshold alert plus on-call note.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [observability-structured-logs]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache bc >/dev/null"
+  - "mkdir -p /workspace/metrics /workspace/alerts"
+  - "printf 'http_requests_total{status=\"200\"} 900\\nhttp_requests_total{status=\"500\"} 100\\n' > /workspace/metrics/api.prom"
+tasks:
+  - id: alert-from-metrics
+    title: Page when error rate is high
+    description: 'From metrics/api.prom, write the error rate percent (500s / total * 100) as an integer to /workspace/error-rate.txt. Create /workspace/alerts/api-high-errors.yaml with alert name APIHighErrorRate and threshold 5. Write a one-line on-call note to /workspace/runbook.txt mentioning rollback.'
+    hints:
+      - Error rate percent is 100 * 500s / (200s + 500s); for these metrics that is 10.
+      - 'Alert YAML should include APIHighErrorRate and a threshold value of 5.'
+      - runbook.txt should mention rollback as the first mitigation.
+    checks:
+      - type: file
+        name: Error rate recorded
+        path: /workspace/error-rate.txt
+        value: "10"
+      - type: file
+        name: Alert name present
+        path: /workspace/alerts/api-high-errors.yaml
+        value: APIHighErrorRate
+      - type: file
+        name: Threshold configured
+        path: /workspace/alerts/api-high-errors.yaml
+        value: "5"
+      - type: file
+        name: Runbook mentions rollback
+        path: /workspace/runbook.txt
+        value: rollback
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
