@@ -1,0 +1,52 @@
+version: 1
+id: portfolio-payments-api
+title: Portfolio — Payments API Service
+summary: Ship a demo-ready Go payments service with /health, /payments, and a project README.
+difficulty: intermediate
+estimatedMinutes: 40
+prerequisites: [http-json-api, go-testing-basics]
+image: golang:1.22-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache wget iproute2 >/dev/null"
+  - "mkdir -p /workspace"
+  - "cd /workspace && go mod init github.com/example/payments-api >/dev/null"
+tasks:
+  - id: payments-service
+    title: Build the portfolio service
+    description: 'Create /workspace/main.go serving /health (ok) and /payments (JSON [{"id":1,"amount":25}]) on :8080 with Content-Type application/json for /payments. Write /workspace/README.md with headings Overview, Run locally, and Endpoints. Start the server in the background.'
+    hints:
+      - Reuse patterns from http-json-api.
+      - README should mention go run . and list both endpoints.
+      - Keep go.mod module path as initialized.
+    checks:
+      - type: file
+        name: Health route
+        path: /workspace/main.go
+        value: "/health"
+      - type: file
+        name: Payments route
+        path: /workspace/main.go
+        value: "/payments"
+      - type: file
+        name: Overview section
+        path: /workspace/README.md
+        value: Overview
+      - type: file
+        name: Run locally section
+        path: /workspace/README.md
+        value: Run locally
+      - type: file
+        name: Endpoints section
+        path: /workspace/README.md
+        value: Endpoints
+      - type: port
+        name: Listening on 8080
+        port: 8080
+      - type: command
+        name: Health ok
+        command: "wget -qO- http://127.0.0.1:8080/health | grep -q ok"
+      - type: command
+        name: Payments JSON
+        command: "wget -qO- http://127.0.0.1:8080/payments | grep -q '\"amount\":25'"
+limits: {cpus: "1.0", memory: 512m, pids: 128, timeout: 1800, network: true}

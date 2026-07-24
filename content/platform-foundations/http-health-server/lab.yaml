@@ -1,0 +1,43 @@
+version: 1
+id: http-health-server
+title: Serve a Go Health Endpoint
+summary: Write a tiny Go HTTP server that listens on :8080 and answers /health with ok.
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [linux-pipelines]
+image: golang:1.22-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache wget iproute2 >/dev/null"
+  - "mkdir -p /workspace"
+tasks:
+  - id: health-server
+    title: Implement and run /health
+    description: 'Create /workspace/main.go that listens on :8080 and responds to GET /health with body ok. Start the server in the background, then ensure /health returns ok.'
+    hints:
+      - 'net/http HandleFunc and ListenAndServe(":8080", nil) are enough'
+      - Run with go run /workspace/main.go &
+      - wget -qO- http://127.0.0.1:8080/health
+    checks:
+      - type: file
+        name: Uses net/http
+        path: /workspace/main.go
+        value: net/http
+      - type: file
+        name: Health route registered
+        path: /workspace/main.go
+        value: "/health"
+      - type: file
+        name: Listens on 8080
+        path: /workspace/main.go
+        value: ":8080"
+      - type: port
+        name: Port 8080 listening
+        port: 8080
+      - type: http
+        name: Health returns ok
+        value: http://127.0.0.1:8080/health
+      - type: command
+        name: Body is ok
+        command: "wget -qO- http://127.0.0.1:8080/health | grep -q '^ok$'"
+limits: {cpus: "1.0", memory: 512m, pids: 128, timeout: 1800, network: true}

@@ -1,0 +1,41 @@
+version: 1
+id: docker-tagging-basics
+title: Pin and Tag Container Images
+summary: Replace floating tags with a pinned image reference and document a release tag naming convention.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [bash-automation-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "printf 'FROM alpine:latest\\nCMD [\"sleep\",\"infinity\"]\\n' > /workspace/Dockerfile"
+  - "mkdir -p /workspace/docs"
+tasks:
+  - id: pin-and-tag
+    title: Make the image reproducible
+    description: 'Pin the Dockerfile base image to alpine:3.21, write /workspace/IMAGE_TAG.txt containing payments-api:1.0.0, and create /workspace/docs/tagging.md explaining that latest is forbidden for production.'
+    hints:
+      - Replace alpine:latest with alpine:3.21.
+      - IMAGE_TAG.txt should be exactly payments-api:1.0.0
+      - tagging.md should mention latest and production.
+    checks:
+      - type: command
+        name: Base image pinned
+        command: "grep -Eq '^FROM alpine:3\\.21$' /workspace/Dockerfile"
+      - type: command
+        name: Latest removed
+        command: "! grep -Eq 'alpine:latest' /workspace/Dockerfile"
+      - type: file
+        name: Release tag recorded
+        path: /workspace/IMAGE_TAG.txt
+        value: "payments-api:1.0.0"
+      - type: file
+        name: Tagging policy mentions latest
+        path: /workspace/docs/tagging.md
+        value: latest
+      - type: file
+        name: Tagging policy mentions production
+        path: /workspace/docs/tagging.md
+        value: production
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+attribution: "Adapted from 90DaysOfDevOps containers topics (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge scenario."

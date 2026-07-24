@@ -23,6 +23,14 @@ phases:
         labs:
           - terminal-tmux
           - terminal-neovim
+      - id: ninety-days-bridge
+        title: 90Days Topic Bridges
+        summary: Scenario rewrites from 90DaysOfDevOps with PlatformForge validators.
+        source: "Adapted from 90DaysOfDevOps (CC BY-NC-SA 4.0)"
+        labs:
+          - bash-automation-basics
+          - docker-tagging-basics
+          - kubernetes-yaml-basics
       - id: learn-git
         title: Learn Git
         summary: History recovery, branching, remotes, and safe collaboration.
@@ -44,6 +52,18 @@ phases:
           - docker-debugging
           - docker-networking
           - docker-volumes
+  - id: application-dev
+    title: Phase 2b — HTTP & Go
+    summary: Build small Go services with health checks, JSON APIs, and unit tests.
+    modules:
+      - id: learn-http-go
+        title: Learn HTTP Servers & Go
+        summary: Health endpoints, JSON handlers, and go test.
+        source: "Boot.dev — Learn HTTP Servers / Learn Go"
+        labs:
+          - http-health-server
+          - http-json-api
+          - go-testing-basics
   - id: kubernetes
     title: Phase 3 — Kubernetes
     summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls.
@@ -97,6 +117,14 @@ phases:
         labs:
           - leadership-adr
           - leadership-postmortem
+      - id: portfolio-project
+        title: Portfolio Project
+        summary: Stitch HTTP, Docker, and Kubernetes into a public demo path.
+        labs:
+          - portfolio-payments-api
+          - portfolio-containerize
+          - portfolio-ship-k8s
+          - portfolio-showcase
   - id: platform-engineering
     title: Phase 5 — Platform Engineering
     summary: Data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.

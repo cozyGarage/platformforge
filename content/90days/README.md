@@ -11,3 +11,6 @@ This pack adapts topics from [90DaysOfDevOps](https://github.com/MichaelCade/90D
 | Lab | Source inspiration |
 |-----|-------------------|
 | `linux-shell-basics` | Early Linux / terminal fundamentals from 90Days 2022 |
+| `bash-automation-basics` | Linux scripting / automation fundamentals |
+| `docker-tagging-basics` | Containers — image tags and reproducibility |
+| `kubernetes-yaml-basics` | Kubernetes desired-state YAML fundamentals |

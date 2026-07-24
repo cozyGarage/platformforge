@@ -1,0 +1,51 @@
+version: 1
+id: portfolio-ship-k8s
+title: Portfolio — Ship to Kubernetes
+summary: Deploy the payments API with Deployment, Service, and Ingress on a live k3d cluster.
+difficulty: advanced
+estimatedMinutes: 45
+prerequisites: [portfolio-containerize, kubernetes-ingress]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "mkdir -p /workspace/k8s"
+tasks:
+  - id: release-manifests
+    title: Deploy payments on k3d
+    description: 'Create and apply /workspace/k8s/deployment.yaml (Deployment payments, image nginx:1.27-alpine as stand-in, label app=payments, 2 replicas), /workspace/k8s/service.yaml (Service payments port 80 → app=payments), and /workspace/k8s/ingress.yaml (host payments.local path / → Service payments:80). Wait until pods are Ready.'
+    hints:
+      - Use nginx:1.27-alpine as the demo image stand-in for the API container.
+      - Service selector must match pod labels app=payments.
+      - Ingress host payments.local with Prefix path /.
+    checks:
+      - type: file
+        name: Deployment manifest
+        path: /workspace/k8s/deployment.yaml
+        value: "kind: Deployment"
+      - type: file
+        name: Two replicas
+        path: /workspace/k8s/deployment.yaml
+        value: "replicas: 2"
+      - type: file
+        name: Service manifest
+        path: /workspace/k8s/service.yaml
+        value: "kind: Service"
+      - type: file
+        name: Ingress host
+        path: /workspace/k8s/ingress.yaml
+        value: payments.local
+      - type: kubernetes
+        name: Deployment ready desire
+        command: "kubectl get deploy payments -o jsonpath='{.spec.replicas}' | grep -q 2"
+      - type: kubernetes
+        name: Service exists
+        command: kubectl get svc payments
+      - type: kubernetes
+        name: Ingress exists
+        command: kubectl get ingress payments
+      - type: kubernetes
+        name: Pods ready
+        command: kubectl wait --for=condition=ready pod -l app=payments --timeout=120s
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}
