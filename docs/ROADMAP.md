@@ -22,7 +22,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Delivery | CI/CD, observability, leadership | 7 labs + incident capstone |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (41 interactive + 1 capstone)
+### Lab inventory (40 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
