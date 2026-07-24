@@ -1,0 +1,43 @@
+version: 1
+id: portfolio-containerize
+title: Portfolio — Containerize the API
+summary: Package the payments API in a reproducible Dockerfile with a non-root user and pinned base image.
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [portfolio-payments-api, docker-debugging]
+image: golang:1.22-alpine
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace"
+  - "cd /workspace && go mod init github.com/example/payments-api >/dev/null"
+  - "cat > /workspace/main.go <<'EOF'\npackage main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\thttp.HandleFunc(\"/health\", func(w http.ResponseWriter, r *http.Request) {\n\t\tfmt.Fprint(w, \"ok\")\n\t})\n\thttp.HandleFunc(\"/payments\", func(w http.ResponseWriter, r *http.Request) {\n\t\tw.Header().Set(\"Content-Type\", \"application/json\")\n\t\tw.Write([]byte(`[{\"id\":1,\"amount\":25}]`))\n\t})\n\thttp.ListenAndServe(\":8080\", nil)\n}\nEOF"
+tasks:
+  - id: dockerfile
+    title: Write a production-minded Dockerfile
+    description: 'Create /workspace/Dockerfile that builds from golang:1.22-alpine, runs as non-root user app, exposes 8080, and sets the container command to the compiled payments binary (or go run). Also write /workspace/.dockerignore excluding .git. Pin versions — do not use latest.'
+    hints:
+      - Multi-stage is welcome but not required.
+      - 'USER app (or UID 1000) after adduser'
+      - EXPOSE 8080 and a CMD/ENTRYPOINT that starts the API.
+    checks:
+      - type: command
+        name: Golang base pinned
+        command: "grep -Eq 'FROM golang:1\\.22-alpine' /workspace/Dockerfile"
+      - type: command
+        name: No latest tag
+        command: "! grep -Eqi 'latest' /workspace/Dockerfile"
+      - type: command
+        name: Non-root user
+        command: "grep -Eq '^USER (app|1000)$' /workspace/Dockerfile"
+      - type: file
+        name: Exposes 8080
+        path: /workspace/Dockerfile
+        value: "8080"
+      - type: command
+        name: Starts the service
+        command: "grep -Eq '^(CMD|ENTRYPOINT)' /workspace/Dockerfile"
+      - type: file
+        name: Dockerignore excludes git
+        path: /workspace/.dockerignore
+        value: .git
+limits: {cpus: "1.0", memory: 512m, pids: 128, timeout: 1800, network: false}

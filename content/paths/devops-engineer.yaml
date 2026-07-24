@@ -117,6 +117,14 @@ phases:
         labs:
           - leadership-adr
           - leadership-postmortem
+      - id: portfolio-project
+        title: Portfolio Project
+        summary: Stitch HTTP, Docker, and Kubernetes into a public demo path.
+        labs:
+          - portfolio-payments-api
+          - portfolio-containerize
+          - portfolio-ship-k8s
+          - portfolio-showcase
   - id: platform-engineering
     title: Phase 5 — Platform Engineering
     summary: Data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.

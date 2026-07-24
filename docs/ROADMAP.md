@@ -20,10 +20,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Containers | Docker | 3 labs |
 | HTTP & Go | Health, JSON API, tests | 3 labs |
 | Kubernetes | Core + CKA drills | 11 labs (live k3d) |
-| Delivery | CI/CD, observability, leadership | 7 labs + incident capstone |
+| Delivery | CI/CD, observability, leadership, portfolio | 11 labs + incident capstone |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (46 interactive + 1 capstone)
+### Lab inventory (50 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -44,6 +44,8 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
 
 **Leadership** — `leadership-adr`, `leadership-postmortem`
+
+**Portfolio project** — `portfolio-payments-api`, `portfolio-containerize`, `portfolio-ship-k8s`, `portfolio-showcase`
 
 **Data platform** — `postgresql-pitr`, `kafka-debezium-cdc`
 
@@ -69,7 +71,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn HTTP Servers | ✅ `http-health-server`, `http-json-api` |
 | Learn Go | ✅ `go-testing-basics` (+ HTTP labs in Go) |
 | Learn Python / SQL | 📋 Planned |
-| Portfolio projects | 📋 Next priority |
+| Portfolio projects | ✅ 4-lab payments demo path |
 
 ## Your 5-year roadmap → PlatformForge phases
 
@@ -98,10 +100,10 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 
 ## Next authoring priorities
 
-1. Portfolio project labs that stitch HTTP + Docker + Kubernetes into a public demo path
-2. More 90Days day conversions (networking, monitoring, cloud days)
-3. Learn Python / SQL service labs
-4. Optional etcd snapshot lab when local control-plane tooling allows
+1. More 90Days day conversions (networking, monitoring, cloud days)
+2. Learn Python / SQL service labs
+3. Optional etcd snapshot lab when local control-plane tooling allows
+4. Portfolio polish (real image build/push when registry tooling is available)
 
 ## How to add a lab
 

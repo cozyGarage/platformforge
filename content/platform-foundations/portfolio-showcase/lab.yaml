@@ -1,0 +1,57 @@
+version: 1
+id: portfolio-showcase
+title: Portfolio — Public Demo Writeup
+summary: Write the DEMO.md hiring managers read — architecture, runbook, and evidence of the full path.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [portfolio-ship-k8s, leadership-adr]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/docs /workspace/k8s"
+  - "printf 'apiVersion: apps/v1\\nkind: Deployment\\nmetadata:\\n  name: payments\\n' > /workspace/k8s/deployment.yaml"
+tasks:
+  - id: demo-pack
+    title: Publish the demo narrative
+    description: 'Create /workspace/DEMO.md with headings Architecture, Local run, Kubernetes demo, and What I learned. Architecture must mention Go, Docker, and Kubernetes. Local run must mention go run or Dockerfile. Kubernetes demo must mention Ingress or payments.local. Also write /workspace/docs/ARCHITECTURE.md containing a mermaid flowchart code fence.'
+    hints:
+      - Keep DEMO.md recruiter-friendly and short.
+      - 'ARCHITECTURE.md should include a mermaid code fence.'
+      - Mention the payments API path end-to-end.
+    checks:
+      - type: file
+        name: Architecture heading
+        path: /workspace/DEMO.md
+        value: Architecture
+      - type: file
+        name: Local run heading
+        path: /workspace/DEMO.md
+        value: Local run
+      - type: file
+        name: Kubernetes demo heading
+        path: /workspace/DEMO.md
+        value: Kubernetes demo
+      - type: file
+        name: What I learned heading
+        path: /workspace/DEMO.md
+        value: What I learned
+      - type: file
+        name: Mentions Go
+        path: /workspace/DEMO.md
+        value: Go
+      - type: file
+        name: Mentions Docker
+        path: /workspace/DEMO.md
+        value: Docker
+      - type: file
+        name: Mentions Kubernetes
+        path: /workspace/DEMO.md
+        value: Kubernetes
+      - type: command
+        name: Mentions Ingress or host
+        command: "grep -Eqi 'ingress|payments\\.local' /workspace/DEMO.md"
+      - type: file
+        name: Mermaid diagram present
+        path: /workspace/docs/ARCHITECTURE.md
+        value: mermaid
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
