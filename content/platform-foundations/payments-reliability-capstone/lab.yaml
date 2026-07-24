@@ -1,0 +1,86 @@
+version: 1
+id: payments-reliability-capstone
+title: Capstone — Stabilize Payments Reliability
+summary: Restore a broken checkout release, reconcile the ledger, add an alert, and leave an auditable incident record.
+difficulty: capstone
+estimatedMinutes: 70
+prerequisites: [incident-capstone, sql-query-basics, observability-metrics-alerts]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git sqlite >/dev/null"
+  - "mkdir -p /workspace/sql /workspace/alerts /workspace/db"
+  - "cd /workspace && git init -q && git config user.email learner@platformforge.local && git config user.name Learner"
+  - "printf 'services:\\n  checkout:\\n    image: checkout:latest\\n    environment:\\n      REDIS_URL: redis://localhost:6379\\n  redis:\\n    image: redis:7-alpine\\n' > /workspace/compose.yaml"
+  - "printf 'apiVersion: apps/v1\\nkind: Deployment\\nmetadata:\\n  name: checkout\\nspec:\\n  replicas: 1\\n' > /workspace/deployment.yaml"
+  - "sqlite3 /workspace/db/ledger.db \"CREATE TABLE payments (id INTEGER PRIMARY KEY, account TEXT, amount INTEGER); CREATE TABLE settlements (payment_id INTEGER, amount INTEGER); INSERT INTO payments VALUES (1,'alice',100),(2,'bob',50),(3,'carol',75); INSERT INTO settlements VALUES (1,100),(2,40),(3,70);\""
+  - "printf 'http_requests_total{status=\"200\"} 800\\nhttp_requests_total{status=\"500\"} 200\\n' > /workspace/metrics.prom"
+  - "cd /workspace && git add . && git commit -qm 'broken payments release'"
+tasks:
+  - id: restore-release
+    title: Repair the release topology
+    description: 'Pin checkout to image checkout:1.5.0, set REDIS_URL to redis://redis:6379, and scale the Kubernetes deployment to 3 replicas.'
+    hints:
+      - 'Replace localhost with the Compose service hostname redis.'
+      - 'Pin the moving tag to checkout:1.5.0.'
+      - 'replicas: 3 is the intended production capacity.'
+    checks:
+      - type: command
+        name: Checkout image pinned
+        command: "grep -q 'image: checkout:1.5.0' /workspace/compose.yaml"
+      - type: command
+        name: Redis hostname corrected
+        command: "grep -q 'redis://redis:6379' /workspace/compose.yaml"
+      - type: command
+        name: Deployment scaled to three
+        command: "grep -q 'replicas: 3' /workspace/deployment.yaml"
+  - id: reconcile-ledger
+    title: Reconcile payment settlements
+    description: 'Write /workspace/sql/reconcile.sql that counts payments whose settlement amount differs (or is missing). Save that count to /workspace/sql/mismatches.txt (should be 2 initially). Then write /workspace/sql/fix.sql that corrects bob to 50 and carol to 75, apply it, and overwrite mismatches.txt so it contains 0.'
+    hints:
+      - 'LEFT JOIN settlements ON payments.id = settlements.payment_id and compare amounts.'
+      - 'sqlite3 /workspace/db/ledger.db < /workspace/sql/reconcile.sql > /workspace/sql/mismatches.txt'
+      - 'After fix.sql, re-run reconcile and confirm mismatches.txt is 0.'
+    checks:
+      - type: file
+        name: Reconcile query present
+        path: /workspace/sql/reconcile.sql
+        value: settlements
+      - type: file
+        name: Fix script present
+        path: /workspace/sql/fix.sql
+        value: "50"
+      - type: command
+        name: Ledger fully reconciled
+        command: "test \"$(cat /workspace/sql/mismatches.txt | tr -d '[:space:]')\" = '0' && sqlite3 /workspace/db/ledger.db \"SELECT COUNT(*) FROM payments p LEFT JOIN settlements s ON p.id = s.payment_id WHERE s.amount IS NULL OR s.amount != p.amount;\" | grep -qx '0'"
+  - id: alert-and-evidence
+    title: Alert and document the incident
+    description: 'From metrics.prom, write the integer error-rate percent to /workspace/error-rate.txt (200/1000*100 = 20). Create /workspace/alerts/payment-errors.yaml with alert name PaymentErrorRate and threshold 5. Write /workspace/incident.md with headings Root cause, Mitigation, and Follow-up (mention reconciliation). Commit all changes so git status is clean.'
+    hints:
+      - 'Error rate percent is 20 for the supplied metrics.'
+      - 'incident.md should include Markdown headings Root cause, Mitigation, and Follow-up.'
+      - 'Confirm git status --porcelain is empty after committing.'
+    checks:
+      - type: file
+        name: Error rate recorded
+        path: /workspace/error-rate.txt
+        value: "20"
+      - type: file
+        name: Alert name present
+        path: /workspace/alerts/payment-errors.yaml
+        value: PaymentErrorRate
+      - type: file
+        name: Alert threshold present
+        path: /workspace/alerts/payment-errors.yaml
+        value: "5"
+      - type: file
+        name: Root cause documented
+        path: /workspace/incident.md
+        value: Root cause
+      - type: command
+        name: Mitigation and follow-up present
+        command: "grep -q 'Mitigation' /workspace/incident.md && grep -q 'Follow-up' /workspace/incident.md && grep -qi 'reconcil' /workspace/incident.md"
+      - type: command
+        name: Recovery committed
+        command: "cd /workspace && test \"$(git rev-list --count HEAD)\" -ge 2 && test -z \"$(git status --porcelain)\""
+limits: {cpus: "1.0", memory: 256m, pids: 128, timeout: 3600, network: false}

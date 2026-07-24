@@ -1,0 +1,113 @@
+version: 1
+id: compliance-release-capstone
+title: Capstone — Ship a Compliant Data Release
+summary: Mask a customer export, produce DORA evidence, write an audit pack, and scope a least-privilege IAM role before release.
+difficulty: capstone
+estimatedMinutes: 65
+prerequisites: [compliance-masking, dora-evidence, aws-iam-basics, leadership-postmortem]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git jq >/dev/null"
+  - "mkdir -p /workspace/export /workspace/evidence /workspace/iam /workspace/logs"
+  - "cd /workspace && git init -q && git config user.email learner@platformforge.local && git config user.name Learner"
+  - "printf 'id,name,email,pan,ssn\\n1,Ada Lovelace,ada@example.com,4111111111111111,123-45-6789\\n2,Alan Turing,alan@example.com,5500000000000004,987-65-4321\\n' > /workspace/export/customers.raw.csv"
+  - "printf '2026-07-01T10:00:00Z deploy payments 2.0.0\\n2026-07-02T11:00:00Z deploy payments 2.0.1\\n2026-07-03T09:00:00Z deploy payments 2.1.0\\n2026-07-04T08:00:00Z deploy payments 2.1.1\\n' > /workspace/logs/deploys.log"
+  - "printf '2026-07-04T08:30:00Z incident payments rollback 2.1.1\\n' > /workspace/logs/incidents.log"
+  - "printf '{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"TooBroad\",\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}]}\\n' > /workspace/iam/exporter-policy.json"
+  - "cd /workspace && git add . && git commit -qm 'pre-release compliance gaps'"
+tasks:
+  - id: mask-export
+    title: Produce a masked customer export
+    description: 'Create /workspace/export/customers.masked.csv that keeps id and name, replaces emails with [REDACTED], masks PAN to last 4 digits (***********1111 style), and replaces SSN with ***-**-****. Do not leave full PAN or SSN values in the masked file.'
+    hints:
+      - 'Keep the header row with the same column names.'
+      - 'PAN masking example for Ada: ***********1111'
+      - 'grep should find no raw SSN patterns like 123-45-6789 in the masked file.'
+    checks:
+      - type: file
+        name: Emails redacted
+        path: /workspace/export/customers.masked.csv
+        value: "[REDACTED]"
+      - type: file
+        name: PAN last4 kept
+        path: /workspace/export/customers.masked.csv
+        value: "1111"
+      - type: command
+        name: Full PAN removed
+        command: "! grep -Eq '4111111111111111|5500000000000004' /workspace/export/customers.masked.csv"
+      - type: command
+        name: Full SSN removed
+        command: "! grep -Eq '[0-9]{3}-[0-9]{2}-[0-9]{4}' /workspace/export/customers.masked.csv"
+      - type: file
+        name: Names retained
+        path: /workspace/export/customers.masked.csv
+        value: Ada Lovelace
+  - id: evidence-pack
+    title: Build DORA and audit evidence
+    description: 'From the logs, write deployment_frequency=4 and change_fail_rate=25 to /workspace/evidence/dora.env. Create /workspace/evidence/AUDIT.md with headings Retention, Access control, and Change approval. Retention must mention 90 days.'
+    hints:
+      - 'Four deploys and one rollback → change_fail_rate=25.'
+      - 'AUDIT.md should use Markdown headings for the three control areas.'
+      - 'Retention text should include 90 days.'
+    checks:
+      - type: file
+        name: Deployment frequency set
+        path: /workspace/evidence/dora.env
+        value: deployment_frequency=4
+      - type: file
+        name: Change fail rate set
+        path: /workspace/evidence/dora.env
+        value: change_fail_rate=25
+      - type: file
+        name: Retention section present
+        path: /workspace/evidence/AUDIT.md
+        value: Retention
+      - type: file
+        name: Access control section present
+        path: /workspace/evidence/AUDIT.md
+        value: Access control
+      - type: file
+        name: Change approval section present
+        path: /workspace/evidence/AUDIT.md
+        value: Change approval
+      - type: command
+        name: Retention mentions 90 days
+        command: "grep -Eqi '90[[:space:]]*days' /workspace/evidence/AUDIT.md"
+  - id: scope-iam-and-commit
+    title: Scope IAM and commit the release pack
+    description: 'Replace the wildcard IAM policy in iam/exporter-policy.json with a Statement allowing only s3:GetObject and s3:PutObject on arn:aws:s3:::payments-exports/*, Effect Allow, Sid ExportObjects. Write /workspace/RELEASE.md mentioning masked export and audit. Commit everything so git status is clean.'
+    hints:
+      - 'Remove Action * and Resource * — auditors reject wildcard admin.'
+      - 'Sid should be ExportObjects.'
+      - 'RELEASE.md can be short if it mentions masked export and audit.'
+    checks:
+      - type: file
+        name: Export Sid present
+        path: /workspace/iam/exporter-policy.json
+        value: ExportObjects
+      - type: file
+        name: GetObject allowed
+        path: /workspace/iam/exporter-policy.json
+        value: s3:GetObject
+      - type: file
+        name: PutObject allowed
+        path: /workspace/iam/exporter-policy.json
+        value: s3:PutObject
+      - type: file
+        name: Export bucket scoped
+        path: /workspace/iam/exporter-policy.json
+        value: "arn:aws:s3:::payments-exports/*"
+      - type: command
+        name: No wildcard admin
+        command: "! grep -Eq '\"Action\"[[:space:]]*:[[:space:]]*\"\\*\"|\"Resource\"[[:space:]]*:[[:space:]]*\"\\*\"' /workspace/iam/exporter-policy.json"
+      - type: command
+        name: Valid IAM JSON
+        command: "jq -e '.Statement | length >= 1' /workspace/iam/exporter-policy.json >/dev/null"
+      - type: command
+        name: Release note covers controls
+        command: "grep -qi 'masked' /workspace/RELEASE.md && grep -qi 'audit' /workspace/RELEASE.md"
+      - type: command
+        name: Release pack committed
+        command: "cd /workspace && test \"$(git rev-list --count HEAD)\" -ge 2 && test -z \"$(git status --porcelain)\""
+limits: {cpus: "0.75", memory: 192m, pids: 96, timeout: 3600, network: false}

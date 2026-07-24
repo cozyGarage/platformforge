@@ -1,0 +1,111 @@
+version: 1
+id: platform-landing-zone-capstone
+title: Capstone — Design a Platform Landing Zone
+summary: 'Produce a local FinTech landing-zone pack: least-privilege IAM, secure S3, VPC plan, Kubernetes baseline, and a rollback runbook.'
+difficulty: capstone
+estimatedMinutes: 70
+prerequisites: [aws-iam-basics, aws-s3-basics, aws-vpc-basics, kubernetes-deploy, leadership-adr]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git jq >/dev/null"
+  - "mkdir -p /workspace/aws /workspace/k8s /workspace/docs"
+  - "cd /workspace && git init -q && git config user.email learner@platformforge.local && git config user.name Learner"
+  - "printf '{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"Admin\",\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}]}\\n' > /workspace/aws/iam-policy.json"
+  - "printf '{\"Version\":\"2012-10-17\",\"Statement\":[]}\\n' > /workspace/aws/bucket-policy.json"
+  - "printf 'vpc:\\n  cidr: 10.0.0.0/16\\n  subnets: []\\n' > /workspace/aws/vpc-plan.yaml"
+  - "printf 'apiVersion: apps/v1\\nkind: Deployment\\nmetadata:\\n  name: payments\\nspec:\\n  replicas: 1\\n  template:\\n    spec:\\n      containers:\\n        - name: payments\\n          image: nginx:1.27-alpine\\n' > /workspace/k8s/deployment.yaml"
+  - "cd /workspace && git add . && git commit -qm 'landing zone draft'"
+tasks:
+  - id: secure-cloud-baseline
+    title: Harden IAM, S3, and VPC design
+    description: 'Replace aws/iam-policy.json with Sid ReadArtifacts allowing s3:GetObject and s3:ListBucket on arn:aws:s3:::payments-artifacts and arn:aws:s3:::payments-artifacts/* (no Action/Resource wildcards). Update aws/bucket-policy.json with a Deny when aws:SecureTransport is false. Update aws/vpc-plan.yaml so subnets include both public and private.'
+    hints:
+      - 'Auditors reject \"Action\": \"*\" and \"Resource\": \"*\".'
+      - 'Bucket policies commonly Deny when aws:SecureTransport is false.'
+      - 'vpc-plan.yaml should mention public and private subnet roles.'
+    checks:
+      - type: file
+        name: IAM Sid present
+        path: /workspace/aws/iam-policy.json
+        value: ReadArtifacts
+      - type: file
+        name: GetObject allowed
+        path: /workspace/aws/iam-policy.json
+        value: s3:GetObject
+      - type: file
+        name: ListBucket allowed
+        path: /workspace/aws/iam-policy.json
+        value: s3:ListBucket
+      - type: file
+        name: Artifacts bucket scoped
+        path: /workspace/aws/iam-policy.json
+        value: "arn:aws:s3:::payments-artifacts"
+      - type: command
+        name: No IAM wildcards
+        command: "! grep -Eq '\"Action\"[[:space:]]*:[[:space:]]*\"\\*\"|\"Resource\"[[:space:]]*:[[:space:]]*\"\\*\"' /workspace/aws/iam-policy.json"
+      - type: command
+        name: Valid IAM JSON
+        command: "jq -e '.Statement | length >= 1' /workspace/aws/iam-policy.json >/dev/null"
+      - type: file
+        name: SecureTransport deny present
+        path: /workspace/aws/bucket-policy.json
+        value: aws:SecureTransport
+      - type: command
+        name: Bucket policy valid JSON
+        command: "jq -e '.Statement | length >= 1' /workspace/aws/bucket-policy.json >/dev/null"
+      - type: command
+        name: VPC has public and private
+        command: "grep -qi 'public' /workspace/aws/vpc-plan.yaml && grep -qi 'private' /workspace/aws/vpc-plan.yaml"
+  - id: k8s-baseline
+    title: Baseline the payments Deployment
+    description: 'Update k8s/deployment.yaml so replicas is 3 and the payments container sets securityContext.runAsNonRoot to true (or runAsUser 1000). Keep image nginx:1.27-alpine.'
+    hints:
+      - 'Production payments should run at least three replicas.'
+      - 'securityContext can sit under the container spec.'
+      - 'Do not switch the image away from nginx:1.27-alpine for this drill.'
+    checks:
+      - type: command
+        name: Three replicas configured
+        command: "grep -q 'replicas: 3' /workspace/k8s/deployment.yaml"
+      - type: file
+        name: Image remains pinned
+        path: /workspace/k8s/deployment.yaml
+        value: "nginx:1.27-alpine"
+      - type: command
+        name: Non-root security context
+        command: "grep -Eq 'runAsNonRoot:[[:space:]]*true|runAsUser:[[:space:]]*1000' /workspace/k8s/deployment.yaml"
+  - id: runbook-and-commit
+    title: Write the runbook and commit the pack
+    description: 'Create /workspace/docs/RUNBOOK.md with headings Health check, Rollback, and Escalation. Health check must mention /health. Rollback must mention previous image or prior revision. Also write /workspace/docs/ADR.md mentioning landing zone. Commit all changes so git status is clean.'
+    hints:
+      - 'RUNBOOK.md should be scannable with Markdown headings.'
+      - 'Escalation can point to the platform on-call.'
+      - 'Confirm git status is clean after the commit.'
+    checks:
+      - type: file
+        name: Health check section
+        path: /workspace/docs/RUNBOOK.md
+        value: Health check
+      - type: file
+        name: Rollback section
+        path: /workspace/docs/RUNBOOK.md
+        value: Rollback
+      - type: file
+        name: Escalation section
+        path: /workspace/docs/RUNBOOK.md
+        value: Escalation
+      - type: command
+        name: Health check mentions probe
+        command: "grep -q '/health' /workspace/docs/RUNBOOK.md"
+      - type: command
+        name: Rollback mentions prior release
+        command: "grep -Eqi 'previous image|prior revision|previous revision|prior image' /workspace/docs/RUNBOOK.md"
+      - type: file
+        name: ADR mentions landing zone
+        path: /workspace/docs/ADR.md
+        value: landing zone
+      - type: command
+        name: Landing zone committed
+        command: "cd /workspace && test \"$(git rev-list --count HEAD)\" -ge 2 && test -z \"$(git status --porcelain)\""
+limits: {cpus: "0.75", memory: 192m, pids: 96, timeout: 3600, network: false}
