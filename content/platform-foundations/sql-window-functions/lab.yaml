@@ -1,0 +1,54 @@
+version: 1
+id: sql-window-functions
+title: Rank Payments with Window Functions
+summary: Use SQLite window functions to rank payments and calculate running totals by account.
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [sql-indexes-explain]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache sqlite >/dev/null"
+  - "mkdir -p /workspace/db /workspace/sql"
+  - "sqlite3 /workspace/db/ledger.db \"CREATE TABLE payments (id INTEGER PRIMARY KEY, account TEXT, amount INTEGER, created_at TEXT); INSERT INTO payments VALUES (1,'alice',25,'2026-01-01'),(2,'alice',40,'2026-01-03'),(3,'bob',80,'2026-01-02'),(4,'bob',20,'2026-01-04'),(5,'carol',120,'2026-01-05');\""
+tasks:
+  - id: rank-and-total
+    title: Rank payments and calculate running totals
+    description: 'Write /workspace/sql/window.sql that selects account, amount, ROW_NUMBER() OVER (PARTITION BY account ORDER BY created_at), and SUM(amount) OVER (PARTITION BY account ORDER BY created_at ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) from payments. Save the query output to /workspace/sql/window.txt. Output must include alice with running totals 25 and 65, and bob with running totals 80 and 100.'
+    hints:
+      - 'ROW_NUMBER() OVER (PARTITION BY account ORDER BY created_at) ranks rows within each account.'
+      - 'SUM(amount) OVER (PARTITION BY account ORDER BY created_at) creates a running total.'
+      - 'sqlite3 /workspace/db/ledger.db < /workspace/sql/window.sql > /workspace/sql/window.txt'
+    checks:
+      - type: file
+        name: Window query present
+        path: /workspace/sql/window.sql
+        value: "OVER"
+      - type: file
+        name: Partitions by account
+        path: /workspace/sql/window.sql
+        value: "PARTITION BY account"
+      - type: file
+        name: Uses row number
+        path: /workspace/sql/window.sql
+        value: "ROW_NUMBER"
+      - type: file
+        name: Uses running sum
+        path: /workspace/sql/window.sql
+        value: "SUM"
+      - type: file
+        name: Alice output present
+        path: /workspace/sql/window.txt
+        value: alice
+      - type: file
+        name: Alice running total reaches 65
+        path: /workspace/sql/window.txt
+        value: "65"
+      - type: file
+        name: Bob running total reaches 100
+        path: /workspace/sql/window.txt
+        value: "100"
+      - type: command
+        name: Query executable
+        command: "sqlite3 /workspace/db/ledger.db < /workspace/sql/window.sql | grep -q alice"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
