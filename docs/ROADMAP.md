@@ -16,21 +16,21 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 | Phase | Boot.dev equivalent | PlatformForge labs |
 |-------|---------------------|-------------------|
-| Foundations | Learn Linux, Learn Git | 6 labs (linux + git) |
+| Foundations | Learn Linux, Learn Git | 8 labs (linux + git) |
 | Containers | Learn Docker | 3 labs |
-| Kubernetes | Learn Kubernetes | 3 labs (live k3d) |
+| Kubernetes | Learn Kubernetes | 5 labs (live k3d) |
 | Delivery | CI/CD + Observability | 3 labs + capstone |
 | Platform Engineering | AWS, SQL, Go (future) | coming soon |
 
-### Lab inventory (17 interactive + 1 capstone)
+### Lab inventory (19 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
-**Git** — `git-recovery`, `git-branching`, `git-rebase-reset`
+**Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
 **Docker** — `docker-debugging`, `docker-networking`, `docker-volumes`
 
-**Kubernetes (k3d)** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`
+**Kubernetes (k3d)** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `observability-structured-logs`
 
@@ -41,9 +41,9 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Boot.dev course | Status |
 |-----------------|--------|
 | Learn Linux | ✅ 4 labs |
-| Learn Git | ✅ 3 labs (more planned) |
+| Learn Git | ✅ 4 labs |
 | Learn Docker | ✅ 3 labs |
-| Learn Kubernetes | ✅ 4 labs |
+| Learn Kubernetes | ✅ 5 labs |
 | Learn CI/CD | ✅ 1 lab |
 | Learn Logging & Observability | ✅ 1 lab |
 | Learn Go / Python / SQL | 📋 Planned |
@@ -80,11 +80,10 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 
 ## Next authoring priorities
 
-1. `git-rebase-reset`, `git-remotes` — complete Git track
-2. `kubernetes-scaling`, `kubernetes-namespaces` — Boot.dev K8s depth
+1. `cicd-security-scan` — supply chain basics
+2. `observability-metrics-alerts` — metrics and alerting mindset
 3. `postgresql-pitr` — aligns with your Phase 1 database goal
-4. `cicd-security-scan` — supply chain basics
-5. More 90Days day-by-day conversions (scenario rewrite + validators)
+4. More 90Days day-by-day conversions (scenario rewrite + validators)
 
 ## How to add a lab
 

@@ -1,0 +1,43 @@
+version: 1
+id: kubernetes-namespaces
+title: Isolate Workloads with Namespaces
+summary: Create a dedicated namespace, deploy an app into it, and verify resources are scoped correctly.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [kubernetes-scaling]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl apply -f - <<'EOF'\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\n  namespace: default\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\nEOF"
+tasks:
+  - id: namespace-isolate
+    title: Deploy into the payments namespace
+    description: Create namespace payments, save it to /workspace/namespace.yaml, deploy a Deployment named ledger (image nginx:1.27-alpine, label app=ledger) into that namespace saved as /workspace/deployment.yaml, and confirm the ledger workload runs in payments only.
+    hints:
+      - kubectl create namespace payments -o yaml > /workspace/namespace.yaml
+      - Set metadata.namespace: payments on the Deployment before applying.
+      - kubectl -n payments get deploy ledger
+    checks:
+      - type: file
+        name: Namespace manifest saved
+        path: /workspace/namespace.yaml
+        value: payments
+      - type: file
+        name: Deployment scoped to payments
+        path: /workspace/deployment.yaml
+        value: "namespace: payments"
+      - type: kubernetes
+        name: Namespace exists
+        command: kubectl get ns payments
+      - type: kubernetes
+        name: Ledger deployed in payments
+        command: kubectl -n payments get deploy ledger
+      - type: kubernetes
+        name: Ledger pod ready
+        command: kubectl -n payments wait --for=condition=ready pod -l app=ledger --timeout=120s
+      - type: kubernetes
+        name: Ledger not in default
+        command: "! kubectl -n default get deploy ledger 2>/dev/null"
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

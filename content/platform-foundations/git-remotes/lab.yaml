@@ -1,0 +1,33 @@
+version: 1
+id: git-remotes
+title: Connect and Push to a Remote
+summary: Add a remote repository, push main with upstream tracking, and verify the remote has your commits.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [git-rebase-reset]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git >/dev/null"
+  - "git init --bare /tmp/platform.git"
+  - "cd /workspace && git init -b main && git config user.email lab@platformforge.local && git config user.name 'Lab User'"
+  - "printf '# Platform API\\n' > /workspace/README.md && git add README.md && git commit -m 'docs: initial readme'"
+tasks:
+  - id: push-upstream
+    title: Publish main to origin
+    description: Add /tmp/platform.git as remote origin, push main with upstream tracking (-u), and confirm the remote lists main.
+    hints:
+      - git remote add origin /tmp/platform.git
+      - git push -u origin main
+      - git ls-remote --heads origin confirms refs on the remote.
+    checks:
+      - type: command
+        name: Origin remote configured
+        command: "git -C /workspace remote get-url origin | grep -q '/tmp/platform.git'"
+      - type: command
+        name: Main pushed to origin
+        command: "git -C /workspace ls-remote --heads origin main | grep -q refs/heads/main"
+      - type: command
+        name: Upstream tracking set
+        command: "git -C /workspace rev-parse --abbrev-ref 'main@{upstream}' | grep -q 'origin/main'"
+limits: {cpus: "0.5", memory: 256m, pids: 128, timeout: 1800, network: true}
