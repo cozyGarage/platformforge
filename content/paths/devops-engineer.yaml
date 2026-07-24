@@ -17,6 +17,12 @@ phases:
           - linux-navigation
           - linux-pipelines
           - linux-filesystems
+      - id: terminal-mastery
+        title: Terminal Mastery
+        summary: Persistent sessions and fast edits on bastion hosts.
+        labs:
+          - terminal-tmux
+          - terminal-neovim
       - id: learn-git
         title: Learn Git
         summary: History recovery, branching, remotes, and safe collaboration.
@@ -40,7 +46,7 @@ phases:
           - docker-volumes
   - id: kubernetes
     title: Phase 3 — Kubernetes
-    summary: Deploy reliable workloads on live k3d clusters.
+    summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls.
     modules:
       - id: learn-kubernetes
         title: Learn Kubernetes
@@ -52,6 +58,13 @@ phases:
           - kubernetes-configmap
           - kubernetes-scaling
           - kubernetes-namespaces
+      - id: cka-prep
+        title: CKA-Style Scenarios
+        summary: NetworkPolicy, RBAC, and release troubleshooting drills.
+        labs:
+          - kubernetes-networkpolicy
+          - kubernetes-rbac
+          - kubernetes-troubleshooting
   - id: delivery
     title: Phase 4 — Delivery & Reliability
     summary: CI/CD pipelines, structured logging, and incident response.
@@ -77,7 +90,7 @@ phases:
           - incident-capstone
   - id: platform-engineering
     title: Phase 5 — Platform Engineering
-    summary: Data, compliance, and bare-metal platform skills from the FinTech architect roadmap.
+    summary: Data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.
     modules:
       - id: data-platform
         title: Data & Streaming
@@ -95,3 +108,10 @@ phases:
         labs:
           - proxmox-planning
           - debian-platform-baseline
+      - id: aws-local
+        title: AWS Local Simulations
+        summary: IAM, S3, and VPC design drills without a cloud account.
+        labs:
+          - aws-iam-basics
+          - aws-s3-basics
+          - aws-vpc-basics

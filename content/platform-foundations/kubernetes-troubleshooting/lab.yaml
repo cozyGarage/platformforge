@@ -1,0 +1,43 @@
+version: 1
+id: kubernetes-troubleshooting
+title: Troubleshoot a Broken Release
+summary: Fix ImagePullBackOff and an empty Service selector so the api workload becomes Ready and has Endpoints.
+difficulty: advanced
+estimatedMinutes: 40
+prerequisites: [kubernetes-rbac]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl apply -f - <<'EOF'\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: nginx:bogus-tag\n          ports:\n            - containerPort: 80\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: api\nspec:\n  selector:\n    app: web\n  ports:\n    - port: 80\n      targetPort: 80\nEOF"
+tasks:
+  - id: restore-api
+    title: Restore pods and Service endpoints
+    description: 'Fix Deployment api to use image nginx:1.27-alpine (keep 2 replicas), fix Service api selector to app=api, save manifests to /workspace/deployment.yaml and /workspace/service.yaml, apply both, and wait until pods are Ready with Endpoints present.'
+    hints:
+      - kubectl get pods and kubectl describe pod show ImagePullBackOff.
+      - kubectl get endpoints api will be empty until the Service selector matches pod labels.
+      - Export fixed YAML with kubectl get ... -o yaml > file after editing, or edit then apply -f.
+    checks:
+      - type: file
+        name: Deployment manifest saved
+        path: /workspace/deployment.yaml
+        value: "nginx:1.27-alpine"
+      - type: file
+        name: Service selects api
+        path: /workspace/service.yaml
+        value: "app: api"
+      - type: kubernetes
+        name: Image fixed
+        command: "kubectl get deploy api -o jsonpath='{.spec.template.spec.containers[0].image}' | grep -q 'nginx:1.27-alpine'"
+      - type: kubernetes
+        name: Service selector fixed
+        command: "kubectl get svc api -o jsonpath='{.spec.selector.app}' | grep -q api"
+      - type: kubernetes
+        name: Pods ready
+        command: kubectl wait --for=condition=ready pod -l app=api --timeout=120s
+      - type: kubernetes
+        name: Endpoints populated
+        command: "test \"$(kubectl get endpoints api -o jsonpath='{.subsets[*].addresses[*].ip}' | wc -w)\" -ge 1"
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

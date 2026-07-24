@@ -1,0 +1,47 @@
+version: 1
+id: kubernetes-rbac
+title: Grant Least-Privilege RBAC
+summary: Create a ServiceAccount, Role, and RoleBinding so a deployer can manage Deployments only in the payments namespace.
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [kubernetes-networkpolicy]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl create namespace payments >/dev/null"
+tasks:
+  - id: rbac-least-privilege
+    title: Scope deploy permissions
+    description: 'In namespace payments, create ServiceAccount deployer, a Role deployer that can get/list/watch/create/update/patch Deployments, and a RoleBinding binding them. Save manifests under /workspace/sa.yaml, /workspace/role.yaml, and /workspace/rolebinding.yaml, then apply all three.'
+    hints:
+      - kubectl create sa deployer -n payments -o yaml > /workspace/sa.yaml
+      - Role rules need apiGroups apps and resources deployments.
+      - Use RoleBinding subjects kind ServiceAccount name deployer.
+    checks:
+      - type: file
+        name: ServiceAccount manifest
+        path: /workspace/sa.yaml
+        value: deployer
+      - type: file
+        name: Role manifest
+        path: /workspace/role.yaml
+        value: deployments
+      - type: file
+        name: RoleBinding manifest
+        path: /workspace/rolebinding.yaml
+        value: RoleBinding
+      - type: kubernetes
+        name: ServiceAccount exists
+        command: kubectl -n payments get sa deployer
+      - type: kubernetes
+        name: Role exists
+        command: kubectl -n payments get role deployer
+      - type: kubernetes
+        name: Can manage deployments
+        command: "kubectl auth can-i create deployments --as=system:serviceaccount:payments:deployer -n payments | grep -q yes"
+      - type: kubernetes
+        name: Cannot read secrets
+        command: "kubectl auth can-i get secrets --as=system:serviceaccount:payments:deployer -n payments | grep -q no"
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}
