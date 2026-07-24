@@ -1,0 +1,43 @@
+version: 1
+id: terminal-neovim
+title: Edit Faster with Neovim Basics
+summary: Create a minimal Neovim config and use it to fix a broken service unit file from the terminal.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [terminal-tmux]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache neovim >/dev/null"
+  - "mkdir -p /workspace/.config/nvim /workspace/etc/systemd/system"
+  - "printf '[Unit]\\nDescription=Broken API\\n[Service]\\nExecStart=/usr/bin/false\\n' > /workspace/etc/systemd/system/api.service"
+tasks:
+  - id: nvim-fix
+    title: Configure Neovim and repair the unit
+    description: 'Write /workspace/.config/nvim/init.lua enabling line numbers and ignoring case in search. Edit api.service so ExecStart is /usr/bin/true and Description is Platform API, then write /workspace/edit-proof.txt containing the ExecStart line.'
+    hints:
+      - 'init.lua can use vim.opt.number = true and vim.opt.ignorecase = true'
+      - nvim can edit files non-interactively via +commands, or use sed after creating the config.
+      - edit-proof.txt should contain ExecStart=/usr/bin/true
+    checks:
+      - type: file
+        name: Line numbers enabled
+        path: /workspace/.config/nvim/init.lua
+        value: number
+      - type: file
+        name: Ignorecase enabled
+        path: /workspace/.config/nvim/init.lua
+        value: ignorecase
+      - type: file
+        name: Unit description fixed
+        path: /workspace/etc/systemd/system/api.service
+        value: Platform API
+      - type: file
+        name: ExecStart fixed
+        path: /workspace/etc/systemd/system/api.service
+        value: ExecStart=/usr/bin/true
+      - type: file
+        name: Edit proof saved
+        path: /workspace/edit-proof.txt
+        value: ExecStart=/usr/bin/true
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

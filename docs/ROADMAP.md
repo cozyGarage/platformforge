@@ -14,23 +14,27 @@ This document maps **Boot.dev DevOps**, **90DaysOfDevOps**, and your **5-year Fi
 
 See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml) and the **Learning Path** page in the UI.
 
-| Phase | Boot.dev equivalent | PlatformForge labs |
-|-------|---------------------|-------------------|
-| Foundations | Learn Linux, Learn Git | 8 labs (linux + git) |
-| Containers | Learn Docker | 3 labs |
-| Kubernetes | Learn Kubernetes | 5 labs (live k3d) |
+| Phase | Focus | PlatformForge labs |
+|-------|-------|-------------------|
+| Foundations | Linux, terminal, Git | 10 labs |
+| Containers | Docker | 3 labs |
+| Kubernetes | Core + CKA drills | 8 labs (live k3d) |
 | Delivery | CI/CD + Observability | 5 labs + capstone |
-| Platform Engineering | Data, compliance, bare metal | 7 labs |
+| Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (28 interactive + 1 capstone)
+### Lab inventory (36 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
+
+**Terminal** — `terminal-tmux`, `terminal-neovim`
 
 **Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
 **Docker** — `docker-debugging`, `docker-networking`, `docker-volumes`
 
-**Kubernetes (k3d)** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
+**Kubernetes** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
+
+**CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
 
@@ -40,20 +44,22 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **Bare metal** — `proxmox-planning`, `debian-platform-baseline`
 
+**AWS local sims** — `aws-iam-basics`, `aws-s3-basics`, `aws-vpc-basics`
+
 **Capstone** — `incident-capstone`
 
 ## Boot.dev modules → PlatformForge status
 
 | Boot.dev course | Status |
 |-----------------|--------|
-| Learn Linux | ✅ 4 labs |
+| Learn Linux | ✅ 4 labs + terminal mastery |
 | Learn Git | ✅ 4 labs |
 | Learn Docker | ✅ 3 labs |
-| Learn Kubernetes | ✅ 5 labs |
+| Learn Kubernetes | ✅ 5 labs + 3 CKA drills |
 | Learn CI/CD | ✅ 2 labs |
 | Learn Logging & Observability | ✅ 2 labs |
-| Learn Go / Python / SQL | 📋 Planned (PITR + CDC cover data ops drills) |
-| Learn AWS | 📋 Planned (local simulations first) |
+| Learn AWS | ✅ 3 local simulation labs |
+| Learn Go / Python / SQL | 📋 Planned |
 | Learn HTTP Servers | 📋 Planned |
 | Portfolio projects | 📋 After core path |
 
@@ -62,11 +68,11 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Year / Phase | Topic | PlatformForge plan |
 |--------------|-------|-------------------|
 | 2026 H2 | Proxmox/Debian platform execution | ✅ `proxmox-planning`, `debian-platform-baseline` |
-| 2026 H2 | Terminal mastery (Neovim/Tmux) | Optional editor labs after Linux path |
+| 2026 H2 | Terminal mastery (Neovim/Tmux) | ✅ `terminal-tmux`, `terminal-neovim` |
 | 2026–2027 | PostgreSQL PITR | ✅ `postgresql-pitr` |
 | 2027 | Kafka CDC / Debezium | ✅ `kafka-debezium-cdc` |
 | 2027 | Compliance masking | ✅ `compliance-masking` |
-| 2027–2028 | CKA prep | Expand Kubernetes track (CKA-style scenarios) |
+| 2027–2028 | CKA prep | ✅ NetworkPolicy, RBAC, troubleshooting |
 | 2028+ | DORA / PCI-DSS evidence | ✅ `dora-evidence`, `pci-dss-basics` |
 | 2028+ | Leadership capstones | Architecture decision records, postmortems |
 
@@ -79,15 +85,15 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 | Linux fundamentals | `linux-shell-basics` |
 | Git / version control | `git-recovery`, `git-branching` |
 | Containers | docker module |
-| Kubernetes | kubernetes module |
+| Kubernetes | kubernetes + CKA modules |
 | CI/CD culture | `cicd-pipeline-fix`, `cicd-security-scan` |
 
 ## Next authoring priorities
 
-1. CKA-style Kubernetes scenarios (network policies, RBAC, troubleshooting)
-2. Optional Neovim/Tmux terminal mastery labs
-3. Local AWS simulations (IAM, S3, VPC mental models)
-4. More 90Days day-by-day conversions (scenario rewrite + validators)
+1. More 90Days day-by-day conversions (scenario rewrite + validators)
+2. Leadership capstones (ADRs, postmortems)
+3. Learn HTTP Servers / Go service labs
+4. Deeper CKA (storage classes, ingress, backup/restore)
 
 ## How to add a lab
 

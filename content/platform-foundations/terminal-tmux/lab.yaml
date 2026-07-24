@@ -1,0 +1,44 @@
+version: 1
+id: terminal-tmux
+title: Survive with Tmux Sessions
+summary: Create a persistent tmux layout with named windows and a reusable config for platform work.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [linux-shell-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache tmux >/dev/null"
+  - "mkdir -p /workspace"
+tasks:
+  - id: tmux-layout
+    title: Build a platform session
+    description: 'Write /workspace/.tmux.conf that sets prefix to C-a and enables mouse. Create a detached tmux session named platform with windows editor and logs. Write /workspace/session.txt containing the session name from tmux ls.'
+    hints:
+      - 'echo "set -g prefix C-a" and "set -g mouse on" belong in .tmux.conf'
+      - tmux new-session -d -s platform -n editor
+      - tmux new-window -t platform -n logs
+      - tmux ls > /workspace/session.txt
+    checks:
+      - type: file
+        name: Prefix remapped
+        path: /workspace/.tmux.conf
+        value: "prefix C-a"
+      - type: file
+        name: Mouse enabled
+        path: /workspace/.tmux.conf
+        value: "mouse on"
+      - type: command
+        name: Session exists
+        command: tmux has-session -t platform
+      - type: command
+        name: Editor window exists
+        command: tmux list-windows -t platform | grep -q editor
+      - type: command
+        name: Logs window exists
+        command: tmux list-windows -t platform | grep -q logs
+      - type: file
+        name: Session recorded
+        path: /workspace/session.txt
+        value: platform
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

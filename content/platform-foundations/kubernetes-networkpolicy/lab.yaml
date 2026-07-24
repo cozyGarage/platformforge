@@ -1,0 +1,42 @@
+version: 1
+id: kubernetes-networkpolicy
+title: Restrict Pod Traffic with NetworkPolicy
+summary: Author a default-deny Ingress policy and an allow rule so only the frontend can reach the API.
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [kubernetes-namespaces]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl create namespace payments >/dev/null"
+  - "kubectl -n payments apply -f - <<'EOF'\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: nginx:1.27-alpine\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: frontend\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: frontend\n  template:\n    metadata:\n      labels:\n        app: frontend\n    spec:\n      containers:\n        - name: frontend\n          image: nginx:1.27-alpine\nEOF"
+tasks:
+  - id: network-policy
+    title: Lock down API ingress
+    description: 'In namespace payments, save and apply /workspace/networkpolicy.yaml that (1) default-denies all Ingress to pods labeled app=api and (2) allows Ingress from pods labeled app=frontend on TCP port 80.'
+    hints:
+      - Use kind NetworkPolicy with podSelector matchLabels app=api.
+      - policyTypes should include Ingress.
+      - Add an ingress from rule matching app=frontend and ports 80/TCP.
+    checks:
+      - type: file
+        name: Manifest saved
+        path: /workspace/networkpolicy.yaml
+        value: NetworkPolicy
+      - type: file
+        name: Selects API pods
+        path: /workspace/networkpolicy.yaml
+        value: "app: api"
+      - type: file
+        name: Allows frontend
+        path: /workspace/networkpolicy.yaml
+        value: "app: frontend"
+      - type: kubernetes
+        name: Policy applied
+        command: kubectl -n payments get networkpolicy
+      - type: kubernetes
+        name: Ingress rule present
+        command: "kubectl -n payments get networkpolicy -o yaml | grep -q 'port: 80'"
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

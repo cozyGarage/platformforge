@@ -1,0 +1,46 @@
+version: 1
+id: aws-iam-basics
+title: Model Least-Privilege IAM
+summary: Author an IAM policy that allows S3 read on one bucket and deny everything else for a deployer role.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [cicd-security-scan]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache jq >/dev/null"
+  - "mkdir -p /workspace/iam"
+  - "printf '{\"Version\":\"2012-10-17\",\"Statement\":[]}\\n' > /workspace/iam/deployer-policy.json"
+tasks:
+  - id: iam-policy
+    title: Scope the deployer policy
+    description: 'Update iam/deployer-policy.json with a Statement allowing s3:GetObject and s3:ListBucket on arn:aws:s3:::payments-artifacts and arn:aws:s3:::payments-artifacts/*, Effect Allow, Sid ReadArtifacts. Write /workspace/iam/role.txt containing payments-deployer.'
+    hints:
+      - IAM JSON needs Version 2012-10-17 and a Statement array.
+      - Resource should include both the bucket ARN and the /* object ARN.
+      - role.txt is just the role name string.
+    checks:
+      - type: file
+        name: Sid present
+        path: /workspace/iam/deployer-policy.json
+        value: ReadArtifacts
+      - type: file
+        name: GetObject allowed
+        path: /workspace/iam/deployer-policy.json
+        value: s3:GetObject
+      - type: file
+        name: ListBucket allowed
+        path: /workspace/iam/deployer-policy.json
+        value: s3:ListBucket
+      - type: file
+        name: Bucket ARN scoped
+        path: /workspace/iam/deployer-policy.json
+        value: "arn:aws:s3:::payments-artifacts"
+      - type: command
+        name: Valid JSON
+        command: jq empty /workspace/iam/deployer-policy.json
+      - type: file
+        name: Role name recorded
+        path: /workspace/iam/role.txt
+        value: payments-deployer
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

@@ -1,0 +1,45 @@
+version: 1
+id: aws-s3-basics
+title: Design a Private Artifact Bucket
+summary: Configure a private S3 bucket policy and lifecycle rules for CI artifacts without public access.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [aws-iam-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache jq >/dev/null"
+  - "mkdir -p /workspace/s3"
+  - "printf '{\"Bucket\":\"REPLACE\",\"PublicAccessBlock\":false,\"Versioning\":\"Disabled\",\"LifecycleDays\":0}\\n' > /workspace/s3/bucket.json"
+tasks:
+  - id: private-bucket
+    title: Lock down artifact storage
+    description: 'Update s3/bucket.json so Bucket is payments-artifacts, PublicAccessBlock is true, Versioning is Enabled, and LifecycleDays is 30. Write s3/bucket-policy.json denying s3:GetObject when aws:SecureTransport is false.'
+    hints:
+      - PublicAccessBlock should be the boolean true.
+      - LifecycleDays 30 means expire old artifacts after a month.
+      - Deny non-TLS access with Condition Bool aws:SecureTransport false.
+    checks:
+      - type: file
+        name: Bucket named
+        path: /workspace/s3/bucket.json
+        value: payments-artifacts
+      - type: command
+        name: Public access blocked
+        command: jq -e '.PublicAccessBlock == true' /workspace/s3/bucket.json >/dev/null
+      - type: file
+        name: Versioning enabled
+        path: /workspace/s3/bucket.json
+        value: Enabled
+      - type: command
+        name: Lifecycle set
+        command: jq -e '.LifecycleDays == 30' /workspace/s3/bucket.json >/dev/null
+      - type: file
+        name: TLS enforced
+        path: /workspace/s3/bucket-policy.json
+        value: aws:SecureTransport
+      - type: file
+        name: Deny effect
+        path: /workspace/s3/bucket-policy.json
+        value: Deny
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

@@ -1,0 +1,50 @@
+version: 1
+id: aws-vpc-basics
+title: Sketch a Three-Tier VPC
+summary: Define public/private subnet layout, NAT placement, and security group rules for a payments API.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [aws-s3-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/vpc"
+  - "printf 'cidr: REPLACE\\nsubnets: []\\nnat_gateway_subnet: REPLACE\\n' > /workspace/vpc/network.yaml"
+tasks:
+  - id: vpc-design
+    title: Document the network topology
+    description: 'Update vpc/network.yaml with cidr 10.0.0.0/16, subnets public-a 10.0.0.0/24 and private-a 10.0.10.0/24, and nat_gateway_subnet public-a. Write vpc/security-groups.yaml allowing tcp/443 from 0.0.0.0/0 to alias public-lb and tcp/8080 from public-lb to alias private-api only.'
+    hints:
+      - Keep YAML keys cidr, subnets, nat_gateway_subnet.
+      - Security group file should mention 443, 8080, public-lb, and private-api.
+      - NAT belongs in a public subnet.
+    checks:
+      - type: file
+        name: VPC CIDR set
+        path: /workspace/vpc/network.yaml
+        value: "10.0.0.0/16"
+      - type: file
+        name: Public subnet set
+        path: /workspace/vpc/network.yaml
+        value: "10.0.0.0/24"
+      - type: file
+        name: Private subnet set
+        path: /workspace/vpc/network.yaml
+        value: "10.0.10.0/24"
+      - type: file
+        name: NAT in public
+        path: /workspace/vpc/network.yaml
+        value: public-a
+      - type: file
+        name: HTTPS to LB
+        path: /workspace/vpc/security-groups.yaml
+        value: "443"
+      - type: file
+        name: App port internal
+        path: /workspace/vpc/security-groups.yaml
+        value: "8080"
+      - type: file
+        name: Private API referenced
+        path: /workspace/vpc/security-groups.yaml
+        value: private-api
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
