@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, Route, Routes, useParams } from 'react-router-dom'
+import { Link, NavLink, Route, Routes, useParams } from 'react-router'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { marked } from 'marked'
