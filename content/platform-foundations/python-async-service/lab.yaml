@@ -1,0 +1,50 @@
+version: 1
+id: python-async-service
+title: Build an Async Python Service
+summary: Use asyncio with Python's standard library to serve health and payment responses concurrently.
+difficulty: advanced
+estimatedMinutes: 40
+prerequisites: [python-json-api]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache wget iproute2 >/dev/null"
+  - "mkdir -p /workspace"
+tasks:
+  - id: async-service
+    title: Serve HTTP responses with asyncio
+    description: 'Create /workspace/server.py using asyncio.start_server on :8080. Return ok for GET /health and [{"id":1,"amount":25}] for GET /payments with Content-Type application/json. Run it in the background.'
+    hints:
+      - 'asyncio.start_server can accept a coroutine that reads from StreamReader and writes to StreamWriter.'
+      - 'Parse the first request line to route /health and /payments.'
+      - 'Use writer.write(...) followed by await writer.drain().'
+    checks:
+      - type: file
+        name: Server module present
+        path: /workspace/server.py
+        value: "asyncio"
+      - type: file
+        name: Uses asyncio server
+        path: /workspace/server.py
+        value: "start_server"
+      - type: file
+        name: Payments route present
+        path: /workspace/server.py
+        value: "/payments"
+      - type: file
+        name: JSON content type present
+        path: /workspace/server.py
+        value: application/json
+      - type: port
+        name: Port 8080 listening
+        port: 8080
+      - type: command
+        name: Health returns ok
+        command: "wget -qO- http://127.0.0.1:8080/health | grep -q '^ok$'"
+      - type: command
+        name: Payments JSON body
+        command: "wget -qO- http://127.0.0.1:8080/payments | grep -q '\"amount\": 25\\|\"amount\":25'"
+      - type: command
+        name: JSON content type
+        command: "wget -S -qO- http://127.0.0.1:8080/payments 2>&1 | grep -qi 'content-type: application/json'"
+limits: {cpus: "1.0", memory: 256m, pids: 128, timeout: 1800, network: true}

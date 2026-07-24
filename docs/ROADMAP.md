@@ -18,12 +18,12 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 |-------|-------|-------------------|
 | Foundations | Linux, terminal, 90Days bridges, Git | 17 labs |
 | Containers | Docker | 3 labs |
-| App development | Go, Python, SQL | 9 labs |
+| App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA drills | 12 labs (live k3d) |
 | Delivery | CI/CD, observability, leadership, portfolio | 11 labs + incident capstone |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (61 interactive + 1 capstone)
+### Lab inventory (63 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -37,7 +37,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **HTTP & Go** — `http-health-server`, `http-json-api`, `go-testing-basics`
 
-**Python & SQL** — `python-health-server`, `python-json-api`, `python-packaging-basics`, `sql-query-basics`, `sql-joins-basics`, `sql-indexes-explain`
+**Python & SQL** — `python-health-server`, `python-json-api`, `python-async-service`, `python-packaging-basics`, `sql-query-basics`, `sql-joins-basics`, `sql-indexes-explain`, `sql-window-functions`
 
 **Kubernetes** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
 
@@ -72,7 +72,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn AWS | ✅ 3 local simulation labs |
 | Learn HTTP Servers | ✅ Go + Python health/JSON labs |
 | Learn Go | ✅ `go-testing-basics` (+ HTTP labs in Go) |
-| Learn Python / SQL | ✅ packaging + joins/indexes depth |
+| Learn Python / SQL | ✅ packaging + joins/indexes/window + async service |
 | Portfolio projects | ✅ 4-lab payments demo path |
 
 ## Your 5-year roadmap → PlatformForge phases
@@ -108,8 +108,8 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 
 1. Portfolio polish (real image build/push when registry tooling is available)
 2. Live etcdctl against control-plane when privileged lab runtime allows
-3. Advanced SQL (window functions) and Python async service labs
-4. Learning Path UX: filters, estimated remaining time
+3. Learning Path UX: filters, estimated remaining time
+4. Terraform / IaC local planning labs
 
 ## How to add a lab
 

@@ -70,15 +70,17 @@ phases:
           - go-testing-basics
       - id: learn-python-sql
         title: Learn Python & SQL
-        summary: Python HTTP services, packaging, and SQLite query fundamentals.
+        summary: Python HTTP services, packaging, SQLite fundamentals, and advanced query/async drills.
         source: "Boot.dev — Learn Python / Learn SQL"
         labs:
           - python-health-server
           - python-json-api
+          - python-async-service
           - python-packaging-basics
           - sql-query-basics
           - sql-joins-basics
           - sql-indexes-explain
+          - sql-window-functions
   - id: kubernetes
     title: Phase 3 — Kubernetes
     summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls.
