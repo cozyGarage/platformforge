@@ -17,7 +17,7 @@ tasks:
     description: Create namespace payments, save it to /workspace/namespace.yaml, deploy a Deployment named ledger (image nginx:1.27-alpine, label app=ledger) into that namespace saved as /workspace/deployment.yaml, and confirm the ledger workload runs in payments only.
     hints:
       - kubectl create namespace payments -o yaml > /workspace/namespace.yaml
-      - Set metadata.namespace: payments on the Deployment before applying.
+      - 'Set metadata.namespace: payments on the Deployment before applying.'
       - kubectl -n payments get deploy ledger
     checks:
       - type: file
