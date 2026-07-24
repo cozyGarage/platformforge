@@ -1,0 +1,39 @@
+version: 1
+id: dora-evidence
+title: Produce DORA Evidence from Deploy Logs
+summary: Calculate deployment frequency and change-fail rate from release and incident records for an audit folder.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [cicd-security-scan]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/evidence /workspace/logs"
+  - "printf '2026-07-01T10:00:00Z deploy payments 1.0.0\\n2026-07-02T11:00:00Z deploy payments 1.0.1\\n2026-07-03T09:00:00Z deploy payments 1.1.0\\n2026-07-03T12:00:00Z deploy payments 1.1.1\\n' > /workspace/logs/deploys.log"
+  - "printf '2026-07-03T12:30:00Z incident payments rollback 1.1.1\\n' > /workspace/logs/incidents.log"
+tasks:
+  - id: dora-metrics
+    title: Fill the evidence pack
+    description: 'From the logs, write deployment_frequency=4 and change_fail_rate=25 to /workspace/evidence/dora.env, and create /workspace/evidence/summary.md containing both Deployment frequency and Change fail rate headings.'
+    hints:
+      - Four deploys in the window; one caused an incident/rollback → 25% fail rate.
+      - dora.env should use KEY=value lines.
+      - summary.md needs markdown headings for the two metrics.
+    checks:
+      - type: file
+        name: Deployment frequency set
+        path: /workspace/evidence/dora.env
+        value: deployment_frequency=4
+      - type: file
+        name: Change fail rate set
+        path: /workspace/evidence/dora.env
+        value: change_fail_rate=25
+      - type: file
+        name: Summary has frequency
+        path: /workspace/evidence/summary.md
+        value: Deployment frequency
+      - type: file
+        name: Summary has fail rate
+        path: /workspace/evidence/summary.md
+        value: Change fail rate
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

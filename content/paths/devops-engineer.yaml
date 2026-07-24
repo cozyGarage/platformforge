@@ -76,25 +76,22 @@ phases:
         labs:
           - incident-capstone
   - id: platform-engineering
-    title: Phase 5 — Platform Engineering (Roadmap)
-    summary: Advanced topics from your 5-year FinTech architect roadmap — added over time.
+    title: Phase 5 — Platform Engineering
+    summary: Data, compliance, and bare-metal platform skills from the FinTech architect roadmap.
     modules:
       - id: data-platform
         title: Data & Streaming
         labs:
           - postgresql-pitr
-        comingSoon:
           - kafka-debezium-cdc
-          - compliance-masking
       - id: compliance
         title: Compliance & Security
-        comingSoon:
+        labs:
+          - compliance-masking
           - dora-evidence
           - pci-dss-basics
-        labs: []
       - id: bare-metal
         title: Bare Metal & Virtualization
-        comingSoon:
+        labs:
           - proxmox-planning
           - debian-platform-baseline
-        labs: []

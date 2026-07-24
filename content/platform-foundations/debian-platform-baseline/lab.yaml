@@ -1,0 +1,47 @@
+version: 1
+id: debian-platform-baseline
+title: Establish a Debian Platform Baseline
+summary: Harden a host baseline by disabling root SSH passwords, pinning critical packages, and recording the standard.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [proxmox-planning]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/baseline /workspace/etc/ssh"
+  - "printf 'PermitRootLogin yes\\nPasswordAuthentication yes\\nPubkeyAuthentication yes\\n' > /workspace/etc/ssh/sshd_config"
+  - "printf 'nginx\\npostgresql\\n' > /workspace/baseline/packages.txt"
+tasks:
+  - id: harden-baseline
+    title: Lock down SSH and pin versions
+    description: 'Set PermitRootLogin no and PasswordAuthentication no in etc/ssh/sshd_config, pin packages.txt to nginx=1.22.1 and postgresql=16.4, and write baseline/STANDARD.md stating ssh key-only and pinned packages.'
+    hints:
+      - Root login and password auth should both be no.
+      - 'packages.txt lines should look like nginx=1.22.1'
+      - STANDARD.md should mention key-only (or pubkey) and pinned.
+    checks:
+      - type: file
+        name: Root login disabled
+        path: /workspace/etc/ssh/sshd_config
+        value: "PermitRootLogin no"
+      - type: file
+        name: Password auth disabled
+        path: /workspace/etc/ssh/sshd_config
+        value: "PasswordAuthentication no"
+      - type: file
+        name: Nginx pinned
+        path: /workspace/baseline/packages.txt
+        value: nginx=1.22.1
+      - type: file
+        name: Postgres pinned
+        path: /workspace/baseline/packages.txt
+        value: postgresql=16.4
+      - type: file
+        name: Standard documents SSH
+        path: /workspace/baseline/STANDARD.md
+        value: key
+      - type: file
+        name: Standard documents pins
+        path: /workspace/baseline/STANDARD.md
+        value: pinned
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

@@ -20,9 +20,9 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Containers | Learn Docker | 3 labs |
 | Kubernetes | Learn Kubernetes | 5 labs (live k3d) |
 | Delivery | CI/CD + Observability | 5 labs + capstone |
-| Platform Engineering | Data + roadmap | 1 lab (`postgresql-pitr`) + coming soon |
+| Platform Engineering | Data, compliance, bare metal | 7 labs |
 
-### Lab inventory (22 interactive + 1 capstone)
+### Lab inventory (28 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -34,7 +34,11 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
 
-**Data platform** — `postgresql-pitr`
+**Data platform** — `postgresql-pitr`, `kafka-debezium-cdc`
+
+**Compliance** — `compliance-masking`, `dora-evidence`, `pci-dss-basics`
+
+**Bare metal** — `proxmox-planning`, `debian-platform-baseline`
 
 **Capstone** — `incident-capstone`
 
@@ -48,24 +52,22 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn Kubernetes | ✅ 5 labs |
 | Learn CI/CD | ✅ 2 labs |
 | Learn Logging & Observability | ✅ 2 labs |
-| Learn Go / Python / SQL | 📋 Planned (`postgresql-pitr` covers recovery drills) |
+| Learn Go / Python / SQL | 📋 Planned (PITR + CDC cover data ops drills) |
 | Learn AWS | 📋 Planned (local simulations first) |
 | Learn HTTP Servers | 📋 Planned |
 | Portfolio projects | 📋 After core path |
 
 ## Your 5-year roadmap → PlatformForge phases
 
-From your FinTech architect roadmap (`gemini-code` context):
-
 | Year / Phase | Topic | PlatformForge plan |
 |--------------|-------|-------------------|
-| 2026 H2 | Proxmox/Debian platform execution | `proxmox-planning` (config exercises, homelab provider later) |
+| 2026 H2 | Proxmox/Debian platform execution | ✅ `proxmox-planning`, `debian-platform-baseline` |
 | 2026 H2 | Terminal mastery (Neovim/Tmux) | Optional editor labs after Linux path |
-| 2026–2027 | PostgreSQL PITR | ✅ `postgresql-pitr` (WAL replay simulation) |
-| 2027 | Kafka CDC / Debezium | `kafka-debezium-cdc` |
-| 2027 | Compliance masking | `compliance-masking` |
+| 2026–2027 | PostgreSQL PITR | ✅ `postgresql-pitr` |
+| 2027 | Kafka CDC / Debezium | ✅ `kafka-debezium-cdc` |
+| 2027 | Compliance masking | ✅ `compliance-masking` |
 | 2027–2028 | CKA prep | Expand Kubernetes track (CKA-style scenarios) |
-| 2028+ | DORA / PCI-DSS evidence | `dora-evidence`, `pci-dss-basics` |
+| 2028+ | DORA / PCI-DSS evidence | ✅ `dora-evidence`, `pci-dss-basics` |
 | 2028+ | Leadership capstones | Architecture decision records, postmortems |
 
 ## 90DaysOfDevOps attribution
@@ -82,9 +84,9 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 
 ## Next authoring priorities
 
-1. `kafka-debezium-cdc` — change-data-capture basics
-2. `compliance-masking` — PII redaction drills
-3. `proxmox-planning` — bare-metal platform checklist exercises
+1. CKA-style Kubernetes scenarios (network policies, RBAC, troubleshooting)
+2. Optional Neovim/Tmux terminal mastery labs
+3. Local AWS simulations (IAM, S3, VPC mental models)
 4. More 90Days day-by-day conversions (scenario rewrite + validators)
 
 ## How to add a lab

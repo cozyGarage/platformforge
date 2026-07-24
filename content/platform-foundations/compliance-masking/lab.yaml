@@ -1,0 +1,40 @@
+version: 1
+id: compliance-masking
+title: Mask PII Before Export
+summary: Redact personal data from a customer export so the file is safe to share with vendors.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [linux-pipelines]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/export"
+  - "printf 'id,name,email,pan,ssn\\n1,Ada Lovelace,ada@example.com,4111111111111111,123-45-6789\\n2,Alan Turing,alan@example.com,5500000000000004,987-65-4321\\n' > /workspace/export/customers.raw.csv"
+tasks:
+  - id: mask-export
+    title: Produce a masked export
+    description: 'Create /workspace/export/customers.masked.csv that keeps id and name, replaces emails with [REDACTED], masks PAN to last 4 digits (***********1111 style), and replaces SSN with ***-**-****. Do not leave full PAN or SSN values in the masked file.'
+    hints:
+      - Keep the header row with the same column names.
+      - 'PAN masking example for Ada: ***********1111'
+      - grep should find no raw SSN patterns like 123-45-6789 in the masked file.
+    checks:
+      - type: file
+        name: Emails redacted
+        path: /workspace/export/customers.masked.csv
+        value: "[REDACTED]"
+      - type: file
+        name: PAN last4 kept
+        path: /workspace/export/customers.masked.csv
+        value: "1111"
+      - type: command
+        name: Full PAN removed
+        command: "! grep -Eq '4111111111111111|5500000000000004' /workspace/export/customers.masked.csv"
+      - type: command
+        name: Full SSN removed
+        command: "! grep -Eq '[0-9]{3}-[0-9]{2}-[0-9]{4}' /workspace/export/customers.masked.csv"
+      - type: file
+        name: Names retained
+        path: /workspace/export/customers.masked.csv
+        value: Ada Lovelace
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

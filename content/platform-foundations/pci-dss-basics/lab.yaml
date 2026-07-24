@@ -1,0 +1,46 @@
+version: 1
+id: pci-dss-basics
+title: Close Basic PCI-DSS Gaps
+summary: Fix a checkout config that logs full card data, uses HTTP, and stores PAN on disk.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [compliance-masking]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/config /workspace/data"
+  - "printf 'listen_url=http://0.0.0.0:8080\\nlog_pan=true\\nstore_pan=true\\npan_file=/workspace/data/cards.txt\\n' > /workspace/config/checkout.env"
+  - "printf '4111111111111111\\n' > /workspace/data/cards.txt"
+tasks:
+  - id: pci-harden
+    title: Harden checkout configuration
+    description: 'Update checkout.env so listen_url uses https, log_pan=false, store_pan=false, delete data/cards.txt, and write /workspace/evidence/pci-checklist.md mentioning encryption in transit and no PAN storage.'
+    hints:
+      - 'listen_url should start with https://'
+      - Remove the on-disk PAN file entirely.
+      - Checklist should mention encryption and PAN.
+    checks:
+      - type: file
+        name: HTTPS listener
+        path: /workspace/config/checkout.env
+        value: "https://"
+      - type: file
+        name: PAN logging off
+        path: /workspace/config/checkout.env
+        value: log_pan=false
+      - type: file
+        name: PAN storage off
+        path: /workspace/config/checkout.env
+        value: store_pan=false
+      - type: command
+        name: PAN file deleted
+        command: test ! -e /workspace/data/cards.txt
+      - type: file
+        name: Checklist mentions encryption
+        path: /workspace/evidence/pci-checklist.md
+        value: encryption
+      - type: file
+        name: Checklist mentions PAN
+        path: /workspace/evidence/pci-checklist.md
+        value: PAN
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
