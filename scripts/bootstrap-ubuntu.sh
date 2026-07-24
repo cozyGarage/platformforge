@@ -21,18 +21,38 @@ else
     build-essential curl git make sqlite3 jq ca-certificates gnupg lsb-release
 fi
 
+GO_VERSION="1.25.12"
+install_go=false
 if ! need_cmd go; then
-  log "Installing Go 1.22"
-  GO_VERSION="1.22.10"
+  install_go=true
+else
+  current="$(go env GOVERSION 2>/dev/null | sed 's/^go//' || true)"
+  if [[ -z "$current" || "$(printf '%s\n%s\n' "$GO_VERSION" "$current" | sort -V | head -1)" != "$GO_VERSION" ]]; then
+    install_go=true
+  fi
+fi
+if [[ "$install_go" == true ]]; then
+  log "Installing Go ${GO_VERSION}"
   curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tgz
   sudo rm -rf /usr/local/go
   sudo tar -C /usr/local -xzf /tmp/go.tgz
   rm /tmp/go.tgz
+  export PATH="/usr/local/go/bin:${PATH}"
 fi
 
+NODE_MAJOR_REQUIRED=22
+install_node=false
 if ! need_cmd node; then
-  log "Installing Node.js 20 LTS"
-  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  install_node=true
+else
+  node_major="$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo 0)"
+  if [[ "${node_major}" -lt "${NODE_MAJOR_REQUIRED}" ]]; then
+    install_node=true
+  fi
+fi
+if [[ "$install_node" == true ]]; then
+  log "Installing Node.js ${NODE_MAJOR_REQUIRED}"
+  curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR_REQUIRED}.x" | sudo -E bash -
   sudo apt-get install -y -qq nodejs
 fi
 
