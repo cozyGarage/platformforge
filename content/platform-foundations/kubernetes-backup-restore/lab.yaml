@@ -1,0 +1,49 @@
+version: 1
+id: kubernetes-backup-restore
+title: Backup and Restore Cluster Objects
+summary: Snapshot critical manifests, simulate an accidental delete, and restore the payments ConfigMap from backup.
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [kubernetes-storage]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl create namespace payments >/dev/null"
+  - "kubectl -n payments create configmap api-config --from-literal=LOG_LEVEL=info --from-literal=REGION=eu-west-1"
+  - "kubectl -n payments create deploy api --image=nginx:1.27-alpine --replicas=1"
+  - "mkdir -p /workspace/backup"
+tasks:
+  - id: restore-config
+    title: Recover the deleted ConfigMap
+    description: 'Backup the payments ConfigMap api-config to /workspace/backup/api-config.yaml, delete the live ConfigMap to simulate an accident, restore it from the backup file, and write /workspace/backup/RESTORE.md noting what was restored and why backups must be tested.'
+    hints:
+      - kubectl -n payments get configmap api-config -o yaml > /workspace/backup/api-config.yaml
+      - kubectl -n payments delete configmap api-config
+      - kubectl apply -f /workspace/backup/api-config.yaml
+      - RESTORE.md should mention api-config and tested (or test).
+    checks:
+      - type: file
+        name: Backup file exists
+        path: /workspace/backup/api-config.yaml
+        value: api-config
+      - type: file
+        name: Backup has LOG_LEVEL
+        path: /workspace/backup/api-config.yaml
+        value: LOG_LEVEL
+      - type: kubernetes
+        name: ConfigMap restored
+        command: kubectl -n payments get configmap api-config -o yaml | grep -q LOG_LEVEL
+      - type: kubernetes
+        name: REGION retained
+        command: "kubectl -n payments get configmap api-config -o jsonpath='{.data.REGION}' | grep -q eu-west-1"
+      - type: file
+        name: Restore notes written
+        path: /workspace/backup/RESTORE.md
+        value: api-config
+      - type: file
+        name: Mentions testing backups
+        path: /workspace/backup/RESTORE.md
+        value: test
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

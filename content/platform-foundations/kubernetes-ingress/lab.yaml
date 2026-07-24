@@ -1,0 +1,41 @@
+version: 1
+id: kubernetes-ingress
+title: Route External Traffic with Ingress
+summary: Expose the api Service through an Ingress host rule and confirm the object is programmed in the cluster.
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [kubernetes-troubleshooting]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+setup:
+  - "kubectl apply -f - <<'EOF'\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: api\nspec:\n  selector:\n    app: api\n  ports:\n    - port: 80\n      targetPort: 80\nEOF"
+tasks:
+  - id: ingress-route
+    title: Publish api.payments.local
+    description: 'Create /workspace/ingress.yaml defining Ingress api that routes host api.payments.local path / to Service api:80. Apply it and wait until the Ingress object exists with that host rule.'
+    hints:
+      - 'apiVersion networking.k8s.io/v1, kind Ingress'
+      - rules.host should be api.payments.local with pathType Prefix path /
+      - backend service name api port number 80
+    checks:
+      - type: file
+        name: Ingress manifest saved
+        path: /workspace/ingress.yaml
+        value: "kind: Ingress"
+      - type: file
+        name: Host configured
+        path: /workspace/ingress.yaml
+        value: api.payments.local
+      - type: file
+        name: Service backend
+        path: /workspace/ingress.yaml
+        value: "name: api"
+      - type: kubernetes
+        name: Ingress applied
+        command: kubectl get ingress api
+      - type: kubernetes
+        name: Host rule present
+        command: "kubectl get ingress api -o jsonpath='{.spec.rules[0].host}' | grep -q api.payments.local"
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

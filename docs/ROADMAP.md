@@ -18,11 +18,11 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 |-------|-------|-------------------|
 | Foundations | Linux, terminal, Git | 10 labs |
 | Containers | Docker | 3 labs |
-| Kubernetes | Core + CKA drills | 8 labs (live k3d) |
-| Delivery | CI/CD + Observability | 5 labs + capstone |
+| Kubernetes | Core + CKA drills | 11 labs (live k3d) |
+| Delivery | CI/CD, observability, leadership | 7 labs + incident capstone |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (36 interactive + 1 capstone)
+### Lab inventory (41 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -34,9 +34,11 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **Kubernetes** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
 
-**CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`
+**CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`, `kubernetes-ingress`, `kubernetes-storage`, `kubernetes-backup-restore`
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
+
+**Leadership** — `leadership-adr`, `leadership-postmortem`
 
 **Data platform** — `postgresql-pitr`, `kafka-debezium-cdc`
 
@@ -55,7 +57,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn Linux | ✅ 4 labs + terminal mastery |
 | Learn Git | ✅ 4 labs |
 | Learn Docker | ✅ 3 labs |
-| Learn Kubernetes | ✅ 5 labs + 3 CKA drills |
+| Learn Kubernetes | ✅ 5 labs + 6 CKA drills |
 | Learn CI/CD | ✅ 2 labs |
 | Learn Logging & Observability | ✅ 2 labs |
 | Learn AWS | ✅ 3 local simulation labs |
@@ -72,9 +74,9 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | 2026–2027 | PostgreSQL PITR | ✅ `postgresql-pitr` |
 | 2027 | Kafka CDC / Debezium | ✅ `kafka-debezium-cdc` |
 | 2027 | Compliance masking | ✅ `compliance-masking` |
-| 2027–2028 | CKA prep | ✅ NetworkPolicy, RBAC, troubleshooting |
+| 2027–2028 | CKA prep | ✅ NetworkPolicy, RBAC, troubleshooting, Ingress, storage, backup/restore |
 | 2028+ | DORA / PCI-DSS evidence | ✅ `dora-evidence`, `pci-dss-basics` |
-| 2028+ | Leadership capstones | Architecture decision records, postmortems |
+| 2028+ | Leadership capstones | ✅ `leadership-adr`, `leadership-postmortem` |
 
 ## 90DaysOfDevOps attribution
 
@@ -91,9 +93,9 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 ## Next authoring priorities
 
 1. More 90Days day-by-day conversions (scenario rewrite + validators)
-2. Leadership capstones (ADRs, postmortems)
-3. Learn HTTP Servers / Go service labs
-4. Deeper CKA (storage classes, ingress, backup/restore)
+2. Learn HTTP Servers / Go service labs
+3. Portfolio projects that stitch multiple labs into a public demo
+4. Optional etcd snapshot lab when local control-plane tooling allows
 
 ## How to add a lab
 

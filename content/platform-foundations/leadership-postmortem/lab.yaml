@@ -1,0 +1,56 @@
+version: 1
+id: leadership-postmortem
+title: Run a Blameless Postmortem
+summary: Turn raw incident notes into a blameless postmortem with timeline, root cause, and action items.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [incident-capstone, leadership-adr]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/incident /workspace/docs"
+  - "printf '14:02 deploy payments 1.4.0\\n14:05 error rate 35% on /checkout\\n14:08 rollback to 1.3.2\\n14:12 error rate normal\\nCause guess: redis URL pointed at localhost after compose change\\n' > /workspace/incident/raw-notes.txt"
+tasks:
+  - id: postmortem
+    title: Publish the learning review
+    description: 'Write /workspace/docs/postmortem-2026-07-24.md with headings Summary, Timeline, Root cause, Impact, Action items, and What went well. Root cause must mention redis. Action items must include a concrete follow-up containing validate or validation. Do not blame a person by name.'
+    hints:
+      - 'Keep it blameless: systems and process, not individuals.'
+      - Timeline should reflect deploy then errors then rollback.
+      - 'Action items example: add compose config validation in CI.'
+    checks:
+      - type: file
+        name: Summary present
+        path: /workspace/docs/postmortem-2026-07-24.md
+        value: Summary
+      - type: file
+        name: Timeline present
+        path: /workspace/docs/postmortem-2026-07-24.md
+        value: Timeline
+      - type: file
+        name: Root cause present
+        path: /workspace/docs/postmortem-2026-07-24.md
+        value: Root cause
+      - type: file
+        name: Impact present
+        path: /workspace/docs/postmortem-2026-07-24.md
+        value: Impact
+      - type: file
+        name: Action items present
+        path: /workspace/docs/postmortem-2026-07-24.md
+        value: Action items
+      - type: file
+        name: What went well present
+        path: /workspace/docs/postmortem-2026-07-24.md
+        value: What went well
+      - type: file
+        name: Redis in root cause
+        path: /workspace/docs/postmortem-2026-07-24.md
+        value: redis
+      - type: command
+        name: Validation follow-up
+        command: grep -Eqi 'validat' /workspace/docs/postmortem-2026-07-24.md
+      - type: command
+        name: No personal blame names
+        command: "! grep -Eqi 'alice|bob|@|fired|incompetent' /workspace/docs/postmortem-2026-07-24.md"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
