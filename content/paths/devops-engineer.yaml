@@ -34,6 +34,7 @@ phases:
           - networking-basics
           - monitoring-basics
           - cloud-tagging-basics
+          - secrets-basics
       - id: learn-git
         title: Learn Git
         summary: History recovery, branching, remotes, and safe collaboration.
@@ -69,12 +70,15 @@ phases:
           - go-testing-basics
       - id: learn-python-sql
         title: Learn Python & SQL
-        summary: Python HTTP services and SQLite query fundamentals.
+        summary: Python HTTP services, packaging, and SQLite query fundamentals.
         source: "Boot.dev — Learn Python / Learn SQL"
         labs:
           - python-health-server
           - python-json-api
+          - python-packaging-basics
           - sql-query-basics
+          - sql-joins-basics
+          - sql-indexes-explain
   - id: kubernetes
     title: Phase 3 — Kubernetes
     summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls.
@@ -91,7 +95,7 @@ phases:
           - kubernetes-namespaces
       - id: cka-prep
         title: CKA-Style Scenarios
-        summary: NetworkPolicy, RBAC, troubleshooting, Ingress, storage, and backup/restore drills.
+        summary: NetworkPolicy, RBAC, troubleshooting, Ingress, storage, backup/restore, and etcd runbooks.
         labs:
           - kubernetes-networkpolicy
           - kubernetes-rbac
@@ -99,6 +103,7 @@ phases:
           - kubernetes-ingress
           - kubernetes-storage
           - kubernetes-backup-restore
+          - kubernetes-etcd-snapshot
   - id: delivery
     title: Phase 4 — Delivery & Reliability
     summary: CI/CD pipelines, structured logging, and incident response.

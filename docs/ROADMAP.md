@@ -16,20 +16,20 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 | Phase | Focus | PlatformForge labs |
 |-------|-------|-------------------|
-| Foundations | Linux, terminal, 90Days bridges, Git | 16 labs |
+| Foundations | Linux, terminal, 90Days bridges, Git | 17 labs |
 | Containers | Docker | 3 labs |
-| App development | Go, Python, SQL | 6 labs |
-| Kubernetes | Core + CKA drills | 11 labs (live k3d) |
+| App development | Go, Python, SQL | 9 labs |
+| Kubernetes | Core + CKA drills | 12 labs (live k3d) |
 | Delivery | CI/CD, observability, leadership, portfolio | 11 labs + incident capstone |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (56 interactive + 1 capstone)
+### Lab inventory (61 interactive + 1 capstone)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
 **Terminal** — `terminal-tmux`, `terminal-neovim`
 
-**90Days bridges** — `bash-automation-basics`, `docker-tagging-basics`, `kubernetes-yaml-basics`, `networking-basics`, `monitoring-basics`, `cloud-tagging-basics`
+**90Days bridges** — `bash-automation-basics`, `docker-tagging-basics`, `kubernetes-yaml-basics`, `networking-basics`, `monitoring-basics`, `cloud-tagging-basics`, `secrets-basics`
 
 **Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
@@ -37,11 +37,11 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **HTTP & Go** — `http-health-server`, `http-json-api`, `go-testing-basics`
 
-**Python & SQL** — `python-health-server`, `python-json-api`, `sql-query-basics`
+**Python & SQL** — `python-health-server`, `python-json-api`, `python-packaging-basics`, `sql-query-basics`, `sql-joins-basics`, `sql-indexes-explain`
 
 **Kubernetes** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
 
-**CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`, `kubernetes-ingress`, `kubernetes-storage`, `kubernetes-backup-restore`
+**CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`, `kubernetes-ingress`, `kubernetes-storage`, `kubernetes-backup-restore`, `kubernetes-etcd-snapshot`
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
 
@@ -66,13 +66,13 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn Linux | ✅ 4 labs + terminal mastery |
 | Learn Git | ✅ 4 labs |
 | Learn Docker | ✅ 3 labs |
-| Learn Kubernetes | ✅ 5 labs + 6 CKA drills |
+| Learn Kubernetes | ✅ 5 labs + 7 CKA drills |
 | Learn CI/CD | ✅ 2 labs |
 | Learn Logging & Observability | ✅ 2 labs |
 | Learn AWS | ✅ 3 local simulation labs |
 | Learn HTTP Servers | ✅ Go + Python health/JSON labs |
 | Learn Go | ✅ `go-testing-basics` (+ HTTP labs in Go) |
-| Learn Python / SQL | ✅ `python-health-server`, `python-json-api`, `sql-query-basics` |
+| Learn Python / SQL | ✅ packaging + joins/indexes depth |
 | Portfolio projects | ✅ 4-lab payments demo path |
 
 ## Your 5-year roadmap → PlatformForge phases
@@ -84,7 +84,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | 2026–2027 | PostgreSQL PITR | ✅ `postgresql-pitr` |
 | 2027 | Kafka CDC / Debezium | ✅ `kafka-debezium-cdc` |
 | 2027 | Compliance masking | ✅ `compliance-masking` |
-| 2027–2028 | CKA prep | ✅ NetworkPolicy through backup/restore |
+| 2027–2028 | CKA prep | ✅ through etcd snapshot runbooks |
 | 2028+ | DORA / PCI-DSS evidence | ✅ `dora-evidence`, `pci-dss-basics` |
 | 2028+ | Leadership capstones | ✅ `leadership-adr`, `leadership-postmortem` |
 
@@ -101,14 +101,15 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 | Networking | `networking-basics` |
 | Monitoring | `monitoring-basics` |
 | Cloud | `cloud-tagging-basics` + AWS local sims |
+| Security | `secrets-basics` |
 | CI/CD culture | `cicd-pipeline-fix`, `cicd-security-scan` |
 
 ## Next authoring priorities
 
-1. Optional etcd snapshot lab when local control-plane tooling allows
-2. Portfolio polish (real image build/push when registry tooling is available)
-3. Deeper SQL (joins, indexes, explain) and Python packaging labs
-4. Additional 90Days day conversions as needed
+1. Portfolio polish (real image build/push when registry tooling is available)
+2. Live etcdctl against control-plane when privileged lab runtime allows
+3. Advanced SQL (window functions) and Python async service labs
+4. Learning Path UX: filters, estimated remaining time
 
 ## How to add a lab
 

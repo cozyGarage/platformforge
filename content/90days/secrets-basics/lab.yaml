@@ -1,0 +1,47 @@
+version: 1
+id: secrets-basics
+title: Keep Secrets Out of Git
+summary: Move a leaked token into an ignored secrets file and document the rotation follow-up — a 90Days security fundamentals drill.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [cloud-tagging-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/app /workspace/docs"
+  - "printf 'API_TOKEN=super-secret-token\\nAPP_ENV=dev\\n' > /workspace/app/config.env"
+  - "printf 'node_modules/\\n' > /workspace/.gitignore"
+tasks:
+  - id: protect-secrets
+    title: Quarantine the token
+    description: 'Move API_TOKEN out of app/config.env into /workspace/secrets.env, keep APP_ENV=dev in config.env, add secrets.env to .gitignore, and write /workspace/docs/ROTATE.md mentioning rotation of API_TOKEN.'
+    hints:
+      - config.env should no longer contain super-secret-token.
+      - secrets.env holds API_TOKEN=...
+      - ROTATE.md should mention rotation and API_TOKEN.
+    checks:
+      - type: file
+        name: Secrets file has token
+        path: /workspace/secrets.env
+        value: API_TOKEN=
+      - type: file
+        name: App env retained
+        path: /workspace/app/config.env
+        value: APP_ENV=dev
+      - type: command
+        name: Token removed from config
+        command: "! grep -q 'super-secret-token' /workspace/app/config.env"
+      - type: file
+        name: Secrets ignored
+        path: /workspace/.gitignore
+        value: secrets.env
+      - type: file
+        name: Rotation note present
+        path: /workspace/docs/ROTATE.md
+        value: API_TOKEN
+      - type: file
+        name: Mentions rotation
+        path: /workspace/docs/ROTATE.md
+        value: rotat
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+attribution: "Adapted from 90DaysOfDevOps security fundamentals (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge scenario."

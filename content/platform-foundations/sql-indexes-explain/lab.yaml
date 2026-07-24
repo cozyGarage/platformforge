@@ -1,0 +1,38 @@
+version: 1
+id: sql-indexes-explain
+title: Speed Queries with Indexes
+summary: Add an index for account lookups and capture EXPLAIN output proving SQLite can use it.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [sql-joins-basics]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache sqlite >/dev/null"
+  - "mkdir -p /workspace/db /workspace/sql"
+  - "sqlite3 /workspace/db/ledger.db \"CREATE TABLE payments (id INTEGER PRIMARY KEY, account TEXT, amount INTEGER); INSERT INTO payments VALUES (1,'alice',25),(2,'bob',80),(3,'carol',120),(4,'alice',40);\""
+tasks:
+  - id: index-and-explain
+    title: Index account lookups
+    description: 'Write /workspace/sql/index.sql creating INDEX idx_payments_account ON payments(account). Apply it. Write /workspace/sql/lookup.sql selecting rows WHERE account = ''alice''. Save EXPLAIN QUERY PLAN output for that lookup to /workspace/sql/explain.txt and confirm it mentions idx_payments_account.'
+    hints:
+      - 'CREATE INDEX idx_payments_account ON payments(account);'
+      - 'EXPLAIN QUERY PLAN SELECT * FROM payments WHERE account = ''alice'';'
+      - sqlite3 can run EXPLAIN QUERY PLAN and redirect to explain.txt
+    checks:
+      - type: file
+        name: Index DDL present
+        path: /workspace/sql/index.sql
+        value: idx_payments_account
+      - type: file
+        name: Lookup query present
+        path: /workspace/sql/lookup.sql
+        value: alice
+      - type: command
+        name: Index exists in DB
+        command: "sqlite3 /workspace/db/ledger.db \".indexes payments\" | grep -q idx_payments_account"
+      - type: file
+        name: Explain mentions index
+        path: /workspace/sql/explain.txt
+        value: idx_payments_account
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

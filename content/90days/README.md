@@ -17,3 +17,4 @@ This pack adapts topics from [90DaysOfDevOps](https://github.com/MichaelCade/90D
 | `networking-basics` | Networking — name resolution and service paths |
 | `monitoring-basics` | Monitoring — probes to up/down status |
 | `cloud-tagging-basics` | Cloud — ownership and cost tags |
+| `secrets-basics` | Security — keep tokens out of git |
