@@ -20,10 +20,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Containers | Docker | 3 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA drills | 12 labs (live k3d) |
-| Delivery | CI/CD, observability, leadership, portfolio | 11 labs + incident capstone |
+| Delivery | CI/CD, observability, leadership, portfolio | 11 labs + 4 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (63 interactive + 1 capstone)
+### Lab inventory (63 interactive + 4 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -57,7 +57,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **AWS local sims** — `aws-iam-basics`, `aws-s3-basics`, `aws-vpc-basics`
 
-**Capstone** — `incident-capstone`
+**Capstones** — `incident-capstone`, `payments-reliability-capstone`, `compliance-release-capstone`, `platform-landing-zone-capstone`
 
 ## Boot.dev modules → PlatformForge status
 

@@ -125,10 +125,13 @@ phases:
           - observability-structured-logs
           - observability-metrics-alerts
       - id: capstone
-        title: Incident Capstone
-        summary: Multi-layer production incident across Git, containers, and config.
+        title: Capstone Projects
+        summary: Multi-skill incidents spanning reliability, compliance, and platform design.
         labs:
           - incident-capstone
+          - payments-reliability-capstone
+          - compliance-release-capstone
+          - platform-landing-zone-capstone
       - id: leadership
         title: Leadership Capstones
         summary: Capture decisions and run blameless learning reviews.
