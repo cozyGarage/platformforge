@@ -14,3 +14,6 @@ This pack adapts topics from [90DaysOfDevOps](https://github.com/MichaelCade/90D
 | `bash-automation-basics` | Linux scripting / automation fundamentals |
 | `docker-tagging-basics` | Containers — image tags and reproducibility |
 | `kubernetes-yaml-basics` | Kubernetes desired-state YAML fundamentals |
+| `networking-basics` | Networking — name resolution and service paths |
+| `monitoring-basics` | Monitoring — probes to up/down status |
+| `cloud-tagging-basics` | Cloud — ownership and cost tags |

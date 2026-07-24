@@ -1,0 +1,42 @@
+version: 1
+id: python-json-api
+title: Build a Python JSON API
+summary: Add a /payments JSON endpoint beside /health using Python's http.server.
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [python-health-server]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache wget iproute2 >/dev/null"
+  - "mkdir -p /workspace"
+tasks:
+  - id: payments-api
+    title: Serve JSON payments
+    description: 'Create /workspace/server.py on :8080 with /health returning ok and /payments returning [{"id":1,"amount":25}] with Content-Type application/json. Run it in the background.'
+    hints:
+      - json.dumps can build the payments payload.
+      - Set Content-Type before writing the body.
+      - Keep /health working for probes.
+    checks:
+      - type: file
+        name: Payments route present
+        path: /workspace/server.py
+        value: "/payments"
+      - type: file
+        name: Content-Type set
+        path: /workspace/server.py
+        value: application/json
+      - type: port
+        name: Port 8080 listening
+        port: 8080
+      - type: command
+        name: Health still ok
+        command: "wget -qO- http://127.0.0.1:8080/health | grep -q ok"
+      - type: command
+        name: Payments JSON body
+        command: "wget -qO- http://127.0.0.1:8080/payments | grep -q '\"amount\": 25\\|\"amount\":25'"
+      - type: command
+        name: JSON content type
+        command: "wget -S -qO- http://127.0.0.1:8080/payments 2>&1 | grep -qi 'content-type: application/json'"
+limits: {cpus: "1.0", memory: 256m, pids: 128, timeout: 1800, network: true}

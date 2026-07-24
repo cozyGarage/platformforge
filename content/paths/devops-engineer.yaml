@@ -31,6 +31,9 @@ phases:
           - bash-automation-basics
           - docker-tagging-basics
           - kubernetes-yaml-basics
+          - networking-basics
+          - monitoring-basics
+          - cloud-tagging-basics
       - id: learn-git
         title: Learn Git
         summary: History recovery, branching, remotes, and safe collaboration.
@@ -53,8 +56,8 @@ phases:
           - docker-networking
           - docker-volumes
   - id: application-dev
-    title: Phase 2b — HTTP & Go
-    summary: Build small Go services with health checks, JSON APIs, and unit tests.
+    title: Phase 2b — Application Development
+    summary: Build small HTTP services in Go and Python, plus SQL query drills.
     modules:
       - id: learn-http-go
         title: Learn HTTP Servers & Go
@@ -64,6 +67,14 @@ phases:
           - http-health-server
           - http-json-api
           - go-testing-basics
+      - id: learn-python-sql
+        title: Learn Python & SQL
+        summary: Python HTTP services and SQLite query fundamentals.
+        source: "Boot.dev — Learn Python / Learn SQL"
+        labs:
+          - python-health-server
+          - python-json-api
+          - sql-query-basics
   - id: kubernetes
     title: Phase 3 — Kubernetes
     summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls.

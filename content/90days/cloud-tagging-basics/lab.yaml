@@ -1,0 +1,42 @@
+version: 1
+id: cloud-tagging-basics
+title: Tag Cloud Resources for Cost and Ownership
+summary: Apply required tags to a resource inventory so cost and ownership are auditable — a 90Days cloud fundamentals drill.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [monitoring-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache jq >/dev/null"
+  - "mkdir -p /workspace/cloud"
+  - "printf '{\"Name\":\"payments-api\",\"Environment\":\"\",\"Owner\":\"\"}\\n' > /workspace/cloud/resource.json"
+tasks:
+  - id: tag-resource
+    title: Complete mandatory tags
+    description: 'Update cloud/resource.json so Environment is prod and Owner is platform-team. Write /workspace/cloud/POLICY.md stating that Environment and Owner tags are required before deploy.'
+    hints:
+      - Keep valid JSON.
+      - Environment value must be prod.
+      - Owner value must be platform-team.
+    checks:
+      - type: command
+        name: Environment tagged
+        command: "jq -e '.Environment == \"prod\"' /workspace/cloud/resource.json >/dev/null"
+      - type: command
+        name: Owner tagged
+        command: "jq -e '.Owner == \"platform-team\"' /workspace/cloud/resource.json >/dev/null"
+      - type: file
+        name: Name retained
+        path: /workspace/cloud/resource.json
+        value: payments-api
+      - type: file
+        name: Policy mentions Environment
+        path: /workspace/cloud/POLICY.md
+        value: Environment
+      - type: file
+        name: Policy mentions Owner
+        path: /workspace/cloud/POLICY.md
+        value: Owner
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+attribution: "Adapted from 90DaysOfDevOps cloud fundamentals (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge scenario."

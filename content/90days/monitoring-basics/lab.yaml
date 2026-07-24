@@ -1,0 +1,38 @@
+version: 1
+id: monitoring-basics
+title: Build a Tiny Uptime Check
+summary: Turn raw probe results into an up/down status file — a 90Days monitoring fundamentals drill.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [networking-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/monitor"
+  - "printf 'payments 200\\ncheckout 500\\n' > /workspace/monitor/probes.txt"
+tasks:
+  - id: uptime-status
+    title: Summarize probe health
+    description: 'Create executable /workspace/monitor/check.sh that reads probes.txt and writes /workspace/monitor/status.env with payments=up and checkout=down (HTTP 2xx = up, otherwise down). Run the script once. Also write /workspace/monitor/ALERT.md mentioning checkout.'
+    hints:
+      - '200 means up; 500 means down'
+      - status.env should contain payments=up and checkout=down
+      - ALERT.md should call out the failing checkout probe.
+    checks:
+      - type: command
+        name: Checker is executable
+        command: test -x /workspace/monitor/check.sh
+      - type: file
+        name: Payments up
+        path: /workspace/monitor/status.env
+        value: payments=up
+      - type: file
+        name: Checkout down
+        path: /workspace/monitor/status.env
+        value: checkout=down
+      - type: file
+        name: Alert mentions checkout
+        path: /workspace/monitor/ALERT.md
+        value: checkout
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+attribution: "Adapted from 90DaysOfDevOps monitoring/observability topics (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge scenario."

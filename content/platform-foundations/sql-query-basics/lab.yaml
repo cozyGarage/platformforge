@@ -1,0 +1,42 @@
+version: 1
+id: sql-query-basics
+title: Query Payments with SQL
+summary: Load a SQLite ledger and write queries that answer balance and high-value payment questions.
+difficulty: beginner
+estimatedMinutes: 30
+prerequisites: [linux-pipelines]
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - "apk add --no-cache sqlite >/dev/null"
+  - "mkdir -p /workspace/db /workspace/sql"
+  - "sqlite3 /workspace/db/ledger.db \"CREATE TABLE payments (id INTEGER PRIMARY KEY, account TEXT, amount INTEGER); INSERT INTO payments VALUES (1,'alice',25),(2,'bob',80),(3,'carol',120);\""
+tasks:
+  - id: ledger-queries
+    title: Answer with SQL
+    description: 'Write /workspace/sql/total.sql that sums all amounts, /workspace/sql/high_value.sql that selects accounts with amount >= 100, and save query results to /workspace/sql/total.txt (225) and /workspace/sql/high_value.txt containing carol.'
+    hints:
+      - 'SELECT SUM(amount) FROM payments;'
+      - 'SELECT account FROM payments WHERE amount >= 100;'
+      - Use sqlite3 db < file.sql to run and redirect output.
+    checks:
+      - type: file
+        name: Total query present
+        path: /workspace/sql/total.sql
+        value: SUM
+      - type: file
+        name: High value query present
+        path: /workspace/sql/high_value.sql
+        value: "100"
+      - type: file
+        name: Total result
+        path: /workspace/sql/total.txt
+        value: "225"
+      - type: file
+        name: High value result
+        path: /workspace/sql/high_value.txt
+        value: carol
+      - type: command
+        name: Total query matches DB
+        command: "test \"$(sqlite3 /workspace/db/ledger.db < /workspace/sql/total.sql)\" = \"225\""
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
