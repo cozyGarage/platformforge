@@ -18,12 +18,13 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 |-------|-------|-------------------|
 | Foundations | Linux, terminal, 90Days bridges, networking tickets, Git | 23 labs |
 | Containers | Docker | 3 labs |
+| IaC | Terraform planning | 3 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA drills | 12 labs (live k3d) |
 | Delivery | CI/CD, observability, leadership, portfolio | 11 labs + 4 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (69 interactive + 4 capstones)
+### Lab inventory (72 interactive + 4 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -36,6 +37,8 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 **Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
 **Docker** — `docker-debugging`, `docker-networking`, `docker-volumes`
+
+**Terraform / IaC** — `terraform-basics`, `terraform-modules`, `terraform-state-backend`
 
 **HTTP & Go** — `http-health-server`, `http-json-api`, `go-testing-basics`
 
@@ -123,10 +126,10 @@ UX now shipped from PatchLab:
 
 ## Next authoring priorities
 
-1. Learning Path UX: estimated remaining time + clearer tip-code chips in validation
-2. Portfolio polish (real image build/push when registry tooling is available)
-3. Live etcdctl against control-plane when privileged lab runtime allows
-4. Terraform / IaC local planning labs
+1. Portfolio polish (real image build/push when registry tooling is available)
+2. Live etcdctl against control-plane when privileged lab runtime allows
+3. Ansible / configuration-management planning labs
+4. GitOps (Argo CD-style) declarative sync drills
 
 ## How to add a lab
 

@@ -1,0 +1,57 @@
+version: 1
+id: terraform-state-backend
+title: Configure a Remote State Backend
+summary: Author a partial backend config for S3-style remote state with locking and encryption called out in a runbook.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [terraform-modules, aws-s3-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/infra /workspace/docs"
+  - "printf 'Ticket: Team state must live remotely.\\nUse backend \"s3\" with bucket payments-tf-state, key platforms/payments/terraform.tfstate, region us-east-1, encrypt true, and dynamodb_table payments-tf-locks.\\n' > /workspace/infra/TICKET.md"
+  - "printf 'terraform {\\n  required_version = \">= 1.5.0\"\\n}\\n' > /workspace/infra/main.tf"
+tasks:
+  - id: remote-backend
+    title: Declare remote state and document it
+    description: 'Update /workspace/infra/main.tf so the terraform block includes backend "s3" with bucket payments-tf-state, key platforms/payments/terraform.tfstate, region us-east-1, encrypt = true, and dynamodb_table payments-tf-locks. Write /workspace/docs/STATE.md with headings Backend and Locking that mention S3 and DynamoDB.'
+    hints:
+      - 'Tip code MISSING_BACKEND: add backend "s3" { ... } inside terraform {}.'
+      - 'encrypt = true and dynamodb_table are required for this ticket.'
+      - 'STATE.md should have Backend and Locking headings.'
+    checks:
+      - type: file
+        name: S3 backend declared
+        path: /workspace/infra/main.tf
+        value: 'backend "s3"'
+      - type: file
+        name: State bucket set
+        path: /workspace/infra/main.tf
+        value: payments-tf-state
+      - type: file
+        name: State key set
+        path: /workspace/infra/main.tf
+        value: platforms/payments/terraform.tfstate
+      - type: file
+        name: Region set
+        path: /workspace/infra/main.tf
+        value: us-east-1
+      - type: command
+        name: Encryption enabled
+        command: "grep -Eq 'encrypt[[:space:]]*=[[:space:]]*true' /workspace/infra/main.tf"
+      - type: file
+        name: Lock table set
+        path: /workspace/infra/main.tf
+        value: payments-tf-locks
+      - type: file
+        name: Backend docs present
+        path: /workspace/docs/STATE.md
+        value: Backend
+      - type: file
+        name: Locking docs present
+        path: /workspace/docs/STATE.md
+        value: Locking
+      - type: command
+        name: Docs mention S3 and DynamoDB
+        command: "grep -qi 's3' /workspace/docs/STATE.md && grep -Eqi 'dynamodb|DynamoDB' /workspace/docs/STATE.md"
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

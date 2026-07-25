@@ -1,0 +1,50 @@
+version: 1
+id: terraform-modules
+title: Split a Terraform Network Module
+summary: Extract a reusable network module with a variable and output, then call it from the root module.
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [terraform-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/infra/modules/network"
+  - "printf 'Ticket: Move VPC CIDR into modules/network and call it from the root.\\nRoot should pass vpc_cidr = \"10.0.0.0/16\".\\n' > /workspace/infra/TICKET.md"
+  - "printf 'terraform {\\n  required_version = \">= 1.5.0\"\\n}\\n\\nlocals {\\n  app_name = \"payments\"\\n}\\n\\noutput \"app_name\" {\\n  value = local.app_name\\n}\\n' > /workspace/infra/main.tf"
+tasks:
+  - id: network-module
+    title: Create and call the network module
+    description: 'Write /workspace/infra/modules/network/variables.tf with variable vpc_cidr, modules/network/outputs.tf outputting vpc_cidr, and modules/network/main.tf that uses var.vpc_cidr (for example in a local). Update /workspace/infra/main.tf with a module "network" block source = "./modules/network" and vpc_cidr = "10.0.0.0/16". Write /workspace/infra/STATUS.txt containing MODULE_OK.'
+    hints:
+      - 'Tip code MISSING_MODULE_SOURCE: root module blocks need source = "./modules/network".'
+      - 'Variable and output names should both be vpc_cidr.'
+      - 'STATUS.txt should include MODULE_OK.'
+    checks:
+      - type: file
+        name: Variable file present
+        path: /workspace/infra/modules/network/variables.tf
+        value: vpc_cidr
+      - type: file
+        name: Output file present
+        path: /workspace/infra/modules/network/outputs.tf
+        value: vpc_cidr
+      - type: file
+        name: Module body present
+        path: /workspace/infra/modules/network/main.tf
+        value: var.vpc_cidr
+      - type: command
+        name: Root calls network module
+        command: "grep -Eq 'module[[:space:]]+\"network\"|module[[:space:]]+network' /workspace/infra/main.tf"
+      - type: file
+        name: Module source set
+        path: /workspace/infra/main.tf
+        value: "./modules/network"
+      - type: file
+        name: CIDR passed to module
+        path: /workspace/infra/main.tf
+        value: "10.0.0.0/16"
+      - type: file
+        name: Module status ok
+        path: /workspace/infra/STATUS.txt
+        value: MODULE_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

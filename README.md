@@ -75,7 +75,7 @@ curl http://127.0.0.1:8080/api/labs/linux-navigation/status
 
 The server binds to loopback by default. Review third-party course packs before running them.
 
-The `platform-foundations` pack and DevOps Engineer path include guided labs spanning Linux, Git, containers, Kubernetes, CI/CD, observability, data/CDC, compliance, bare-metal planning, PatchLab-inspired datacenter networking tickets, and multi-skill capstones (incident, payments reliability, compliance release, landing zone).
+The `platform-foundations` pack and DevOps Engineer path include guided labs spanning Linux, Git, containers, Terraform/IaC, Kubernetes, CI/CD, observability, data/CDC, compliance, bare-metal planning, PatchLab-inspired datacenter networking tickets, and multi-skill capstones (incident, payments reliability, compliance release, landing zone).
 
 ## Development
 

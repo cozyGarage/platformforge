@@ -74,6 +74,17 @@ phases:
           - docker-debugging
           - docker-networking
           - docker-volumes
+  - id: iac
+    title: Phase 2c — Infrastructure as Code
+    summary: Local Terraform planning drills for modules and remote state.
+    modules:
+      - id: learn-terraform
+        title: Learn Terraform
+        summary: Root modules, reusable network modules, and remote state backends.
+        labs:
+          - terraform-basics
+          - terraform-modules
+          - terraform-state-backend
   - id: application-dev
     title: Phase 2b — Application Development
     summary: Build small HTTP services in Go and Python, plus SQL query drills.
