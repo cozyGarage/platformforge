@@ -1,0 +1,47 @@
+version: 1
+id: terraform-basics
+title: Author a Terraform Root Module
+summary: Write a pinned Terraform root module with locals and an output for a payments app label.
+difficulty: beginner
+estimatedMinutes: 30
+prerequisites: [linux-navigation]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/infra"
+  - "printf 'Ticket: Create infra/main.tf for the payments platform label.\\nNeed: required_version >= 1.5.0, locals.app_name, output app_name.\\n' > /workspace/infra/TICKET.md"
+tasks:
+  - id: root-module
+    title: Write the root module
+    description: 'Create /workspace/infra/main.tf containing a terraform block with required_version ">= 1.5.0", a locals block setting app_name = "payments", and an output named app_name that references local.app_name. Write /workspace/infra/STATUS.txt containing PLAN_READY.'
+    hints:
+      - 'Tip code MISSING_VERSION: pin required_version inside the terraform {} block.'
+      - 'locals { app_name = "payments" } then output "app_name" { value = local.app_name }.'
+      - 'STATUS.txt should include PLAN_READY.'
+    checks:
+      - type: file
+        name: Root module present
+        path: /workspace/infra/main.tf
+        value: terraform
+      - type: file
+        name: Version pinned
+        path: /workspace/infra/main.tf
+        value: required_version
+      - type: command
+        name: Requires Terraform 1.5+
+        command: "grep -q 'required_version' /workspace/infra/main.tf && grep -F '>= 1.5' /workspace/infra/main.tf"
+      - type: file
+        name: Local app name
+        path: /workspace/infra/main.tf
+        value: app_name
+      - type: command
+        name: Local value is payments
+        command: "grep -Eq 'app_name[[:space:]]*=[[:space:]]*\"payments\"' /workspace/infra/main.tf"
+      - type: command
+        name: Output references local
+        command: "grep -Eq 'output[[:space:]]+\"app_name\"|output[[:space:]]+app_name' /workspace/infra/main.tf && grep -q 'local.app_name' /workspace/infra/main.tf"
+      - type: file
+        name: Plan ready status
+        path: /workspace/infra/STATUS.txt
+        value: PLAN_READY
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

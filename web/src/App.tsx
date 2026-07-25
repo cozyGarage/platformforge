@@ -31,6 +31,28 @@ function starsLabel(n = 0) {
   return '★'.repeat(Math.max(0, Math.min(3, n))) + '☆'.repeat(Math.max(0, 3 - Math.max(0, Math.min(3, n))))
 }
 
+function formatMinutes(total: number) {
+  if (total <= 0) return '0 min'
+  if (total < 60) return `${total} min`
+  const hours = Math.floor(total / 60)
+  const mins = total % 60
+  return mins ? `${hours}h ${mins}m` : `${hours}h`
+}
+
+function tipCodesFor(result: Validation, lab?: Lab) {
+  const codes = new Set<string>()
+  const failedTaskIds = new Set(result.checks.filter(c => !c.passed && c.taskId).map(c => c.taskId as string))
+  for (const task of lab?.tasks || []) {
+    if (!failedTaskIds.has(task.id)) continue
+    for (const hint of task.hints || []) {
+      const match = hint.match(/Tip codes?\s*:?\s*([A-Z][A-Z0-9_]*(?:\s*,\s*[A-Z][A-Z0-9_]*)*)/i)
+      if (!match) continue
+      for (const code of match[1].split(/\s*,\s*/)) codes.add(code.trim())
+    }
+  }
+  return [...codes]
+}
+
 function useLabsAndProgress() {
   const [labs, setLabs] = useState<Lab[]>([])
   const [progress, setProgress] = useState<Progress[]>([])
@@ -93,6 +115,9 @@ function LearningPathView() {
   }, [])
   const pathLabs = useMemo(() => path?.phases.flatMap(phase => phase.modules.flatMap(module => module.labs || [])) || [], [path])
   const completedCount = pathLabs.filter(labId => statusFor(labId) === 'completed').length
+  const remainingMinutes = pathLabs
+    .filter(labId => statusFor(labId) !== 'completed')
+    .reduce((sum, labId) => sum + (labMap[labId]?.estimatedMinutes || 0), 0)
   if (loadError) return <p className="error">{loadError}</p>
   if (!path) return <p className="loading">Loading learning path…</p>
   return <>
@@ -100,39 +125,49 @@ function LearningPathView() {
       <p className="eyebrow">DEVOPS ENGINEER PATH</p>
       <h1>{path.title}</h1>
       <p>{path.summary}</p>
-      <p className="meta">Progress: {completedCount}/{pathLabs.length} labs completed</p>
+      <p className="meta">Progress: {completedCount}/{pathLabs.length} labs completed · ~{formatMinutes(remainingMinutes)} remaining</p>
       {path.source && <p className="meta">{path.source}</p>}
     </section>
     {error && <p className="error">{error}</p>}
-    {path.phases.map(phase => <section className="path-phase" key={phase.id}>
-      <h2>{phase.title}</h2>
-      {phase.summary && <p className="phase-summary">{phase.summary}</p>}
-      {phase.modules.map(module => {
-        const unlocked = moduleUnlocked(module, path, statusFor)
-        return <div className={`path-module ${unlocked ? '' : 'locked'}`} key={module.id}>
-          <div className="module-head">
-            <h3>{module.title}</h3>
-            {module.source && <span className="module-source">{module.source}</span>}
-          </div>
-          {module.summary && <p>{module.summary}</p>}
-          {!unlocked && module.unlock && <p className="meta">Sandbox locked — complete {module.unlock.count} labs in {module.unlock.completedFromModule} first.</p>}
-          <ul className="lab-list">
-            {module.labs.map(labId => {
-              const lab = labMap[labId]
-              const done = statusFor(labId) === 'completed'
-              const locked = !unlocked || isLocked(lab)
-              return <li key={labId} className={`${done ? 'done' : ''} ${locked ? 'locked' : ''}`}>
-                {locked
-                  ? <span>{lab?.title || labId} <em className="lock-note">({missingPrereqs(lab).length ? `needs ${missingPrereqs(lab).join(', ')}` : 'locked'})</em></span>
-                  : <Link to={`/labs/${labId}`}>{lab?.title || labId}</Link>}
-                <span>{lab?.estimatedMinutes || '?'} min {done && `✓ ${starsLabel(scoreFor(labId)?.stars || 0)}`}</span>
-              </li>
-            })}
-            {module.comingSoon?.map(item => <li key={item} className="soon"><span>{item}</span><span>coming soon</span></li>)}
-          </ul>
+    {path.phases.map(phase => {
+      const phaseLabs = phase.modules.flatMap(module => module.labs || [])
+      const phaseDone = phaseLabs.filter(labId => statusFor(labId) === 'completed').length
+      const phaseRemaining = phaseLabs
+        .filter(labId => statusFor(labId) !== 'completed')
+        .reduce((sum, labId) => sum + (labMap[labId]?.estimatedMinutes || 0), 0)
+      return <section className="path-phase" key={phase.id}>
+        <div className="phase-head">
+          <h2>{phase.title}</h2>
+          <span className="meta">{phaseDone}/{phaseLabs.length} done · ~{formatMinutes(phaseRemaining)} left</span>
         </div>
-      })}
-    </section>)}
+        {phase.summary && <p className="phase-summary">{phase.summary}</p>}
+        {phase.modules.map(module => {
+          const unlocked = moduleUnlocked(module, path, statusFor)
+          return <div className={`path-module ${unlocked ? '' : 'locked'}`} key={module.id}>
+            <div className="module-head">
+              <h3>{module.title}</h3>
+              {module.source && <span className="module-source">{module.source}</span>}
+            </div>
+            {module.summary && <p>{module.summary}</p>}
+            {!unlocked && module.unlock && <p className="meta">Sandbox locked — complete {module.unlock.count} labs in {module.unlock.completedFromModule} first.</p>}
+            <ul className="lab-list">
+              {module.labs.map(labId => {
+                const lab = labMap[labId]
+                const done = statusFor(labId) === 'completed'
+                const locked = !unlocked || isLocked(lab)
+                return <li key={labId} className={`${done ? 'done' : ''} ${locked ? 'locked' : ''}`}>
+                  {locked
+                    ? <span>{lab?.title || labId} <em className="lock-note">({missingPrereqs(lab).length ? `needs ${missingPrereqs(lab).join(', ')}` : 'locked'})</em></span>
+                    : <Link to={`/labs/${labId}`}>{lab?.title || labId}</Link>}
+                  <span>{lab?.estimatedMinutes || '?'} min {done && `✓ ${starsLabel(scoreFor(labId)?.stars || 0)}`}</span>
+                </li>
+              })}
+              {module.comingSoon?.map(item => <li key={item} className="soon"><span>{item}</span><span>coming soon</span></li>)}
+            </ul>
+          </div>
+        })}
+      </section>
+    })}
   </>
 }
 
@@ -235,6 +270,9 @@ function Lesson() {
       <section className="results"><h2>Validation</h2>
         {!result && <p>Complete the objectives, then validate your environment. After {result?.ghostHintEvery || 2} failed validates on a task, a ghost hint appears.</p>}
         {result && <><p className={result.status === 'passed' ? 'success' : 'error'}>{result.passed}/{result.checks.length} checks passed</p>
+          {result.status !== 'passed' && tipCodesFor(result, lab).length > 0 && <div className="tip-chips" aria-label="Tip codes">
+            {tipCodesFor(result, lab).map(code => <span className="tip-chip" key={code}>{code}</span>)}
+          </div>}
           {result.checks.map((check, i) => <div className={`check ${check.passed ? 'pass' : 'fail'}`} key={i}><strong>{check.passed ? '✓' : '×'} {check.name}</strong><span>{check.message}</span></div>)}
           {result.status === 'passed' && result.score && <div className="debrief">
             <h3>Debrief</h3>
