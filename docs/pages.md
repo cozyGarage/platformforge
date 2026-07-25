@@ -36,3 +36,4 @@ Enable once:
 2. **Build and deployment → Source: GitHub Actions**
 
 Then re-run **Deploy GitHub Pages**. Expected URL: `https://cozygarage.github.io/platformforge/`
+Pages enabled; redeploy 2026-07-25T09:37Z
