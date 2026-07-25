@@ -1,0 +1,45 @@
+version: 1
+id: net-firewall-acl
+title: Order Firewall ACLs Correctly
+summary: 'Ticket drill inspired by PatchLab: insert a host deny above a broad permit so one client is blocked and others pass.'
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [net-default-gateway]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/net"
+  - "printf 'Ticket: Block 10.10.10.20/32 from WAN while keeping 10.10.10.10 working.\\nSymptom: broad permit is first — specific deny never matches.\\n' > /workspace/net/TICKET.md"
+  - "printf 'acl:\\n  - action: permit\\n    src: 10.10.10.0/24\\n    dst: any\\n    note: too broad first\\n' > /workspace/net/acl.yaml"
+tasks:
+  - id: order-acl
+    title: Deny one host, then permit the LAN
+    description: 'Rewrite acl.yaml so the first rule denies 10.10.10.20/32 to any, and a later rule permits 10.10.10.0/24 to any. Write /workspace/net/probe.txt with lines DENY_20 and ALLOW_10.'
+    hints:
+      - 'Tip code ACL_ORDER: firewalls evaluate top-down; first match wins.'
+      - 'Put the /32 deny above the /24 permit.'
+      - 'probe.txt should include DENY_20 and ALLOW_10.'
+    checks:
+      - type: file
+        name: Deny host present
+        path: /workspace/net/acl.yaml
+        value: "10.10.10.20/32"
+      - type: file
+        name: Permit LAN present
+        path: /workspace/net/acl.yaml
+        value: "10.10.10.0/24"
+      - type: command
+        name: Deny appears before permit
+        command: "DENY_LINE=$(grep -n '10.10.10.20/32' /workspace/net/acl.yaml | head -1 | cut -d: -f1); PERMIT_LINE=$(grep -n '10.10.10.0/24' /workspace/net/acl.yaml | head -1 | cut -d: -f1); test -n \"$DENY_LINE\" && test -n \"$PERMIT_LINE\" && test \"$DENY_LINE\" -lt \"$PERMIT_LINE\""
+      - type: command
+        name: First matching action is deny
+        command: "grep -n 'action:' /workspace/net/acl.yaml | head -1 | grep -qi deny"
+      - type: file
+        name: Probe denies .20
+        path: /workspace/net/probe.txt
+        value: DENY_20
+      - type: file
+        name: Probe allows .10
+        path: /workspace/net/probe.txt
+        value: ALLOW_10
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

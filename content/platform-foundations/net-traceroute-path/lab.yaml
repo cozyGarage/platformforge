@@ -1,0 +1,58 @@
+version: 1
+id: net-traceroute-path
+title: Repair a Broken Traceroute Path
+summary: 'Ticket drill inspired by PatchLab: fix a missing static route so traceroute from LAN to ISP completes.'
+difficulty: advanced
+estimatedMinutes: 35
+prerequisites: [net-static-nat, net-default-gateway]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/net"
+  - "printf 'Ticket: traceroute from SERVER-01 to 198.51.100.1 dies at FW.\\nExpected hops: SERVER-01 -> FW-LAN -> FW-WAN -> ISP-PEER.\\nMissing: static route on FW for 198.51.100.0/24 via 203.0.113.1.\\n' > /workspace/net/TICKET.md"
+  - "printf 'routes:\\n  - dst: 0.0.0.0/0\\n    next_hop: 203.0.113.1\\n    device: SERVER-01\\n' > /workspace/net/routes.yaml"
+  - "printf 'trace_broken:\\n  - 10.10.10.10\\n  - 10.10.10.1\\n  - *\\n' > /workspace/net/trace.broken.txt"
+tasks:
+  - id: fix-path
+    title: Add the missing route and document hops
+    description: 'Add a FW route in routes.yaml for dst 198.51.100.0/24 with next_hop 203.0.113.1 and device FW. Write /workspace/net/trace.ok.txt listing four hops in order: 10.10.10.10, 10.10.10.1, 203.0.113.1, 198.51.100.1. Also write /workspace/net/STATUS.txt containing TRACE_COMPLETE.'
+    hints:
+      - 'Tip code NO_ROUTE: the firewall needs a more-specific route toward 198.51.100.0/24.'
+      - 'Keep the SERVER-01 default route; add a second route entry for FW.'
+      - 'trace.ok.txt should be one hop per line in path order.'
+    checks:
+      - type: file
+        name: Destination prefix present
+        path: /workspace/net/routes.yaml
+        value: "198.51.100.0/24"
+      - type: file
+        name: Next hop present
+        path: /workspace/net/routes.yaml
+        value: "203.0.113.1"
+      - type: command
+        name: FW owns the new route
+        command: "grep -A3 '198.51.100.0/24' /workspace/net/routes.yaml | grep -q 'device: FW'"
+      - type: file
+        name: Hop 1 server
+        path: /workspace/net/trace.ok.txt
+        value: "10.10.10.10"
+      - type: file
+        name: Hop 2 firewall LAN
+        path: /workspace/net/trace.ok.txt
+        value: "10.10.10.1"
+      - type: file
+        name: Hop 3 ISP peer
+        path: /workspace/net/trace.ok.txt
+        value: "203.0.113.1"
+      - type: file
+        name: Hop 4 destination
+        path: /workspace/net/trace.ok.txt
+        value: "198.51.100.1"
+      - type: command
+        name: Hop order is correct
+        command: "tr -d '\\r' < /workspace/net/trace.ok.txt | awk 'NF{print $1}' | paste -sd, - | grep -qx '10.10.10.10,10.10.10.1,203.0.113.1,198.51.100.1'"
+      - type: file
+        name: Trace complete
+        path: /workspace/net/STATUS.txt
+        value: TRACE_COMPLETE
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
