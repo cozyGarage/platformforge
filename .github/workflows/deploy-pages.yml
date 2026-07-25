@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -27,11 +27,19 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site-dist
+      - name: Publish gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site-dist
+          force_orphan: true
+          enable_jekyll: false
 
   deploy:
-    name: Deploy
+    name: Deploy GitHub Pages
     needs: build
     runs-on: ubuntu-latest
+    continue-on-error: true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

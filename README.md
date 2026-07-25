@@ -2,9 +2,13 @@
 
 PlatformForge is a local-first platform-engineering school with concise lessons, isolated Docker labs, a browser terminal, deterministic validation, reset/retry, and local progress tracking.
 
-**Public curriculum site:** [cozygarage.github.io/platformforge](https://cozygarage.github.io/platformforge/)  
-(static GitHub Pages map — labs still run locally with Docker)
+**Public curriculum site (live):**  
+[cdn.jsdelivr.net/gh/cozyGarage/platformforge@gh-pages/index.html](https://cdn.jsdelivr.net/gh/cozyGarage/platformforge@gh-pages/index.html)
 
+Official GitHub Pages URL (after one Settings enable):  
+[cozygarage.github.io/platformforge](https://cozygarage.github.io/platformforge/)
+
+Static curriculum map only — labs still run locally with Docker.  
 Companion datacenter trainer: [PatchLab](https://cozygarage.github.io/patchlab/).
 
 ## Architecture
