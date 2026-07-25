@@ -21,12 +21,18 @@ Workflow: `.github/workflows/deploy-pages.yml`
 
 - triggers on push to `main` and `workflow_dispatch`
 - builds with `scripts/build-site.py`
-- uploads `site-dist/` via `actions/upload-pages-artifact`
-- deploys with `actions/deploy-pages`
+- force-publishes an orphan `gh-pages` branch (CDN-friendly)
+- uploads `site-dist/` and deploys with `actions/deploy-pages` when Pages is enabled
 
-Enable once in the GitHub UI if needed:
+### Live now (no Settings click required)
 
-1. Repo **Settings → Pages**
+https://cdn.jsdelivr.net/gh/cozyGarage/platformforge@gh-pages/index.html
+
+### Official GitHub Pages host
+
+Enable once:
+
+1. https://github.com/cozyGarage/platformforge/settings/pages
 2. **Build and deployment → Source: GitHub Actions**
 
-Expected URL: `https://cozygarage.github.io/platformforge/`
+Then re-run **Deploy GitHub Pages**. Expected URL: `https://cozygarage.github.io/platformforge/`

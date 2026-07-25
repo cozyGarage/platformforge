@@ -2,9 +2,13 @@
 
 PlatformForge is a local-first platform-engineering school with concise lessons, isolated Docker labs, a browser terminal, deterministic validation, reset/retry, and local progress tracking.
 
-**Public curriculum site:** [cozygarage.github.io/platformforge](https://cozygarage.github.io/platformforge/)  
-(static GitHub Pages map — labs still run locally with Docker)
+**Public curriculum site (live):**  
+[cdn.jsdelivr.net/gh/cozyGarage/platformforge@gh-pages/index.html](https://cdn.jsdelivr.net/gh/cozyGarage/platformforge@gh-pages/index.html)
 
+Official GitHub Pages URL (after one Settings enable):  
+[cozygarage.github.io/platformforge](https://cozygarage.github.io/platformforge/)
+
+Static curriculum map only — labs still run locally with Docker.  
 Companion datacenter trainer: [PatchLab](https://cozygarage.github.io/patchlab/).
 
 ## Architecture
@@ -90,9 +94,13 @@ The interactive school cannot run on GitHub Pages (it needs the Go server + Dock
 make site          # writes site-dist/
 ```
 
-CI deploys `site-dist/` on every push to `main` via [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml).
+CI publishes `site-dist/` on every push to `main` via [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml):
 
-One-time repo setup (if Pages is not enabled yet): **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+1. updates the `gh-pages` branch (served immediately via jsDelivr)
+2. deploys GitHub Pages when enabled
+
+One-time for the `*.github.io` URL: **Settings → Pages → Source: GitHub Actions**  
+Direct link: https://github.com/cozyGarage/platformforge/settings/pages
 
 ## Development
 
