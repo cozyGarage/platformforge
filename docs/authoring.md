@@ -30,4 +30,10 @@ Prefer **action → truth → tip** over long pre-reads:
 
 Networking ticket labs under `net-*` follow this pattern intentionally.
 
+Runtime UX (do not re-implement in each lab):
+
+- Failed validates increment per-task counters; after every 2 failures a **ghost hint** auto-reveals
+- Passing validate writes a **debrief score** (correctness / speed / cleanliness → stars)
+- `prerequisites` are enforced on lab start; path modules may also declare `unlock.completedFromModule` + `unlock.count` for sandbox gates
+
 Adapted material belongs only in `content/90days`. Include the source URL, original author, modification notes, an `attribution` manifest field, and CC BY-NC-SA 4.0 licensing.

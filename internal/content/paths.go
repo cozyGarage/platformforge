@@ -8,13 +8,19 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type UnlockGate struct {
+	CompletedFromModule string `json:"completedFromModule,omitempty" yaml:"completedFromModule,omitempty"`
+	Count               int    `json:"count,omitempty" yaml:"count,omitempty"`
+}
+
 type PathModule struct {
-	ID          string   `json:"id" yaml:"id"`
-	Title       string   `json:"title" yaml:"title"`
-	Summary     string   `json:"summary,omitempty" yaml:"summary,omitempty"`
-	Labs        []string `json:"labs" yaml:"labs"`
-	ComingSoon  []string `json:"comingSoon,omitempty" yaml:"comingSoon,omitempty"`
-	Source      string   `json:"source,omitempty" yaml:"source,omitempty"`
+	ID         string      `json:"id" yaml:"id"`
+	Title      string      `json:"title" yaml:"title"`
+	Summary    string      `json:"summary,omitempty" yaml:"summary,omitempty"`
+	Labs       []string    `json:"labs" yaml:"labs"`
+	ComingSoon []string    `json:"comingSoon,omitempty" yaml:"comingSoon,omitempty"`
+	Source     string      `json:"source,omitempty" yaml:"source,omitempty"`
+	Unlock     *UnlockGate `json:"unlock,omitempty" yaml:"unlock,omitempty"`
 }
 
 type PathPhase struct {

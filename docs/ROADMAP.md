@@ -16,14 +16,14 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 | Phase | Focus | PlatformForge labs |
 |-------|-------|-------------------|
-| Foundations | Linux, terminal, 90Days bridges, networking tickets, Git | 22 labs |
+| Foundations | Linux, terminal, 90Days bridges, networking tickets, Git | 23 labs |
 | Containers | Docker | 3 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA drills | 12 labs (live k3d) |
 | Delivery | CI/CD, observability, leadership, portfolio | 11 labs + 4 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (68 interactive + 4 capstones)
+### Lab inventory (69 interactive + 4 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -31,7 +31,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **90Days bridges** — `bash-automation-basics`, `docker-tagging-basics`, `kubernetes-yaml-basics`, `networking-basics`, `monitoring-basics`, `cloud-tagging-basics`, `secrets-basics`
 
-**Datacenter networking (PatchLab-inspired)** — `net-vlan-access`, `net-default-gateway`, `net-firewall-acl`, `net-static-nat`, `net-traceroute-path`
+**Datacenter networking (PatchLab-inspired)** — `net-vlan-access`, `net-default-gateway`, `net-firewall-acl`, `net-static-nat`, `net-traceroute-path`, `net-sandbox`
 
 **Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
@@ -115,11 +115,15 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 3. **Short progressive missions** — one network idea per lab, chained prerequisites
 4. **Action → truth → tip** — validators assert end state; hints decode why it failed
 
-Future UX borrows still open: ghost hints after N failed validates, debrief/stars, sandbox unlock gates.
+UX now shipped from PatchLab:
+
+1. **Ghost hints** — after every 2 failed validates on a task, the next authored hint auto-reveals
+2. **Debrief/stars** — correctness / speed / cleanliness scored on pass; dashboard shows totals
+3. **Sandbox unlock gates** — `net-sandbox` + path module unlock after 3 networking tickets; prerequisites enforced on start
 
 ## Next authoring priorities
 
-1. Learning Path UX from PatchLab: clearer validate tip codes, estimated remaining time
+1. Learning Path UX: estimated remaining time + clearer tip-code chips in validation
 2. Portfolio polish (real image build/push when registry tooling is available)
 3. Live etcdctl against control-plane when privileged lab runtime allows
 4. Terraform / IaC local planning labs
