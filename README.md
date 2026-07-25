@@ -94,9 +94,13 @@ The interactive school cannot run on GitHub Pages (it needs the Go server + Dock
 make site          # writes site-dist/
 ```
 
-CI deploys `site-dist/` on every push to `main` via [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml).
+CI publishes `site-dist/` on every push to `main` via [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml):
 
-One-time repo setup (if Pages is not enabled yet): **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+1. updates the `gh-pages` branch (served immediately via jsDelivr)
+2. deploys GitHub Pages when enabled
+
+One-time for the `*.github.io` URL: **Settings → Pages → Source: GitHub Actions**  
+Direct link: https://github.com/cozyGarage/platformforge/settings/pages
 
 ## Development
 
