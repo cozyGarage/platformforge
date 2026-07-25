@@ -28,3 +28,4 @@ jobs:
           go build -o bin/platformforge ./cmd/platformforge
           bash ./scripts/lint.sh
           bash ./scripts/audit.sh
+          python3 ./scripts/build-site.py

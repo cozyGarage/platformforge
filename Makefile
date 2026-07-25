@@ -1,4 +1,4 @@
-.PHONY: bootstrap doctor build web test lint audit smoke serve clean
+.PHONY: bootstrap doctor build web test lint audit site smoke serve clean
 
 bootstrap:
 	bash ./scripts/bootstrap-ubuntu.sh
@@ -29,6 +29,9 @@ lint:
 
 audit:
 	bash ./scripts/audit.sh
+
+site:
+	python3 ./scripts/build-site.py
 
 smoke:
 	bash ./tests/smoke/wsl-smoke.sh
