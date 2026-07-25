@@ -2,6 +2,11 @@
 
 PlatformForge is a local-first platform-engineering school with concise lessons, isolated Docker labs, a browser terminal, deterministic validation, reset/retry, and local progress tracking.
 
+**Public curriculum site:** [cozygarage.github.io/platformforge](https://cozygarage.github.io/platformforge/)  
+(static GitHub Pages map — labs still run locally with Docker)
+
+Companion datacenter trainer: [PatchLab](https://cozygarage.github.io/patchlab/).
+
 ## Architecture
 
 ```mermaid
@@ -76,6 +81,18 @@ curl http://127.0.0.1:8080/api/labs/linux-navigation/status
 The server binds to loopback by default. Review third-party course packs before running them.
 
 The `platform-foundations` pack and DevOps Engineer path include guided labs spanning Linux, Git, containers, Terraform/IaC, Kubernetes, CI/CD, observability, data/CDC, compliance, bare-metal planning, PatchLab-inspired datacenter networking tickets, and multi-skill capstones (incident, payments reliability, compliance release, landing zone).
+
+## GitHub Pages
+
+The interactive school cannot run on GitHub Pages (it needs the Go server + Docker). Instead we publish a static curriculum site from `site/`:
+
+```bash
+make site          # writes site-dist/
+```
+
+CI deploys `site-dist/` on every push to `main` via [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml).
+
+One-time repo setup (if Pages is not enabled yet): **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ## Development
 

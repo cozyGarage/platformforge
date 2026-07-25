@@ -2,6 +2,7 @@
 internal/ui/dist/
 web/dist/
 web/node_modules/
+site-dist/
 tests/e2e/node_modules/
 tests/e2e/test-results/
 *.db
