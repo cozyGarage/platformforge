@@ -35,6 +35,16 @@ phases:
           - monitoring-basics
           - cloud-tagging-basics
           - secrets-basics
+      - id: datacenter-networking
+        title: Datacenter Networking Tickets
+        summary: VLAN, gateway, ACL, NAT, and traceroute drills using PatchLab-style tip codes.
+        source: "Pedagogy inspired by cozyGarage/patchlab (CCNA/datacenter rack trainer)"
+        labs:
+          - net-vlan-access
+          - net-default-gateway
+          - net-firewall-acl
+          - net-static-nat
+          - net-traceroute-path
       - id: learn-git
         title: Learn Git
         summary: History recovery, branching, remotes, and safe collaboration.

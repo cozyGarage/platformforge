@@ -1,0 +1,51 @@
+version: 1
+id: net-static-nat
+title: Publish a Host with Static NAT
+summary: 'Ticket drill inspired by PatchLab: map an internal payments host to a public address and permit inbound WAN access.'
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [net-firewall-acl]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/net"
+  - "printf 'Ticket: Publish SERVER-01 10.10.10.10 as 203.0.113.10 so ISP-PEER can reach it.\\nNeed: static NAT + WAN→LAN permit for that public IP.\\n' > /workspace/net/TICKET.md"
+  - "printf 'nat:\\n  mode: none\\n' > /workspace/net/nat.yaml"
+  - "printf 'acl:\\n  - action: deny\\n    src: any\\n    dst: any\\n' > /workspace/net/acl.yaml"
+tasks:
+  - id: publish-host
+    title: Configure static NAT and inbound permit
+    description: 'Set nat.yaml to mode static with inside 10.10.10.10 and outside 203.0.113.10. Update acl.yaml so a permit rule allows src any to dst 203.0.113.10 before any broad deny. Write /workspace/net/STATUS.txt containing NAT_OK INBOUND_OK.'
+    hints:
+      - 'Static NAT is one-to-one: inside 10.10.10.10 ↔ outside 203.0.113.10.'
+      - 'Tip code IMPLICIT_DENY: without an inbound permit, WAN probes fail.'
+      - 'STATUS.txt should include NAT_OK and INBOUND_OK.'
+    checks:
+      - type: file
+        name: NAT mode static
+        path: /workspace/net/nat.yaml
+        value: "mode: static"
+      - type: file
+        name: Inside address mapped
+        path: /workspace/net/nat.yaml
+        value: "10.10.10.10"
+      - type: file
+        name: Outside address mapped
+        path: /workspace/net/nat.yaml
+        value: "203.0.113.10"
+      - type: file
+        name: Inbound destination present
+        path: /workspace/net/acl.yaml
+        value: "203.0.113.10"
+      - type: command
+        name: Permit precedes deny
+        command: "PERMIT_LINE=$(grep -n 'action:[[:space:]]*permit' /workspace/net/acl.yaml | head -1 | cut -d: -f1); DENY_LINE=$(grep -n 'action:[[:space:]]*deny' /workspace/net/acl.yaml | head -1 | cut -d: -f1); test -n \"$PERMIT_LINE\" && test -n \"$DENY_LINE\" && test \"$PERMIT_LINE\" -lt \"$DENY_LINE\""
+      - type: file
+        name: NAT status ok
+        path: /workspace/net/STATUS.txt
+        value: NAT_OK
+      - type: file
+        name: Inbound status ok
+        path: /workspace/net/STATUS.txt
+        value: INBOUND_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

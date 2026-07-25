@@ -1,0 +1,45 @@
+version: 1
+id: net-vlan-access
+title: Fix a VLAN Access Mismatch
+summary: 'Ticket drill inspired by PatchLab: move a server onto the correct access VLAN without breaking documentation.'
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [networking-basics, linux-navigation]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/net"
+  - "printf 'Ticket: SERVER-07 should be on VLAN 20.\\nSymptom: path amber — VLAN mismatch (10 vs 20).\\nConstraint: keep panel cross-connect documentation A-07.\\n' > /workspace/net/TICKET.md"
+  - "printf 'ports:\\n  Gi1/0/2:\\n    mode: access\\n    vlan: 10\\n    attached: SERVER-07\\n  Gi1/0/7:\\n    mode: access\\n    vlan: 20\\n    attached: null\\n' > /workspace/net/switchports.yaml"
+  - "printf 'servers:\\n  SERVER-07:\\n    access_vlan: 20\\n    switch_port: Gi1/0/2\\n    panel_label: A-07\\n' > /workspace/net/inventory.yaml"
+tasks:
+  - id: fix-vlan-path
+    title: Put SERVER-07 on VLAN 20
+    description: 'Update switchports.yaml and inventory.yaml so SERVER-07 is attached to Gi1/0/7 (VLAN 20), Gi1/0/2 has attached null, and panel_label stays A-07. Write /workspace/net/STATUS.txt containing PATH_UP VLAN_20.'
+    hints:
+      - 'Tip code VLAN_MISMATCH means the NIC expected VLAN and switchport VLAN disagree.'
+      - 'Move the attachment to Gi1/0/7 instead of changing Gi1/0/2 to VLAN 20.'
+      - 'STATUS.txt should be exactly one line: PATH_UP VLAN_20'
+    checks:
+      - type: command
+        name: SERVER-07 on Gi1/0/7
+        command: "grep -A2 'Gi1/0/7:' /workspace/net/switchports.yaml | grep -q 'SERVER-07'"
+      - type: command
+        name: Gi1/0/7 is VLAN 20
+        command: "grep -A3 'Gi1/0/7:' /workspace/net/switchports.yaml | grep -q 'vlan: 20'"
+      - type: command
+        name: Old port cleared
+        command: "grep -A3 'Gi1/0/2:' /workspace/net/switchports.yaml | grep -Eq 'attached:[[:space:]]*null'"
+      - type: file
+        name: Inventory port updated
+        path: /workspace/net/inventory.yaml
+        value: "switch_port: Gi1/0/7"
+      - type: file
+        name: Panel label preserved
+        path: /workspace/net/inventory.yaml
+        value: "panel_label: A-07"
+      - type: file
+        name: Path up recorded
+        path: /workspace/net/STATUS.txt
+        value: PATH_UP VLAN_20
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

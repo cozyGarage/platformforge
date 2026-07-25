@@ -19,4 +19,15 @@ Never place credentials in a lab, mount the host Docker socket, request privileg
 
 Every task needs a clear objective, progressive hints, actionable validation names, deterministic reset through setup commands, and a lesson explaining the operational reason behind the exercise.
 
+### Pedagogy notes (shared with PatchLab)
+
+Prefer **action → truth → tip** over long pre-reads:
+
+1. Seed a broken or incomplete workspace in `setup`
+2. Put the symptom in a short ticket file when the lab is incident-shaped
+3. Name checks after the failure mode learners should recognize (`VLAN mismatch`, `Deny appears before permit`)
+4. Keep hints progressive: symptom decode → concrete fix → exact expected artifact
+
+Networking ticket labs under `net-*` follow this pattern intentionally.
+
 Adapted material belongs only in `content/90days`. Include the source URL, original author, modification notes, an `attribution` manifest field, and CC BY-NC-SA 4.0 licensing.

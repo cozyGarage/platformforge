@@ -16,20 +16,22 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 | Phase | Focus | PlatformForge labs |
 |-------|-------|-------------------|
-| Foundations | Linux, terminal, 90Days bridges, Git | 17 labs |
+| Foundations | Linux, terminal, 90Days bridges, networking tickets, Git | 22 labs |
 | Containers | Docker | 3 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA drills | 12 labs (live k3d) |
 | Delivery | CI/CD, observability, leadership, portfolio | 11 labs + 4 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (63 interactive + 4 capstones)
+### Lab inventory (68 interactive + 4 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
 **Terminal** — `terminal-tmux`, `terminal-neovim`
 
 **90Days bridges** — `bash-automation-basics`, `docker-tagging-basics`, `kubernetes-yaml-basics`, `networking-basics`, `monitoring-basics`, `cloud-tagging-basics`, `secrets-basics`
+
+**Datacenter networking (PatchLab-inspired)** — `net-vlan-access`, `net-default-gateway`, `net-firewall-acl`, `net-static-nat`, `net-traceroute-path`
 
 **Git** — `git-recovery`, `git-branching`, `git-rebase-reset`, `git-remotes`
 
@@ -98,17 +100,28 @@ Adapted content lives under [`content/90days/`](../content/90days/) (CC BY-NC-SA
 | Git / version control | `git-recovery`, `git-branching` |
 | Containers | `docker-tagging-basics` + docker module |
 | Kubernetes | `kubernetes-yaml-basics` + kubernetes/CKA modules |
-| Networking | `networking-basics` |
+| Networking | `networking-basics` + PatchLab-inspired ticket ladder |
 | Monitoring | `monitoring-basics` |
 | Cloud | `cloud-tagging-basics` + AWS local sims |
 | Security | `secrets-basics` |
 | CI/CD culture | `cicd-pipeline-fix`, `cicd-security-scan` |
 
+## Ideas borrowed from PatchLab
+
+[PatchLab](https://github.com/cozyGarage/patchlab) is the companion CCNA/datacenter rack trainer. PlatformForge reuses its pedagogy, not the visual rack engine:
+
+1. **Ticket-first briefs** — each networking lab ships a `TICKET.md` with symptom + constraint
+2. **Tip codes** — lessons name failure modes (`VLAN_MISMATCH`, `ACL_ORDER`, `NO_ROUTE`)
+3. **Short progressive missions** — one network idea per lab, chained prerequisites
+4. **Action → truth → tip** — validators assert end state; hints decode why it failed
+
+Future UX borrows still open: ghost hints after N failed validates, debrief/stars, sandbox unlock gates.
+
 ## Next authoring priorities
 
-1. Portfolio polish (real image build/push when registry tooling is available)
-2. Live etcdctl against control-plane when privileged lab runtime allows
-3. Learning Path UX: filters, estimated remaining time
+1. Learning Path UX from PatchLab: clearer validate tip codes, estimated remaining time
+2. Portfolio polish (real image build/push when registry tooling is available)
+3. Live etcdctl against control-plane when privileged lab runtime allows
 4. Terraform / IaC local planning labs
 
 ## How to add a lab

@@ -1,0 +1,47 @@
+version: 1
+id: net-default-gateway
+title: Reach the WAN via Default Gateway
+summary: 'Ticket drill inspired by PatchLab: fix host addressing and default gateway so off-subnet ping succeeds.'
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [net-vlan-access]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/net"
+  - "printf 'Ticket: SERVER-01 cannot reach ISP-PEER.\\nSymptom: same-subnet ping to FW works after fix; WAN ping needs gateway.\\nLAN: 10.10.10.0/24  gateway 10.10.10.1  ISP-PEER 203.0.113.1\\n' > /workspace/net/TICKET.md"
+  - "printf 'host: SERVER-01\\nip: 10.10.99.10\\nprefix: 16\\ngateway: 10.10.10.254\\n' > /workspace/net/host.env"
+  - "printf 'targets:\\n  fw_lan: 10.10.10.1\\n  isp_peer: 203.0.113.1\\n' > /workspace/net/targets.yaml"
+tasks:
+  - id: fix-host-route
+    title: Correct address and default gateway
+    description: 'Edit host.env so SERVER-01 uses ip=10.10.10.10, prefix=24, and gateway=10.10.10.1. Write /workspace/net/reachability.txt with lines LAN_OK and WAN_OK explaining FW LAN and ISP-PEER are reachable after the fix.'
+    hints:
+      - 'Tip codes BROKEN_ADDRESS and MASK_TRAP: host IP/mask must match the LAN.'
+      - 'Wrong gateway 10.10.10.254 is a classic ticket trap — use 10.10.10.1.'
+      - 'reachability.txt should include both LAN_OK and WAN_OK.'
+    checks:
+      - type: file
+        name: Host IP corrected
+        path: /workspace/net/host.env
+        value: ip=10.10.10.10
+      - type: file
+        name: Prefix corrected
+        path: /workspace/net/host.env
+        value: prefix=24
+      - type: file
+        name: Gateway corrected
+        path: /workspace/net/host.env
+        value: gateway=10.10.10.1
+      - type: command
+        name: No broken address left
+        command: "! grep -Eq '10\\.10\\.99\\.10|prefix=16|gateway=10\\.10\\.10\\.254' /workspace/net/host.env"
+      - type: file
+        name: LAN reachability noted
+        path: /workspace/net/reachability.txt
+        value: LAN_OK
+      - type: file
+        name: WAN reachability noted
+        path: /workspace/net/reachability.txt
+        value: WAN_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
