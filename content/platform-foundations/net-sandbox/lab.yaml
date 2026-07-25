@@ -1,0 +1,56 @@
+version: 1
+id: net-sandbox
+title: Networking Sandbox — Free Play Ticket
+summary: 'Unlocked after the first three networking tickets: design a small LAN with VLAN, gateway, ACL, and a path status of your choosing.'
+difficulty: intermediate
+estimatedMinutes: 40
+prerequisites: [net-vlan-access, net-default-gateway, net-firewall-acl]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/net"
+  - "printf 'Sandbox unlocked.\\nBuild any valid mini-network that includes VLAN 10, a default gateway, and an ACL deny-then-permit pair.\\n' > /workspace/net/TICKET.md"
+  - "printf 'ports: {}\\n' > /workspace/net/switchports.yaml"
+  - "printf 'host: SANDBOX\\nip:\\nprefix:\\ngateway:\\n' > /workspace/net/host.env"
+  - "printf 'acl: []\\n' > /workspace/net/acl.yaml"
+tasks:
+  - id: design-network
+    title: Author a coherent mini-network
+    description: 'Create /workspace/net/switchports.yaml with an access port on vlan 10, host.env with ip=10.10.10.10 prefix=24 gateway=10.10.10.1, and acl.yaml where a deny rule for 10.10.10.20/32 appears before a permit for 10.10.10.0/24. Write /workspace/net/STATUS.txt containing SANDBOX_OK.'
+    hints:
+      - 'Tip code SANDBOX: you choose the topology as long as VLAN, gateway, and ACL order are present.'
+      - 'Keep the deny /32 above the permit /24.'
+      - 'STATUS.txt should include SANDBOX_OK.'
+    checks:
+      - type: file
+        name: Access VLAN 10 present
+        path: /workspace/net/switchports.yaml
+        value: "vlan: 10"
+      - type: file
+        name: Host IP set
+        path: /workspace/net/host.env
+        value: ip=10.10.10.10
+      - type: file
+        name: Prefix set
+        path: /workspace/net/host.env
+        value: prefix=24
+      - type: file
+        name: Gateway set
+        path: /workspace/net/host.env
+        value: gateway=10.10.10.1
+      - type: file
+        name: Deny host present
+        path: /workspace/net/acl.yaml
+        value: "10.10.10.20/32"
+      - type: file
+        name: Permit LAN present
+        path: /workspace/net/acl.yaml
+        value: "10.10.10.0/24"
+      - type: command
+        name: Deny before permit
+        command: "DENY_LINE=$(grep -n '10.10.10.20/32' /workspace/net/acl.yaml | head -1 | cut -d: -f1); PERMIT_LINE=$(grep -n '10.10.10.0/24' /workspace/net/acl.yaml | head -1 | cut -d: -f1); test -n \"$DENY_LINE\" && test -n \"$PERMIT_LINE\" && test \"$DENY_LINE\" -lt \"$PERMIT_LINE\""
+      - type: file
+        name: Sandbox complete
+        path: /workspace/net/STATUS.txt
+        value: SANDBOX_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

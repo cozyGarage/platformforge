@@ -45,6 +45,14 @@ phases:
           - net-firewall-acl
           - net-static-nat
           - net-traceroute-path
+      - id: networking-sandbox
+        title: Networking Sandbox
+        summary: Free-play ticket unlocked after the first three networking labs.
+        unlock:
+          completedFromModule: datacenter-networking
+          count: 3
+        labs:
+          - net-sandbox
       - id: learn-git
         title: Learn Git
         summary: History recovery, branching, remotes, and safe collaboration.

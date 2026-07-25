@@ -76,6 +76,7 @@ func (s *server) routes() (*mux.Router, error) {
 	api.HandleFunc("/labs/{id}/stop", s.stop).Methods(http.MethodPost)
 	api.HandleFunc("/labs/{id}/terminal", s.terminal)
 	api.HandleFunc("/progress", s.progress).Methods(http.MethodGet)
+	api.HandleFunc("/progress/{id}", s.progressDetail).Methods(http.MethodGet)
 	api.HandleFunc("/paths", s.pathList).Methods(http.MethodGet)
 	api.HandleFunc("/paths/{id}", s.pathDetail).Methods(http.MethodGet)
 	dist, err := fs.Sub(ui.Assets, "dist")
@@ -184,6 +185,31 @@ func (s *server) progress(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 	respond(w, 200, v)
+}
+
+func (s *server) progressDetail(w http.ResponseWriter, r *http.Request) {
+	labID := mux.Vars(r)["id"]
+	p, err := s.store.Get(labID)
+	if err != nil {
+		fail(w, 500, err)
+		return
+	}
+	hintCounts := map[string]int{}
+	if m, err := s.catalog.Get(labID); err == nil {
+		for _, task := range m.Tasks {
+			hintCounts[task.ID] = len(task.Hints)
+		}
+	}
+	tasks, err := s.store.TaskProgress(labID, hintCounts)
+	if err != nil {
+		fail(w, 500, err)
+		return
+	}
+	respond(w, 200, map[string]any{
+		"progress":       p,
+		"taskProgress":   tasks,
+		"ghostHintEvery": progress.GhostHintEvery,
+	})
 }
 
 func (s *server) pathList(w http.ResponseWriter, _ *http.Request) {

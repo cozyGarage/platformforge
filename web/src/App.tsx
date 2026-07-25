@@ -5,13 +5,16 @@ import { FitAddon } from '@xterm/addon-fit'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
-type Check = { name: string; type: string; passed: boolean; message: string }
+type Check = { taskId?: string; name: string; type: string; passed: boolean; message: string }
 type Task = { id: string; title: string; description: string; hints: string[]; checks: unknown[] }
 type Lab = { id: string; title: string; summary: string; difficulty: string; estimatedMinutes: number; prerequisites: string[]; tasks: Task[]; lesson?: string }
-type Validation = { status: string; passed: number; checks: Check[] }
-type Progress = { labId: string; status: string; attempts: number; updatedAt: string }
+type Score = { stars: number; correctness: number; speed: number; cleanliness: number; durationSeconds: number; failedValidations: number; hintsRevealed: number }
+type TaskProgress = { taskId: string; failedValidations: number; ghostHints: number }
+type Validation = { status: string; passed: number; checks: Check[]; taskProgress?: TaskProgress[]; score?: Score; ghostHintEvery?: number }
+type Progress = { labId: string; status: string; attempts: number; updatedAt: string; score?: Score }
 type Session = { running: boolean; container?: string }
-type PathModule = { id: string; title: string; summary?: string; labs: string[]; comingSoon?: string[]; source?: string }
+type UnlockGate = { completedFromModule?: string; count?: number }
+type PathModule = { id: string; title: string; summary?: string; labs: string[]; comingSoon?: string[]; source?: string; unlock?: UnlockGate }
 type PathPhase = { id: string; title: string; summary?: string; modules: PathModule[] }
 type LearningPath = { id: string; title: string; summary: string; source?: string; phases: PathPhase[] }
 
@@ -22,6 +25,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(body.error)
   }
   return response.status === 204 ? (undefined as T) : response.json()
+}
+
+function starsLabel(n = 0) {
+  return '★'.repeat(Math.max(0, Math.min(3, n))) + '☆'.repeat(Math.max(0, 3 - Math.max(0, Math.min(3, n))))
 }
 
 function useLabsAndProgress() {
@@ -35,11 +42,14 @@ function useLabsAndProgress() {
   }, [])
   const labMap = useMemo(() => Object.fromEntries(labs.map(l => [l.id, l])), [labs])
   const statusFor = (labId: string) => progress.find(p => p.labId === labId)?.status
-  return { labs, progress, error, labMap, statusFor }
+  const scoreFor = (labId: string) => progress.find(p => p.labId === labId)?.score
+  const missingPrereqs = (lab?: Lab) => (lab?.prerequisites || []).filter(id => statusFor(id) !== 'completed')
+  const isLocked = (lab?: Lab) => missingPrereqs(lab).length > 0
+  return { labs, progress, error, labMap, statusFor, scoreFor, missingPrereqs, isLocked }
 }
 
 function Catalog() {
-  const { labs, error, statusFor } = useLabsAndProgress()
+  const { labs, error, statusFor, scoreFor, isLocked, missingPrereqs } = useLabsAndProgress()
   return <>
     <section className="hero">
       <p className="eyebrow">LOCAL-FIRST PLATFORM ENGINEERING</p>
@@ -47,17 +57,35 @@ function Catalog() {
       <p>Short lessons. Isolated environments. Deterministic validation. Follow the <Link to="/path">DevOps Engineer Path</Link> or browse all labs.</p>
     </section>
     {error && <p className="error">{error}</p>}
-    <section className="grid">{labs.map((lab, index) => <Link className="card" to={`/labs/${lab.id}`} key={lab.id}>
-      <div className="card-top"><span className="number">{String(index + 1).padStart(2, '0')}</span><span className="badge">{lab.difficulty}</span></div>
-      <h2>{lab.title}</h2><p>{lab.summary}</p>
-      {lab.prerequisites?.length > 0 && <p className="meta">Requires: {lab.prerequisites.join(', ')}</p>}
-      <footer>{lab.estimatedMinutes} min {statusFor(lab.id) === 'completed' && <span className="done">✓ completed</span>}<span>Open lab →</span></footer>
-    </Link>)}</section>
+    <section className="grid">{labs.map((lab, index) => {
+      const locked = isLocked(lab)
+      const body = <>
+        <div className="card-top"><span className="number">{String(index + 1).padStart(2, '0')}</span><span className="badge">{locked ? 'locked' : lab.difficulty}</span></div>
+        <h2>{lab.title}</h2><p>{lab.summary}</p>
+        {locked && <p className="meta">Locked — complete: {missingPrereqs(lab).join(', ')}</p>}
+        {!locked && lab.prerequisites?.length > 0 && <p className="meta">Requires: {lab.prerequisites.join(', ')}</p>}
+        <footer>
+          <span>{lab.estimatedMinutes} min {statusFor(lab.id) === 'completed' && <span className="done">✓ {scoreFor(lab.id) ? starsLabel(scoreFor(lab.id)?.stars) : 'completed'}</span>}</span>
+          <span>{locked ? 'Complete prereqs' : 'Open lab →'}</span>
+        </footer>
+      </>
+      return locked
+        ? <div className="card locked" key={lab.id} aria-disabled="true">{body}</div>
+        : <Link className="card" to={`/labs/${lab.id}`} key={lab.id}>{body}</Link>
+    })}</section>
   </>
 }
 
+function moduleUnlocked(module: PathModule, path: LearningPath, statusFor: (id: string) => string | undefined) {
+  if (!module.unlock?.count || !module.unlock.completedFromModule) return true
+  const source = path.phases.flatMap(phase => phase.modules).find(item => item.id === module.unlock?.completedFromModule)
+  if (!source) return true
+  const done = source.labs.filter(labId => statusFor(labId) === 'completed').length
+  return done >= module.unlock.count
+}
+
 function LearningPathView() {
-  const { labMap, statusFor, error } = useLabsAndProgress()
+  const { labMap, statusFor, scoreFor, error, isLocked, missingPrereqs } = useLabsAndProgress()
   const [path, setPath] = useState<LearningPath>()
   const [loadError, setLoadError] = useState('')
   useEffect(() => {
@@ -79,24 +107,31 @@ function LearningPathView() {
     {path.phases.map(phase => <section className="path-phase" key={phase.id}>
       <h2>{phase.title}</h2>
       {phase.summary && <p className="phase-summary">{phase.summary}</p>}
-      {phase.modules.map(module => <div className="path-module" key={module.id}>
-        <div className="module-head">
-          <h3>{module.title}</h3>
-          {module.source && <span className="module-source">{module.source}</span>}
+      {phase.modules.map(module => {
+        const unlocked = moduleUnlocked(module, path, statusFor)
+        return <div className={`path-module ${unlocked ? '' : 'locked'}`} key={module.id}>
+          <div className="module-head">
+            <h3>{module.title}</h3>
+            {module.source && <span className="module-source">{module.source}</span>}
+          </div>
+          {module.summary && <p>{module.summary}</p>}
+          {!unlocked && module.unlock && <p className="meta">Sandbox locked — complete {module.unlock.count} labs in {module.unlock.completedFromModule} first.</p>}
+          <ul className="lab-list">
+            {module.labs.map(labId => {
+              const lab = labMap[labId]
+              const done = statusFor(labId) === 'completed'
+              const locked = !unlocked || isLocked(lab)
+              return <li key={labId} className={`${done ? 'done' : ''} ${locked ? 'locked' : ''}`}>
+                {locked
+                  ? <span>{lab?.title || labId} <em className="lock-note">({missingPrereqs(lab).length ? `needs ${missingPrereqs(lab).join(', ')}` : 'locked'})</em></span>
+                  : <Link to={`/labs/${labId}`}>{lab?.title || labId}</Link>}
+                <span>{lab?.estimatedMinutes || '?'} min {done && `✓ ${starsLabel(scoreFor(labId)?.stars || 0)}`}</span>
+              </li>
+            })}
+            {module.comingSoon?.map(item => <li key={item} className="soon"><span>{item}</span><span>coming soon</span></li>)}
+          </ul>
         </div>
-        {module.summary && <p>{module.summary}</p>}
-        <ul className="lab-list">
-          {module.labs.map(labId => {
-            const lab = labMap[labId]
-            const done = statusFor(labId) === 'completed'
-            return <li key={labId} className={done ? 'done' : ''}>
-              <Link to={`/labs/${labId}`}>{lab?.title || labId}</Link>
-              <span>{lab?.estimatedMinutes || '?'} min {done && '✓'}</span>
-            </li>
-          })}
-          {module.comingSoon?.map(item => <li key={item} className="soon"><span>{item}</span><span>coming soon</span></li>)}
-        </ul>
-      </div>)}
+      })}
     </section>)}
   </>
 }
@@ -131,16 +166,27 @@ function BrowserTerminal({ labId, active }: { labId: string; active: boolean }) 
 
 function Lesson() {
   const { id = '' } = useParams()
+  const { missingPrereqs, isLocked, labMap } = useLabsAndProgress()
   const [lab, setLab] = useState<Lab>()
   const [started, setStarted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<Validation>()
   const [error, setError] = useState('')
-  const [hints, setHints] = useState<Record<string, number>>({})
+  const [manualHints, setManualHints] = useState<Record<string, number>>({})
+  const [ghostHints, setGhostHints] = useState<Record<string, number>>({})
   useEffect(() => {
+    setResult(undefined)
+    setManualHints({})
+    setGhostHints({})
     request<Lab>(`/api/labs/${id}`).then(setLab).catch(e => setError(e.message))
     request<Session>(`/api/labs/${id}/status`).then(s => setStarted(s.running)).catch(() => setStarted(false))
+    request<{ taskProgress?: TaskProgress[] }>(`/api/progress/${id}`).then(detail => {
+      const next: Record<string, number> = {}
+      for (const tp of detail.taskProgress || []) next[tp.taskId] = tp.ghostHints
+      setGhostHints(next)
+    }).catch(() => undefined)
   }, [id])
+  const locked = lab ? isLocked(lab) : false
   const act = async (action: 'start' | 'reset' | 'validate' | 'stop') => {
     setBusy(true); setError('')
     try {
@@ -148,33 +194,59 @@ function Lesson() {
       else {
         const value = await request<Validation | object>(`/api/labs/${id}/${action}`, { method: 'POST' })
         setStarted(true)
-        if (action === 'validate') setResult(value as Validation)
+        if (action === 'validate') {
+          const validation = value as Validation
+          setResult(validation)
+          const next: Record<string, number> = {}
+          for (const tp of validation.taskProgress || []) next[tp.taskId] = tp.ghostHints
+          setGhostHints(next)
+        }
         if (action === 'reset') setResult(undefined)
       }
     } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }
+  const revealedFor = (task: Task) => Math.max(manualHints[task.id] || 0, ghostHints[task.id] || 0)
   const lessonHTML = useMemo(() => ({ __html: DOMPurify.sanitize(marked.parse(lab?.lesson || '') as string) }), [lab?.lesson])
   if (!lab) return <p className="loading">{error || 'Loading lab…'}</p>
   return <div className="lesson">
     <aside><Link to="/path">← Learning path</Link><p className="eyebrow">{lab.difficulty} · {lab.estimatedMinutes} MIN</p><h1>{lab.title}</h1>
-      {lab.prerequisites?.length > 0 && <p className="meta">Prerequisites: {lab.prerequisites.join(', ')}</p>}
+      {lab.prerequisites?.length > 0 && <p className="meta">Prerequisites: {lab.prerequisites.map(p => labMap[p]?.title || p).join(', ')}{locked ? ' (incomplete)' : ''}</p>}
+      {locked && <p className="error">Locked until you complete: {missingPrereqs(lab).join(', ')}</p>}
       <article dangerouslySetInnerHTML={lessonHTML} /><h2>Objectives</h2>
-      {lab.tasks.map(task => <section className="task" key={task.id}><h3>{task.title}</h3><p>{task.description}</p>
-        {task.hints.length > 0 && <><button className="link-button" onClick={() => setHints(h => ({ ...h, [task.id]: Math.min((h[task.id] || 0) + 1, task.hints.length) }))}>Reveal hint</button>
-          {task.hints.slice(0, hints[task.id] || 0).map((hint, i) => <p className="hint" key={i}>Hint {i + 1}: {hint}</p>)}</>}
-      </section>)}
+      {lab.tasks.map(task => {
+        const revealed = revealedFor(task)
+        const ghost = ghostHints[task.id] || 0
+        return <section className="task" key={task.id}><h3>{task.title}</h3><p>{task.description}</p>
+          {task.hints.length > 0 && <>
+            <button className="link-button" disabled={revealed >= task.hints.length} onClick={() => setManualHints(h => ({ ...h, [task.id]: Math.min((h[task.id] || 0) + 1, task.hints.length) }))}>Reveal hint</button>
+            {ghost > 0 && <p className="ghost-note">Ghost hint unlocked after failed validates (every {result?.ghostHintEvery || 2} fails).</p>}
+            {task.hints.slice(0, revealed).map((hint, i) => <p className={`hint ${i < ghost ? 'ghost' : ''}`} key={i}>{i < ghost ? 'Ghost hint' : `Hint ${i + 1}`}: {hint}</p>)}
+          </>}
+        </section>
+      })}
     </aside>
     <section className="workspace">
       <div className="toolbar"><span className={`status ${started ? 'live' : ''}`}>{started ? '● LAB RUNNING' : '○ LAB STOPPED'}</span><div>
-        {!started && <button disabled={busy} onClick={() => act('start')}>Start lab</button>}
+        {!started && <button disabled={busy || locked} onClick={() => act('start')}>Start lab</button>}
         {started && <><button className="secondary" disabled={busy} onClick={() => act('reset')}>Reset</button><button className="secondary" disabled={busy} onClick={() => act('stop')}>Stop</button></>}
         <button disabled={!started || busy} onClick={() => act('validate')}>Validate work</button>
       </div></div>
-      {error && <p className="error">{error}</p>}<BrowserTerminal labId={id} active={started} />
+      {error && <p className="error">{error}</p>}<BrowserTerminal labId={id} active={started && !locked} />
       <section className="results"><h2>Validation</h2>
-        {!result && <p>Complete the objectives, then validate your environment.</p>}
+        {!result && <p>Complete the objectives, then validate your environment. After {result?.ghostHintEvery || 2} failed validates on a task, a ghost hint appears.</p>}
         {result && <><p className={result.status === 'passed' ? 'success' : 'error'}>{result.passed}/{result.checks.length} checks passed</p>
-          {result.checks.map((check, i) => <div className={`check ${check.passed ? 'pass' : 'fail'}`} key={i}><strong>{check.passed ? '✓' : '×'} {check.name}</strong><span>{check.message}</span></div>)}</>}
+          {result.checks.map((check, i) => <div className={`check ${check.passed ? 'pass' : 'fail'}`} key={i}><strong>{check.passed ? '✓' : '×'} {check.name}</strong><span>{check.message}</span></div>)}
+          {result.status === 'passed' && result.score && <div className="debrief">
+            <h3>Debrief</h3>
+            <p className="stars" aria-label={`${result.score.stars} stars`}>{starsLabel(result.score.stars)}</p>
+            <ul>
+              <li>Correctness {result.score.correctness}/3</li>
+              <li>Speed {result.score.speed}/3 · {Math.round(result.score.durationSeconds / 60)} min</li>
+              <li>Cleanliness {result.score.cleanliness}/3 · {result.score.failedValidations} failed validate{result.score.failedValidations === 1 ? '' : 's'}, {result.score.hintsRevealed} ghost hint{result.score.hintsRevealed === 1 ? '' : 's'}</li>
+            </ul>
+            <p className="meta">Progress saved — open the dashboard to review stars.</p>
+          </div>}
+        </>}
       </section>
     </section>
   </div>
@@ -184,9 +256,13 @@ function Dashboard() {
   const { labs, progress } = useLabsAndProgress()
   const titleFor = (labId: string) => labs.find(l => l.id === labId)?.title || labId
   const completed = progress.filter(p => p.status === 'completed').length
+  const totalStars = progress.reduce((sum, p) => sum + (p.score?.stars || 0), 0)
   return <section><p className="eyebrow">YOUR PROGRESS</p><h1>Skills dashboard</h1>
-    <div className="stat"><strong>{completed}</strong><span>labs completed</span></div>
-    <div className="progress-list">{progress.map(p => <div key={p.labId}><Link to={`/labs/${p.labId}`}><strong>{titleFor(p.labId)}</strong></Link><span>{p.status.replace('_', ' ')} · {p.attempts} attempt{p.attempts === 1 ? '' : 's'}</span></div>)}</div>
+    <div className="stat-row">
+      <div className="stat"><strong>{completed}</strong><span>labs completed</span></div>
+      <div className="stat"><strong>{totalStars}</strong><span>stars earned</span></div>
+    </div>
+    <div className="progress-list">{progress.map(p => <div key={p.labId}><Link to={`/labs/${p.labId}`}><strong>{titleFor(p.labId)}</strong></Link><span>{p.status.replace('_', ' ')} · {p.attempts} attempt{p.attempts === 1 ? '' : 's'}{p.score ? ` · ${starsLabel(p.score.stars)}` : ''}</span></div>)}</div>
   </section>
 }
 

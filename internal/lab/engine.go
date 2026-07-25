@@ -27,6 +27,7 @@ type Session struct {
 }
 
 type CheckResult struct {
+	TaskID  string `json:"taskId,omitempty"`
 	Name    string `json:"name"`
 	Type    string `json:"type"`
 	Passed  bool   `json:"passed"`
@@ -34,10 +35,13 @@ type CheckResult struct {
 }
 
 type ValidationResult struct {
-	LabID  string        `json:"labId"`
-	Status string        `json:"status"`
-	Passed int           `json:"passed"`
-	Checks []CheckResult `json:"checks"`
+	LabID          string                  `json:"labId"`
+	Status         string                  `json:"status"`
+	Passed         int                     `json:"passed"`
+	Checks         []CheckResult           `json:"checks"`
+	TaskProgress   []progress.TaskProgress `json:"taskProgress,omitempty"`
+	Score          *progress.Score         `json:"score,omitempty"`
+	GhostHintEvery int                     `json:"ghostHintEvery"`
 }
 
 type Engine struct {
@@ -67,6 +71,15 @@ func (e *Engine) Start(ctx context.Context, labID string) (*Session, error) {
 	m, err := e.catalog.Get(labID)
 	if err != nil {
 		return nil, err
+	}
+	for _, prereq := range m.Prerequisites {
+		ok, err := e.store.IsCompleted(prereq)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, fmt.Errorf("complete prerequisite %q before starting this lab", prereq)
+		}
 	}
 	_ = e.Stop(ctx, labID)
 	id := randomID()
@@ -190,18 +203,48 @@ func (e *Engine) Validate(ctx context.Context, labID string) (*ValidationResult,
 	if !ok {
 		return nil, errors.New("lab is not running")
 	}
-	result := &ValidationResult{LabID: labID, Status: "failed"}
+	result := &ValidationResult{LabID: labID, Status: "failed", GhostHintEvery: progress.GhostHintEvery}
+	failedTasks := map[string]bool{}
+	hintCounts := map[string]int{}
 	for _, task := range m.Tasks {
+		hintCounts[task.ID] = len(task.Hints)
+		taskFailed := false
 		for _, check := range task.Checks {
 			r := e.runCheck(ctx, s.Container, m.Shell, check)
+			r.TaskID = task.ID
 			result.Checks = append(result.Checks, r)
 			if r.Passed {
 				result.Passed++
+			} else {
+				taskFailed = true
 			}
 		}
+		if taskFailed {
+			failedTasks[task.ID] = true
+		}
 	}
-	if result.Passed == len(result.Checks) {
+	if len(failedTasks) > 0 {
+		ids := make([]string, 0, len(failedTasks))
+		for id := range failedTasks {
+			ids = append(ids, id)
+		}
+		_ = e.store.RecordFailedTasks(labID, ids)
+	}
+	tasks, err := e.store.TaskProgress(labID, hintCounts)
+	if err == nil {
+		result.TaskProgress = tasks
+	}
+	if result.Passed == len(result.Checks) && len(result.Checks) > 0 {
 		result.Status = "passed"
+		failedTotal, _ := e.store.TotalFailedValidations(labID)
+		hintsRevealed := 0
+		for _, tp := range result.TaskProgress {
+			hintsRevealed += tp.GhostHints
+		}
+		duration := int(time.Since(s.StartedAt).Seconds())
+		score := progress.ComputeScore(duration, m.EstimatedMins, failedTotal, hintsRevealed)
+		result.Score = &score
+		_ = e.store.SaveScore(labID, score)
 		_ = e.store.MarkCompleted(labID)
 	}
 	return result, nil
