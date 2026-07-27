@@ -1,0 +1,168 @@
+version: 1
+id: gitops-delivery-capstone
+title: Capstone — Ship a GitOps Delivery Pack
+summary: 'Assemble a payments-web delivery pack: Helm chart with prod digest values, GitOps sync policy, ExternalSecret without plaintext, and a rotation verify runbook — then commit clean.'
+difficulty: capstone
+estimatedMinutes: 70
+prerequisites: [helm-values-overrides, gitops-kustomize-overlay, secrets-rotation-runbook]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git >/dev/null"
+  - "mkdir -p /workspace/charts/payments-web/templates /workspace/charts/env /workspace/gitops /workspace/secrets /workspace/docs"
+  - "cd /workspace && git init -q && git config user.email learner@platformforge.local && git config user.name Learner"
+  - "printf 'apiVersion: v2\\nname: payments-web\\ndescription: draft\\ntype: application\\nversion: 0.0.1\\nappVersion: \"0.0.1\"\\n' > /workspace/charts/payments-web/Chart.yaml"
+  - "printf 'replicaCount: 1\\nimage:\\n  repository: ghcr.io/example/payments-web\\n  tag: latest\\n' > /workspace/charts/payments-web/values.yaml"
+  - "printf 'apiVersion: apps/v1\\nkind: Deployment\\nmetadata:\\n  name: payments-web\\nspec:\\n  replicas: 1\\n  template:\\n    spec:\\n      containers:\\n        - name: web\\n          image: nginx:latest\\n' > /workspace/charts/payments-web/templates/deployment.yaml"
+  - "printf 'Ticket: payments-web must ship via GitOps.\\nProblems: floating latest tag, no prod values, no sync policy, plaintext DB password in secrets draft, missing rotation verify.\\n' > /workspace/TICKET.md"
+  - "printf 'apiVersion: v1\\nkind: Secret\\nmetadata:\\n  name: payments-api-db\\nstringData:\\n  password: super-secret-db\\n' > /workspace/secrets/external-secret.yaml"
+  - "cd /workspace && git add . && git commit -qm 'broken delivery draft'"
+tasks:
+  - id: helm-pack
+    title: Harden the Helm chart and prod values
+    description: 'Update charts/payments-web/Chart.yaml so version is 0.1.0 and appVersion is "1.0.0". Set values.yaml replicaCount to 2 and image.tag to "1.0.0" (not latest). Rewrite templates/deployment.yaml so it references .Values.replicaCount and .Values.image.repository (or .Values.image) and keeps kind: Deployment. Create charts/env/values-prod.yaml with replicaCount: 3 and an image.tag containing sha256.'
+    hints:
+      - 'Tip code CHART_API: keep apiVersion: v2 and bump version to 0.1.0.'
+      - 'Tip code PROD_DIGEST: prod values must pin a sha256 digest, never latest.'
+      - 'Tip code TPL_VALUES: templates must read .Values.replicaCount and .Values.image.'
+    checks:
+      - type: file
+        name: Chart version bumped
+        path: /workspace/charts/payments-web/Chart.yaml
+        value: "version: 0.1.0"
+      - type: file
+        name: App version pinned
+        path: /workspace/charts/payments-web/Chart.yaml
+        value: "1.0.0"
+      - type: command
+        name: Default replicas are 2
+        command: "grep -Eq 'replicaCount:[[:space:]]*2' /workspace/charts/payments-web/values.yaml"
+      - type: command
+        name: Default tag not latest
+        command: "grep -Eq 'tag:[[:space:]]*\"?1\\.0\\.0\"?' /workspace/charts/payments-web/values.yaml && ! grep -Eq 'tag:[[:space:]]*\"?latest\"?' /workspace/charts/payments-web/values.yaml"
+      - type: file
+        name: Template uses replicaCount
+        path: /workspace/charts/payments-web/templates/deployment.yaml
+        value: .Values.replicaCount
+      - type: file
+        name: Template uses image values
+        path: /workspace/charts/payments-web/templates/deployment.yaml
+        value: .Values.image
+      - type: command
+        name: Prod replicas are 3
+        command: "grep -Eq 'replicaCount:[[:space:]]*3' /workspace/charts/env/values-prod.yaml"
+      - type: file
+        name: Prod tag is digest-like
+        path: /workspace/charts/env/values-prod.yaml
+        value: sha256
+  - id: gitops-and-secrets
+    title: Declare GitOps sync and ExternalSecret
+    description: 'Write /workspace/gitops/desired-state.txt with exactly three non-empty lines covering Deployment/Service (or Helm release), environment overlays/values, and sync policy. Write /workspace/gitops/sync-policy.md (at least 5 lines) that includes reconcile and source of truth. Replace /workspace/secrets/external-secret.yaml with kind: ExternalSecret named payments-api-db, include refreshInterval and a db/database path reference, and remove any plaintext password or token fields.'
+    hints:
+      - 'Tip code GITOPS_SOURCE: Git holds desired state; clusters are projections.'
+      - 'Tip code ESO_TARGET: ExternalSecret writes a native Secret — no stringData passwords in Git.'
+      - 'Tip code NO_PLAINTEXT: delete password: / token: plaintext from the secrets draft.'
+    checks:
+      - type: file
+        name: Desired state mentions Deployment
+        path: /workspace/gitops/desired-state.txt
+        value: Deployment
+      - type: command
+        name: Desired state mentions overlays or values
+        command: "grep -Eqi 'overlay|values' /workspace/gitops/desired-state.txt"
+      - type: file
+        name: Desired state mentions sync
+        path: /workspace/gitops/desired-state.txt
+        value: sync
+      - type: command
+        name: Desired state has three lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/gitops/desired-state.txt) -eq 3 ]"
+      - type: file
+        name: Sync policy reconciles
+        path: /workspace/gitops/sync-policy.md
+        value: reconcile
+      - type: file
+        name: Sync policy names source of truth
+        path: /workspace/gitops/sync-policy.md
+        value: source of truth
+      - type: command
+        name: Sync policy has depth
+        command: "[ $(wc -l < /workspace/gitops/sync-policy.md) -ge 5 ]"
+      - type: file
+        name: ExternalSecret kind
+        path: /workspace/secrets/external-secret.yaml
+        value: "kind: ExternalSecret"
+      - type: file
+        name: ExternalSecret name
+        path: /workspace/secrets/external-secret.yaml
+        value: payments-api-db
+      - type: file
+        name: Refresh interval set
+        path: /workspace/secrets/external-secret.yaml
+        value: refreshInterval
+      - type: command
+        name: References db path
+        command: "grep -Eqi 'database|/db|db/' /workspace/secrets/external-secret.yaml"
+      - type: command
+        name: No plaintext credentials
+        command: "! grep -Eiq '^[[:space:]]*(password|token|stringData)[[:space:]]*:' /workspace/secrets/external-secret.yaml"
+  - id: runbook-and-commit
+    title: Write rotation verify runbook and commit
+    description: 'Create /workspace/docs/ROTATION.md with headings Detect, Rotate, Refresh, and Verify. Detect mentions leak or audit; Rotate mentions vault or backend; Refresh mentions ExternalSecret; Verify mentions pod or consumer; include dual-write or overlap window. Write /workspace/docs/VERIFY.txt with exactly three non-empty lines covering ExternalSecret Ready/Synced, Secret data keys, and health or login. Write /workspace/docs/SHIP.md mentioning GitOps and Helm. Commit all changes so git status is clean and HEAD has at least two commits.'
+    hints:
+      - 'Tip code ROTATE_BACKEND: rotate vault/backend first, then refresh ExternalSecret.'
+      - 'Tip code VERIFY_THREE: store sync, secret material, app health.'
+      - 'Confirm git status --porcelain is empty after committing.'
+    checks:
+      - type: file
+        name: Detect section present
+        path: /workspace/docs/ROTATION.md
+        value: Detect
+      - type: file
+        name: Rotate section present
+        path: /workspace/docs/ROTATION.md
+        value: Rotate
+      - type: file
+        name: Refresh section present
+        path: /workspace/docs/ROTATION.md
+        value: Refresh
+      - type: file
+        name: Verify section present
+        path: /workspace/docs/ROTATION.md
+        value: Verify
+      - type: command
+        name: Detect mentions leak or audit
+        command: "grep -A3 '^#* *Detect' /workspace/docs/ROTATION.md | grep -Eqi 'leak|audit'"
+      - type: command
+        name: Rotate mentions backend
+        command: "grep -A3 '^#* *Rotate' /workspace/docs/ROTATION.md | grep -Eqi 'vault|backend'"
+      - type: command
+        name: Refresh mentions ExternalSecret
+        command: "grep -A3 '^#* *Refresh' /workspace/docs/ROTATION.md | grep -Eqi 'ExternalSecret|refresh'"
+      - type: command
+        name: Verify mentions consumers
+        command: "grep -A3 '^#* *Verify' /workspace/docs/ROTATION.md | grep -Eqi 'pod|consumer|restart'"
+      - type: command
+        name: Overlap window planned
+        command: "grep -Eqi 'dual-write|overlap window' /workspace/docs/ROTATION.md"
+      - type: file
+        name: Verify checklist mentions ExternalSecret
+        path: /workspace/docs/VERIFY.txt
+        value: ExternalSecret
+      - type: file
+        name: Verify checklist mentions Secret
+        path: /workspace/docs/VERIFY.txt
+        value: Secret
+      - type: command
+        name: Verify checklist mentions health
+        command: "grep -Eqi 'health|login' /workspace/docs/VERIFY.txt"
+      - type: command
+        name: Verify checklist has three lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/docs/VERIFY.txt) -eq 3 ]"
+      - type: command
+        name: Ship note mentions both systems
+        command: "grep -qi 'GitOps' /workspace/docs/SHIP.md && grep -qi 'Helm' /workspace/docs/SHIP.md"
+      - type: command
+        name: Delivery pack committed
+        command: "cd /workspace && test \"$(git rev-list --count HEAD)\" -ge 2 && test -z \"$(git status --porcelain)\""
+limits: {cpus: "0.75", memory: 192m, pids: 96, timeout: 3600, network: false}

@@ -186,6 +186,7 @@ phases:
           - payments-reliability-capstone
           - compliance-release-capstone
           - platform-landing-zone-capstone
+          - gitops-delivery-capstone
       - id: leadership
         title: Leadership Capstones
         summary: Capture decisions and run blameless learning reviews.
