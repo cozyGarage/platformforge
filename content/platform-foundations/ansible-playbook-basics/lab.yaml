@@ -39,7 +39,7 @@ tasks:
       - type: file
         name: Handlers section present
         path: /workspace/ansible/site.yml
-        value: handlers:
+        value: "handlers:"
       - type: command
         name: Handler restarts service
         command: "grep -A6 'handlers:' /workspace/ansible/site.yml | grep -q 'Restart nginx' && grep -A10 'handlers:' /workspace/ansible/site.yml | grep -Eq 'state:[[:space:]]*restarted'"
