@@ -9,7 +9,7 @@ image: alpine:3.21
 shell: /bin/sh
 setup:
   - "mkdir -p /workspace/ansible /workspace/docs"
-  - "printf ---\\n- name: Harden payments edge\\n  hosts: deploy\\n  become: true\\n  tasks:\\n    - name: Install nginx\\n      ansible.builtin.apt:\\n        name: nginx\\n        state: present\\n      notify: Restart nginx\\n  handlers:\\n    - name: Restart nginx\\n      ansible.builtin.service:\\n        name: nginx\\n        state: restarted\\n > /workspace/ansible/site.yml"
+  - "cat > /workspace/ansible/site.yml <<'EOF'\n---\n- name: Harden payments edge\n  hosts: deploy\n  become: true\n  tasks:\n    - name: Install nginx\n      ansible.builtin.apt:\n        name: nginx\n        state: present\n      notify: Restart nginx\n  handlers:\n    - name: Restart nginx\n      ansible.builtin.service:\n        name: nginx\n        state: restarted\nEOF"
   - "printf 'Ticket: Explain idempotency for handlers.\\nWrite docs/IDEMPOTENCY.md with headings Changed, Skipped, and Check mode.\\n' > /workspace/ansible/TICKET.md"
 tasks:
   - id: document-idempotency
