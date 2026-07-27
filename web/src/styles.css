@@ -46,7 +46,9 @@ main { max-width: 1440px; margin: auto; padding: clamp(1.5rem, 4vw, 4rem); }
 .path-phase h2 { font-size: 2rem; letter-spacing: -.03em; margin: 0; }
 .phase-head { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; flex-wrap: wrap; margin-bottom: .5rem; }
 .tip-chips { display: flex; flex-wrap: wrap; gap: .45rem; margin: .6rem 0 1rem; }
-.tip-chip { font: 700 .72rem/1 monospace; letter-spacing: .04em; color: #f5b942; border: 1px solid #6a5520; background: #241c0c; border-radius: 999px; padding: .35rem .65rem; }
+.tip-chip { font: 700 .72rem/1 monospace; letter-spacing: .04em; color: #f5b942; border: 1px solid #6a5520; background: #241c0c; border-radius: 999px; padding: .35rem .65rem; cursor: pointer; }
+.tip-chip:hover { border-color: #f5b942; background: #33260f; }
+.tip-glossary-list > div.tip-focus { background: #1a2438; border-radius: 6px; outline: 1px solid #3d4f72; }
 .path-module { border: 1px solid #273550; border-radius: 12px; padding: 1.2rem 1.4rem; margin: 1rem 0; background: #0d1629aa; }
 .path-module.locked { opacity: .75; border-style: dashed; }
 .lab-list li.locked { color: #6d7f9d; }

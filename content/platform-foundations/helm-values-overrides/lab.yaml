@@ -1,0 +1,76 @@
+version: 1
+id: helm-values-overrides
+title: Plan Helm Values Overrides
+summary: Separate shared chart defaults from env values files and document a safe --set vs -f override policy.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [helm-chart-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/charts/payments-web /workspace/charts/env /workspace/docs"
+  - "printf 'apiVersion: v2\\nname: payments-web\\ndescription: Payments web chart\\ntype: application\\nversion: 0.1.0\\nappVersion: \"1.0.0\"\\n' > /workspace/charts/payments-web/Chart.yaml"
+  - "printf 'replicaCount: 2\\nimage:\\n  repository: ghcr.io/example/payments-web\\n  tag: \"1.0.0\"\\n' > /workspace/charts/payments-web/values.yaml"
+  - "printf 'Ticket: Design env override files and an override policy.\\nNeed values-dev.yaml, values-prod.yaml, and OVERRIDE.md.\\n' > /workspace/charts/TICKET.md"
+tasks:
+  - id: env-values
+    title: Author env values files
+    description: 'Create /workspace/charts/env/values-dev.yaml with replicaCount: 1 and image.tag "1.0.0-dev". Create /workspace/charts/env/values-prod.yaml with replicaCount: 3 and image.tag pinned to a digest-like string containing sha256. Do not put secrets in either file.'
+    hints:
+      - 'Tip code ENV_VALUES: keep env deltas in values-<env>.yaml layered over chart defaults.'
+      - 'Tip code PROD_DIGEST: prod tags should look like digests (include sha256), not latest.'
+      - 'Dev gets fewer replicas; prod gets more.'
+    checks:
+      - type: file
+        name: Dev values present
+        path: /workspace/charts/env/values-dev.yaml
+        value: "replicaCount:"
+      - type: command
+        name: Dev replica is 1
+        command: "grep -Eq 'replicaCount:[[:space:]]*1' /workspace/charts/env/values-dev.yaml"
+      - type: file
+        name: Dev tag present
+        path: /workspace/charts/env/values-dev.yaml
+        value: 1.0.0-dev
+      - type: file
+        name: Prod values present
+        path: /workspace/charts/env/values-prod.yaml
+        value: "replicaCount:"
+      - type: command
+        name: Prod replica is 3
+        command: "grep -Eq 'replicaCount:[[:space:]]*3' /workspace/charts/env/values-prod.yaml"
+      - type: file
+        name: Prod uses digest-like tag
+        path: /workspace/charts/env/values-prod.yaml
+        value: sha256
+  - id: override-policy
+    title: Document override policy
+    description: 'Write /workspace/docs/OVERRIDE.md with headings Files and Set flags. Files must mention -f or values file. Set flags must mention --set and say it is for break-glass or CI-only ephemeral overrides. Include the word secrets stating they never belong in values files. Write /workspace/charts/STATUS.txt containing OVERRIDES_OK.'
+    hints:
+      - 'Tip code PREFER_F: prefer -f values-<env>.yaml over long --set chains.'
+      - 'Tip code SET_EPHEMERAL: --set is for break-glass or CI-only ephemeral overrides.'
+      - 'STATUS.txt should include OVERRIDES_OK.'
+    checks:
+      - type: file
+        name: Override doc present
+        path: /workspace/docs/OVERRIDE.md
+        value: Files
+      - type: file
+        name: Set flags section present
+        path: /workspace/docs/OVERRIDE.md
+        value: Set flags
+      - type: command
+        name: Files mention values file flag
+        command: "grep -A4 '^#* *Files' /workspace/docs/OVERRIDE.md | grep -Eqi -- '-f|values'"
+      - type: command
+        name: Set flags mention --set
+        command: "grep -A4 '^#* *Set flags' /workspace/docs/OVERRIDE.md | grep -Fq -- '--set'"
+      - type: file
+        name: Secrets warning present
+        path: /workspace/docs/OVERRIDE.md
+        value: secrets
+      - type: file
+        name: Overrides status ok
+        path: /workspace/charts/STATUS.txt
+        value: OVERRIDES_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

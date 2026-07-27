@@ -21,10 +21,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA drills | 12 labs (live k3d) |
-| Delivery | CI/CD, GitOps, observability, leadership, portfolio | 13 labs + 4 capstones |
+| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, leadership, portfolio | 16 labs + 4 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (77 interactive + 4 capstones)
+### Lab inventory (81 interactive + 4 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -53,6 +53,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
 
 **GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`
+
+**Helm** — `helm-chart-basics`, `helm-values-overrides`
+
+**Secrets ops** — `secrets-external-operator`, `secrets-rotation-runbook`
 
 **Leadership** — `leadership-adr`, `leadership-postmortem`
 
@@ -129,13 +133,14 @@ UX now shipped from PatchLab:
 3. **Sandbox unlock gates** — `net-sandbox` + path module unlock after 3 networking tickets; prerequisites enforced on start
 4. **Path remaining-time + tip-code chips** — phase/path ETA and failure tip chips on validate
 5. **Next-lab CTA + tip glossary** — after pass, continue along the path; open a lab tip glossary drawer
+6. **Tip chips → glossary** — failed-validate tip chips jump-open the matching glossary entry
 
 ## Next authoring priorities
 
 1. Portfolio polish (real image build/push when registry tooling is available)
 2. Live etcdctl against control-plane when privileged lab runtime allows
-3. Helm / chart packaging planning labs
-4. Secrets operator / external-secrets planning drills
+3. Policy-as-code (OPA/Kyverno) admission planning drills
+4. Service mesh / Gateway API traffic planning labs
 
 ## How to add a lab
 

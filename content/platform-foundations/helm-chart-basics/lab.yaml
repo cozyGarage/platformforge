@@ -1,0 +1,77 @@
+version: 1
+id: helm-chart-basics
+title: Author a Helm Chart Skeleton
+summary: Build Chart.yaml, values.yaml, and a Deployment template with standard Helm placeholders for payments-web.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [kubernetes-deploy, gitops-kustomize-overlay]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/charts/payments-web /workspace/docs"
+  - "printf 'Ticket: Scaffold a Helm chart for payments-web.\\nNeed Chart.yaml, values.yaml, templates/deployment.yaml, and STATUS.txt.\\n' > /workspace/charts/TICKET.md"
+tasks:
+  - id: chart-meta
+    title: Write Chart.yaml
+    description: 'Create /workspace/charts/payments-web/Chart.yaml with apiVersion v2, name payments-web, description mentioning payments, type application, and version 0.1.0. Also set appVersion to "1.0.0".'
+    hints:
+      - 'Tip code CHART_API: Helm 3 charts use apiVersion: v2.'
+      - 'Include name: payments-web and version: 0.1.0.'
+      - 'type should be application.'
+    checks:
+      - type: file
+        name: Chart.yaml present
+        path: /workspace/charts/payments-web/Chart.yaml
+        value: "apiVersion: v2"
+      - type: file
+        name: Chart name set
+        path: /workspace/charts/payments-web/Chart.yaml
+        value: "name: payments-web"
+      - type: file
+        name: Chart version set
+        path: /workspace/charts/payments-web/Chart.yaml
+        value: "version: 0.1.0"
+      - type: file
+        name: Application type
+        path: /workspace/charts/payments-web/Chart.yaml
+        value: "type: application"
+      - type: file
+        name: App version pinned
+        path: /workspace/charts/payments-web/Chart.yaml
+        value: "appVersion:"
+  - id: values-and-template
+    title: Add values and Deployment template
+    description: 'Create /workspace/charts/payments-web/values.yaml with replicaCount: 2 and image.repository set to ghcr.io/example/payments-web plus image.tag set to "1.0.0". Create templates/deployment.yaml that references .Values.replicaCount and .Values.image.repository (or .Values.image). Write /workspace/charts/STATUS.txt containing CHART_OK.'
+    hints:
+      - 'Tip code VALUES_IMAGE: keep repository and tag under image: in values.yaml.'
+      - 'Tip code TPL_VALUES: templates use {{ .Values.replicaCount }} and {{ .Values.image.repository }}.'
+      - 'STATUS.txt should include CHART_OK.'
+    checks:
+      - type: file
+        name: Values present
+        path: /workspace/charts/payments-web/values.yaml
+        value: "replicaCount:"
+      - type: command
+        name: Replica count is 2
+        command: "grep -Eq 'replicaCount:[[:space:]]*2' /workspace/charts/payments-web/values.yaml"
+      - type: file
+        name: Image repository set
+        path: /workspace/charts/payments-web/values.yaml
+        value: ghcr.io/example/payments-web
+      - type: file
+        name: Deployment template present
+        path: /workspace/charts/payments-web/templates/deployment.yaml
+        value: "kind: Deployment"
+      - type: file
+        name: Template uses replicaCount
+        path: /workspace/charts/payments-web/templates/deployment.yaml
+        value: .Values.replicaCount
+      - type: file
+        name: Template uses image values
+        path: /workspace/charts/payments-web/templates/deployment.yaml
+        value: .Values.image
+      - type: file
+        name: Chart status ok
+        path: /workspace/charts/STATUS.txt
+        value: CHART_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

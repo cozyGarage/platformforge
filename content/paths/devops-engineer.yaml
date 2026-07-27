@@ -144,7 +144,7 @@ phases:
           - kubernetes-etcd-snapshot
   - id: delivery
     title: Phase 4 — Delivery & Reliability
-    summary: CI/CD pipelines, structured logging, and incident response.
+    summary: CI/CD pipelines, GitOps, Helm, secrets ops, structured logging, and incident response.
     modules:
       - id: learn-cicd
         title: Learn CI/CD
@@ -159,6 +159,18 @@ phases:
         labs:
           - gitops-manifest-sync
           - gitops-kustomize-overlay
+      - id: learn-helm
+        title: Learn Helm
+        summary: Chart skeletons, values overrides, and digest-friendly env promotion.
+        labs:
+          - helm-chart-basics
+          - helm-values-overrides
+      - id: learn-secrets-ops
+        title: Secrets Operations
+        summary: External Secrets Operator planning and credential rotation runbooks.
+        labs:
+          - secrets-external-operator
+          - secrets-rotation-runbook
       - id: learn-observability
         title: Logging & Observability
         summary: Structured logs, metrics, alerts, and on-call debugging.

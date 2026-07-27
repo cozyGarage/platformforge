@@ -250,11 +250,14 @@ function Lesson() {
   const [manualHints, setManualHints] = useState<Record<string, number>>({})
   const [ghostHints, setGhostHints] = useState<Record<string, number>>({})
   const [glossaryOpen, setGlossaryOpen] = useState(false)
+  const [focusTip, setFocusTip] = useState<string>()
+  const glossaryRef = useRef<HTMLDListElement>(null)
   useEffect(() => {
     setResult(undefined)
     setManualHints({})
     setGhostHints({})
     setGlossaryOpen(false)
+    setFocusTip(undefined)
     request<Lab>(`/api/labs/${id}`).then(setLab).catch(e => setError(e.message))
     request<Session>(`/api/labs/${id}/status`).then(s => setStarted(s.running)).catch(() => setStarted(false))
     request<{ taskProgress?: TaskProgress[] }>(`/api/progress/${id}`).then(detail => {
@@ -263,10 +266,19 @@ function Lesson() {
       setGhostHints(next)
     }).catch(() => undefined)
   }, [id])
+  useEffect(() => {
+    if (!glossaryOpen || !focusTip || !glossaryRef.current) return
+    const target = glossaryRef.current.querySelector(`[data-tip="${focusTip}"]`)
+    if (target instanceof HTMLElement) target.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [glossaryOpen, focusTip])
   const locked = lab ? isLocked(lab) : false
   const glossary = useMemo(() => tipGlossaryFor(lab), [lab])
   const nextId = nextLabId(id)
   const nextLab = nextId ? labMap[nextId] : undefined
+  const openTip = (code: string) => {
+    setFocusTip(code)
+    setGlossaryOpen(true)
+  }
   const act = async (action: 'start' | 'reset' | 'validate' | 'stop') => {
     setBusy(true); setError('')
     try {
@@ -296,8 +308,8 @@ function Lesson() {
         <button className="link-button" onClick={() => setGlossaryOpen(open => !open)} aria-expanded={glossaryOpen}>
           {glossaryOpen ? 'Hide tip glossary' : `Tip glossary (${glossary.length})`}
         </button>
-        {glossaryOpen && <dl className="tip-glossary-list">
-          {glossary.map(entry => <div key={entry.code}><dt>{entry.code}</dt><dd>{entry.text}</dd></div>)}
+        {glossaryOpen && <dl className="tip-glossary-list" ref={glossaryRef}>
+          {glossary.map(entry => <div key={entry.code} data-tip={entry.code} className={focusTip === entry.code ? 'tip-focus' : undefined}><dt>{entry.code}</dt><dd>{entry.text}</dd></div>)}
         </dl>}
       </div>}
       <article dangerouslySetInnerHTML={lessonHTML} /><h2>Objectives</h2>
@@ -324,7 +336,7 @@ function Lesson() {
         {!result && <p>Complete the objectives, then validate your environment. After {result?.ghostHintEvery || 2} failed validates on a task, a ghost hint appears.</p>}
         {result && <><p className={result.status === 'passed' ? 'success' : 'error'}>{result.passed}/{result.checks.length} checks passed</p>
           {result.status !== 'passed' && tipCodesFor(result, lab).length > 0 && <div className="tip-chips" aria-label="Tip codes">
-            {tipCodesFor(result, lab).map(code => <span className="tip-chip" key={code}>{code}</span>)}
+            {tipCodesFor(result, lab).map(code => <button type="button" className="tip-chip" key={code} onClick={() => openTip(code)}>{code}</button>)}
           </div>}
           {result.checks.map((check, i) => <div className={`check ${check.passed ? 'pass' : 'fail'}`} key={i}><strong>{check.passed ? '✓' : '×'} {check.name}</strong><span>{check.message}</span></div>)}
           {result.status === 'passed' && result.score && <div className="debrief">
