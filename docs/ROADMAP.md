@@ -21,10 +21,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA drills | 12 labs (live k3d) |
-| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, leadership, portfolio | 16 labs + 4 capstones |
+| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, leadership, portfolio | 16 labs + 5 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (81 interactive + 4 capstones)
+### Lab inventory (81 interactive + 5 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
