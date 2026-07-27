@@ -70,7 +70,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **AWS local sims** — `aws-iam-basics`, `aws-s3-basics`, `aws-vpc-basics`
 
-**Capstones** — `incident-capstone`, `payments-reliability-capstone`, `compliance-release-capstone`, `platform-landing-zone-capstone`
+**Capstones** — `incident-capstone`, `payments-reliability-capstone`, `compliance-release-capstone`, `platform-landing-zone-capstone`, `gitops-delivery-capstone`
 
 ## Boot.dev modules → PlatformForge status
 
