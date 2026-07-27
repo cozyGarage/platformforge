@@ -1,0 +1,83 @@
+version: 1
+id: gitops-kustomize-overlay
+title: Plan Kustomize Overlay Promotions
+summary: Sketch a base plus overlay layout, promote digests upward across envs, and call out overlay drift risks.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [gitops-manifest-sync, kubernetes-configmap]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/gitops /workspace/docs"
+  - "printf 'Ticket: Design Kustomize overlays for payments-web.\\nNeed base/ + overlays/dev|stage|prod, digest promotion, and drift/hotfix risks.\\n' > /workspace/gitops/TICKET.md"
+tasks:
+  - id: overlay-layout
+    title: Sketch base and overlays
+    description: 'Create /workspace/gitops/kustomize-layout.txt with exactly five non-empty lines describing base/ shared Deployment/Service, overlays/dev/, overlays/stage/, overlays/prod/, and one sentence on allowed overlay deltas (image tag, replicas, resources, ingress host).'
+    hints:
+      - 'Tip code KUST_BASE: put shared resources in base; put env deltas only in overlays.'
+      - 'Tip code OVERLAY_DELTA: overlays change image, replicas, resources, hosts — not fork the whole app.'
+      - 'Include base/, overlays/dev/, and overlays/prod/ literally.'
+    checks:
+      - type: file
+        name: Layout file present
+        path: /workspace/gitops/kustomize-layout.txt
+        value: base/
+      - type: file
+        name: Dev overlay listed
+        path: /workspace/gitops/kustomize-layout.txt
+        value: overlays/dev/
+      - type: file
+        name: Prod overlay listed
+        path: /workspace/gitops/kustomize-layout.txt
+        value: overlays/prod/
+      - type: command
+        name: Exactly five non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/gitops/kustomize-layout.txt) -eq 5 ]"
+  - id: promote-path
+    title: Define digest promotion
+    description: 'Write /workspace/gitops/promote-path.txt with exactly four non-empty lines: change lands in overlays/dev first, verify health/smoke in lower env, promote the same image digest to stage then prod, and prefer digest pins over floating latest.'
+    hints:
+      - 'Tip code PROMOTE_DIGEST: promote the same digest upward; do not invent a new build per env by default.'
+      - 'Tip code NO_LATEST: floating latest tags break auditability and rollbacks.'
+      - 'Include overlays/dev, digest, and latest.'
+    checks:
+      - type: file
+        name: Promote path present
+        path: /workspace/gitops/promote-path.txt
+        value: overlays/dev
+      - type: file
+        name: Mentions digest
+        path: /workspace/gitops/promote-path.txt
+        value: digest
+      - type: file
+        name: Mentions latest risk
+        path: /workspace/gitops/promote-path.txt
+        value: latest
+      - type: command
+        name: Exactly four non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/gitops/promote-path.txt) -eq 4 ]"
+  - id: overlay-risks
+    title: Call out overlay risks
+    description: 'Write /workspace/docs/overlay-risks.md (at least 5 lines) covering copy-paste drift between overlays and prod-only hotfixes that never land in base/dev. Include the words drift and promotion. Write /workspace/gitops/STATUS.txt containing OVERLAY_OK.'
+    hints:
+      - 'Tip code OVERLAY_DRIFT: overlays diverge; keep promotion disciplined and shared changes in base.'
+      - 'Tip code HOTFIX_BACKPORT: prod hotfixes must land back in base/dev or they become snowflakes.'
+      - 'STATUS.txt should include OVERLAY_OK.'
+    checks:
+      - type: file
+        name: Risks brief present
+        path: /workspace/docs/overlay-risks.md
+        value: drift
+      - type: file
+        name: Mentions promotion
+        path: /workspace/docs/overlay-risks.md
+        value: promotion
+      - type: command
+        name: Risks brief has depth
+        command: "[ $(wc -l < /workspace/docs/overlay-risks.md) -ge 5 ]"
+      - type: file
+        name: Overlay status ok
+        path: /workspace/gitops/STATUS.txt
+        value: OVERLAY_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

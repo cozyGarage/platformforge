@@ -24,6 +24,14 @@ main { max-width: 1440px; margin: auto; padding: clamp(1.5rem, 4vw, 4rem); }
 .debrief { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #25314a; }
 .debrief .stars { font-size: 1.6rem; letter-spacing: .12em; color: #f5b942; margin: .4rem 0 0.8rem; }
 .debrief ul { margin: 0; padding-left: 1.1rem; color: #a7b5d0; }
+.debrief .next-lab { margin-top: 1rem; }
+.debrief .next-lab a { color: #57e3c1; font-weight: 700; }
+.tip-glossary { margin: .8rem 0 1.2rem; }
+.tip-glossary-list { margin: .7rem 0 0; padding: .8rem; border: 1px solid #2a3a57; border-radius: 8px; background: #0c1424; }
+.tip-glossary-list > div { display: grid; grid-template-columns: minmax(7rem, max-content) 1fr; gap: .55rem 1rem; padding: .45rem 0; border-top: 1px solid #223049; }
+.tip-glossary-list > div:first-child { border-top: 0; padding-top: 0; }
+.tip-glossary-list dt { font: 700 .72rem/1.3 monospace; letter-spacing: .04em; color: #f5b942; margin: 0; }
+.tip-glossary-list dd { margin: 0; color: #a7b5d0; font-size: .9rem; }
 .stat-row { display: flex; gap: 1rem; flex-wrap: wrap; }
 .workspace { min-width: 0; }.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: .8rem; }.status { font: 700 .72rem monospace; color: #8293b3; }.status.live { color: #57e3c1; }
 .terminal { height: 430px; padding: .7rem; border: 1px solid #293852; border-radius: 10px; background: #070b14; overflow: hidden; }

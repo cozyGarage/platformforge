@@ -1,0 +1,53 @@
+version: 1
+id: ansible-inventory-basics
+title: Build an Ansible Inventory
+summary: Author a static inventory grouping bastion and payments hosts with a shared deploy group.
+difficulty: beginner
+estimatedMinutes: 25
+prerequisites: [linux-navigation]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/ansible"
+  - "printf 'Ticket: Create inventory.ini for payments.\\nbastion ansible_host=10.0.0.10\\npayments-01 ansible_host=10.0.1.11\\npayments-02 ansible_host=10.0.1.12\\nGroups: [bastion], [payments], [deploy:children] including both.\\n' > /workspace/ansible/TICKET.md"
+tasks:
+  - id: write-inventory
+    title: Write inventory.ini
+    description: 'Create /workspace/ansible/inventory.ini with hosts bastion (10.0.0.10), payments-01 (10.0.1.11), payments-02 (10.0.1.12), groups [bastion] and [payments], and a [deploy:children] group that includes bastion and payments. Write /workspace/ansible/STATUS.txt containing INVENTORY_OK.'
+    hints:
+      - 'Tip code MISSING_CHILDREN: use [deploy:children] then list child group names.'
+      - 'Host lines look like payments-01 ansible_host=10.0.1.11'
+      - 'STATUS.txt should include INVENTORY_OK.'
+    checks:
+      - type: file
+        name: Bastion host present
+        path: /workspace/ansible/inventory.ini
+        value: "10.0.0.10"
+      - type: file
+        name: Payments hosts present
+        path: /workspace/ansible/inventory.ini
+        value: "10.0.1.11"
+      - type: file
+        name: Second payments host present
+        path: /workspace/ansible/inventory.ini
+        value: "10.0.1.12"
+      - type: file
+        name: Bastion group present
+        path: /workspace/ansible/inventory.ini
+        value: "[bastion]"
+      - type: file
+        name: Payments group present
+        path: /workspace/ansible/inventory.ini
+        value: "[payments]"
+      - type: file
+        name: Deploy children group present
+        path: /workspace/ansible/inventory.ini
+        value: "[deploy:children]"
+      - type: command
+        name: Deploy includes both groups
+        command: "grep -A5 '\\[deploy:children\\]' /workspace/ansible/inventory.ini | grep -q bastion && grep -A5 '\\[deploy:children\\]' /workspace/ansible/inventory.ini | grep -q payments"
+      - type: file
+        name: Inventory status ok
+        path: /workspace/ansible/STATUS.txt
+        value: INVENTORY_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

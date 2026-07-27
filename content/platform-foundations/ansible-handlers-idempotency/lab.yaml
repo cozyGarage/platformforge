@@ -1,0 +1,48 @@
+version: 1
+id: ansible-handlers-idempotency
+title: Prove Handler Idempotency
+summary: Document why unchanged packages skip handlers, and add a check mode note for safe dry-runs.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [ansible-playbook-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/ansible /workspace/docs"
+  - "printf ---\\n- name: Harden payments edge\\n  hosts: deploy\\n  become: true\\n  tasks:\\n    - name: Install nginx\\n      ansible.builtin.apt:\\n        name: nginx\\n        state: present\\n      notify: Restart nginx\\n  handlers:\\n    - name: Restart nginx\\n      ansible.builtin.service:\\n        name: nginx\\n        state: restarted\\n > /workspace/ansible/site.yml"
+  - "printf 'Ticket: Explain idempotency for handlers.\\nWrite docs/IDEMPOTENCY.md with headings Changed, Skipped, and Check mode.\\n' > /workspace/ansible/TICKET.md"
+tasks:
+  - id: document-idempotency
+    title: Document when handlers fire
+    description: 'Create /workspace/docs/IDEMPOTENCY.md with headings Changed, Skipped, and Check mode. Changed must mention notify or handler. Skipped must mention unchanged or already. Check mode must mention --check or dry-run. Write /workspace/ansible/STATUS.txt containing IDEMPOTENT_OK.'
+    hints:
+      - 'Tip code HANDLER_ALWAYS: handlers run only when a task reports changed.'
+      - 'Check mode is ansible-playbook --check.'
+      - 'STATUS.txt should include IDEMPOTENT_OK.'
+    checks:
+      - type: file
+        name: Changed section present
+        path: /workspace/docs/IDEMPOTENCY.md
+        value: Changed
+      - type: file
+        name: Skipped section present
+        path: /workspace/docs/IDEMPOTENCY.md
+        value: Skipped
+      - type: file
+        name: Check mode section present
+        path: /workspace/docs/IDEMPOTENCY.md
+        value: Check mode
+      - type: command
+        name: Changed mentions handlers
+        command: "grep -A3 '^#* *Changed' /workspace/docs/IDEMPOTENCY.md | grep -Eqi 'notify|handler'"
+      - type: command
+        name: Skipped mentions unchanged
+        command: "grep -A3 '^#* *Skipped' /workspace/docs/IDEMPOTENCY.md | grep -Eqi 'unchanged|already'"
+      - type: command
+        name: Check mode mentions dry run
+        command: "grep -A3 '^#* *Check mode' /workspace/docs/IDEMPOTENCY.md | grep -Eqi '--check|dry-run|dry run'"
+      - type: file
+        name: Idempotent status ok
+        path: /workspace/ansible/STATUS.txt
+        value: IDEMPOTENT_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
