@@ -1,0 +1,87 @@
+version: 1
+id: secrets-external-operator
+title: Plan External Secrets Sync
+summary: Design an ExternalSecret that syncs from a vault-backed SecretStore without committing plaintext credentials.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [secrets-basics, kubernetes-configmap, helm-chart-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/secrets /workspace/docs"
+  - "printf 'Ticket: Design External Secrets for payments-api.\\nNeed SecretStore plan, ExternalSecret manifest sketch, and a plaintext ban note.\\n' > /workspace/secrets/TICKET.md"
+tasks:
+  - id: store-plan
+    title: Plan the SecretStore
+    description: 'Create /workspace/secrets/store-plan.txt with exactly four non-empty lines covering (1) cluster SecretStore or namespaced SecretStore choice, (2) backend type vault or AWS Secrets Manager, (3) auth method (IRSA, K8s SA, or AppRole — pick one and name it), (4) which namespace may use the store.'
+    hints:
+      - 'Tip code STORE_SCOPE: prefer namespaced SecretStore unless many teams share one cluster store.'
+      - 'Tip code STORE_AUTH: document IRSA, Kubernetes SA, or AppRole — never embed a long-lived token in Git.'
+      - 'Include vault or Secrets Manager, and a namespace name.'
+    checks:
+      - type: file
+        name: Store plan present
+        path: /workspace/secrets/store-plan.txt
+        value: SecretStore
+      - type: command
+        name: Mentions a backend
+        command: "grep -Eqi 'vault|secrets manager|Secrets Manager' /workspace/secrets/store-plan.txt"
+      - type: command
+        name: Mentions an auth method
+        command: "grep -Eqi 'IRSA|AppRole|ServiceAccount|service account|K8s SA' /workspace/secrets/store-plan.txt"
+      - type: command
+        name: Exactly four non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/secrets/store-plan.txt) -eq 4 ]"
+  - id: external-secret
+    title: Sketch ExternalSecret
+    description: 'Create /workspace/secrets/external-secret.yaml containing kind: ExternalSecret, a metadata.name of payments-api-db, spec.refreshInterval, and a target name payments-api-db. Reference a secret key path containing database or db. Do not include any plaintext password values.'
+    hints:
+      - 'Tip code ESO_TARGET: ExternalSecret writes a native Secret named by spec.target.name.'
+      - 'Tip code NO_PLAINTEXT: never commit password: or token: plaintext in manifests.'
+      - 'Include refreshInterval and kind: ExternalSecret.'
+    checks:
+      - type: file
+        name: ExternalSecret kind
+        path: /workspace/secrets/external-secret.yaml
+        value: "kind: ExternalSecret"
+      - type: file
+        name: Named payments-api-db
+        path: /workspace/secrets/external-secret.yaml
+        value: payments-api-db
+      - type: file
+        name: Refresh interval set
+        path: /workspace/secrets/external-secret.yaml
+        value: refreshInterval
+      - type: command
+        name: References db/database path
+        command: "grep -Eqi 'database|/db|db/' /workspace/secrets/external-secret.yaml"
+      - type: command
+        name: No plaintext password field
+        command: "! grep -Eiq '^[[:space:]]*(password|token)[[:space:]]*:' /workspace/secrets/external-secret.yaml"
+  - id: ban-plaintext
+    title: Document the plaintext ban
+    description: 'Write /workspace/docs/SECRETS_POLICY.md with headings Allowed and Forbidden. Allowed must mention ExternalSecret or SecretStore. Forbidden must mention plaintext in Git or Helm values. Write /workspace/secrets/STATUS.txt containing ESO_OK.'
+    hints:
+      - 'Tip code GIT_NO_SECRET: Git holds references and sync policy — not credentials.'
+      - 'STATUS.txt should include ESO_OK.'
+      - 'Forbidden section calls out Helm values and committed env files.'
+    checks:
+      - type: file
+        name: Policy present
+        path: /workspace/docs/SECRETS_POLICY.md
+        value: Allowed
+      - type: file
+        name: Forbidden section present
+        path: /workspace/docs/SECRETS_POLICY.md
+        value: Forbidden
+      - type: command
+        name: Allowed mentions External Secrets
+        command: "grep -A4 '^#* *Allowed' /workspace/docs/SECRETS_POLICY.md | grep -Eqi 'ExternalSecret|SecretStore'"
+      - type: command
+        name: Forbidden mentions plaintext Git
+        command: "grep -A4 '^#* *Forbidden' /workspace/docs/SECRETS_POLICY.md | grep -Eqi 'plaintext|Git|Helm'"
+      - type: file
+        name: ESO status ok
+        path: /workspace/secrets/STATUS.txt
+        value: ESO_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

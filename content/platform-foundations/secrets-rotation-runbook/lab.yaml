@@ -1,0 +1,79 @@
+version: 1
+id: secrets-rotation-runbook
+title: Write a Secrets Rotation Runbook
+summary: Author a rotation runbook covering detect leak, rotate backend secret, refresh ExternalSecret, and verify consumers.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [secrets-external-operator]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/runbooks /workspace/docs"
+  - "printf 'Ticket: payments-api DB password may be leaked.\\nWrite a rotation runbook and a verify checklist.\\n' > /workspace/runbooks/TICKET.md"
+tasks:
+  - id: rotation-steps
+    title: Author rotation steps
+    description: 'Create /workspace/runbooks/ROTATION.md with headings Detect, Rotate, Refresh, and Verify (in that spirit). Detect must mention leak or audit. Rotate must mention vault or backend. Refresh must mention ExternalSecret or refresh. Verify must mention pod restart or consumer. Include the phrase dual-write or overlap window somewhere in the file.'
+    hints:
+      - 'Tip code ROTATE_BACKEND: rotate in the vault/backend first — not only the Kubernetes Secret.'
+      - 'Tip code REFRESH_ESO: trigger or wait for ExternalSecret refresh after backend rotation.'
+      - 'Tip code OVERLAP_WINDOW: plan a dual-write / overlap window so old and new secrets both work briefly.'
+    checks:
+      - type: file
+        name: Runbook present
+        path: /workspace/runbooks/ROTATION.md
+        value: Detect
+      - type: file
+        name: Rotate section present
+        path: /workspace/runbooks/ROTATION.md
+        value: Rotate
+      - type: file
+        name: Refresh section present
+        path: /workspace/runbooks/ROTATION.md
+        value: Refresh
+      - type: file
+        name: Verify section present
+        path: /workspace/runbooks/ROTATION.md
+        value: Verify
+      - type: command
+        name: Detect mentions leak or audit
+        command: "grep -A3 '^#* *Detect' /workspace/runbooks/ROTATION.md | grep -Eqi 'leak|audit'"
+      - type: command
+        name: Rotate mentions backend
+        command: "grep -A3 '^#* *Rotate' /workspace/runbooks/ROTATION.md | grep -Eqi 'vault|backend'"
+      - type: command
+        name: Refresh mentions ExternalSecret
+        command: "grep -A3 '^#* *Refresh' /workspace/runbooks/ROTATION.md | grep -Eqi 'ExternalSecret|refresh'"
+      - type: command
+        name: Verify mentions consumers
+        command: "grep -A3 '^#* *Verify' /workspace/runbooks/ROTATION.md | grep -Eqi 'pod|consumer|restart'"
+      - type: command
+        name: Overlap window planned
+        command: "grep -Eqi 'dual-write|overlap window' /workspace/runbooks/ROTATION.md"
+  - id: verify-checklist
+    title: Add verify checklist
+    description: 'Write /workspace/docs/VERIFY.txt with exactly three non-empty lines: (1) ExternalSecret Ready/Synced, (2) Secret data keys updated, (3) application health or login check passes. Write /workspace/runbooks/STATUS.txt containing ROTATION_OK.'
+    hints:
+      - 'Tip code VERIFY_THREE: store sync, secret material, and app health — all three.'
+      - 'STATUS.txt should include ROTATION_OK.'
+      - 'Exactly three non-empty lines in VERIFY.txt.'
+    checks:
+      - type: file
+        name: Verify checklist present
+        path: /workspace/docs/VERIFY.txt
+        value: ExternalSecret
+      - type: file
+        name: Mentions Secret data
+        path: /workspace/docs/VERIFY.txt
+        value: Secret
+      - type: command
+        name: Mentions health or login
+        command: "grep -Eqi 'health|login' /workspace/docs/VERIFY.txt"
+      - type: command
+        name: Exactly three non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/docs/VERIFY.txt) -eq 3 ]"
+      - type: file
+        name: Rotation status ok
+        path: /workspace/runbooks/STATUS.txt
+        value: ROTATION_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
