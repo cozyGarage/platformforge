@@ -1,0 +1,50 @@
+version: 1
+id: ansible-playbook-basics
+title: Write a Hardening Playbook
+summary: Author a playbook that targets the deploy group, becomes root, and installs nginx with a handler notify.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [ansible-inventory-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/ansible"
+  - "printf '[bastion]\\nbastion ansible_host=10.0.0.10\\n\\n[payments]\\npayments-01 ansible_host=10.0.1.11\\npayments-02 ansible_host=10.0.1.12\\n\\n[deploy:children]\\nbastion\\npayments\\n' > /workspace/ansible/inventory.ini"
+  - "printf 'Ticket: Create site.yml for deploy hosts.\\nNeed: hosts: deploy, become: true, apt install nginx, notify Restart nginx.\\n' > /workspace/ansible/TICKET.md"
+tasks:
+  - id: write-playbook
+    title: Author site.yml
+    description: 'Create /workspace/ansible/site.yml with a play named Harden payments edge targeting hosts deploy, become true, a task using ansible.builtin.apt to install nginx with state present, and notify Restart nginx. Also define a handlers section with name Restart nginx using ansible.builtin.service state restarted. Write /workspace/ansible/STATUS.txt containing PLAYBOOK_OK.'
+    hints:
+      - 'Tip code MISSING_BECOME: platform hardening plays almost always set become: true.'
+      - 'Notify must match the handler name exactly: Restart nginx.'
+      - 'STATUS.txt should include PLAYBOOK_OK.'
+    checks:
+      - type: file
+        name: Playbook present
+        path: /workspace/ansible/site.yml
+        value: "hosts: deploy"
+      - type: file
+        name: Become enabled
+        path: /workspace/ansible/site.yml
+        value: "become: true"
+      - type: file
+        name: Apt install nginx
+        path: /workspace/ansible/site.yml
+        value: nginx
+      - type: file
+        name: Notify restart
+        path: /workspace/ansible/site.yml
+        value: Restart nginx
+      - type: file
+        name: Handlers section present
+        path: /workspace/ansible/site.yml
+        value: "handlers:"
+      - type: command
+        name: Handler restarts service
+        command: "grep -A6 'handlers:' /workspace/ansible/site.yml | grep -q 'Restart nginx' && grep -A10 'handlers:' /workspace/ansible/site.yml | grep -Eq 'state:[[:space:]]*restarted'"
+      - type: file
+        name: Playbook status ok
+        path: /workspace/ansible/STATUS.txt
+        value: PLAYBOOK_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

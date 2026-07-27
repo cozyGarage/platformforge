@@ -18,13 +18,13 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 |-------|-------|-------------------|
 | Foundations | Linux, terminal, 90Days bridges, networking tickets, Git | 23 labs |
 | Containers | Docker | 3 labs |
-| IaC | Terraform planning | 3 labs |
+| IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA drills | 12 labs (live k3d) |
-| Delivery | CI/CD, observability, leadership, portfolio | 11 labs + 4 capstones |
+| Delivery | CI/CD, GitOps, observability, leadership, portfolio | 13 labs + 4 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (72 interactive + 4 capstones)
+### Lab inventory (77 interactive + 4 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -40,6 +40,8 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **Terraform / IaC** — `terraform-basics`, `terraform-modules`, `terraform-state-backend`
 
+**Ansible** — `ansible-inventory-basics`, `ansible-playbook-basics`, `ansible-handlers-idempotency`
+
 **HTTP & Go** — `http-health-server`, `http-json-api`, `go-testing-basics`
 
 **Python & SQL** — `python-health-server`, `python-json-api`, `python-async-service`, `python-packaging-basics`, `sql-query-basics`, `sql-joins-basics`, `sql-indexes-explain`, `sql-window-functions`
@@ -49,6 +51,8 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 **CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`, `kubernetes-ingress`, `kubernetes-storage`, `kubernetes-backup-restore`, `kubernetes-etcd-snapshot`
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
+
+**GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`
 
 **Leadership** — `leadership-adr`, `leadership-postmortem`
 
@@ -123,13 +127,15 @@ UX now shipped from PatchLab:
 1. **Ghost hints** — after every 2 failed validates on a task, the next authored hint auto-reveals
 2. **Debrief/stars** — correctness / speed / cleanliness scored on pass; dashboard shows totals
 3. **Sandbox unlock gates** — `net-sandbox` + path module unlock after 3 networking tickets; prerequisites enforced on start
+4. **Path remaining-time + tip-code chips** — phase/path ETA and failure tip chips on validate
+5. **Next-lab CTA + tip glossary** — after pass, continue along the path; open a lab tip glossary drawer
 
 ## Next authoring priorities
 
 1. Portfolio polish (real image build/push when registry tooling is available)
 2. Live etcdctl against control-plane when privileged lab runtime allows
-3. Ansible / configuration-management planning labs
-4. GitOps (Argo CD-style) declarative sync drills
+3. Helm / chart packaging planning labs
+4. Secrets operator / external-secrets planning drills
 
 ## How to add a lab
 

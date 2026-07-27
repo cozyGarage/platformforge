@@ -1,0 +1,83 @@
+version: 1
+id: gitops-manifest-sync
+title: Plan a GitOps Manifest Sync Loop
+summary: Capture desired state in Git, detect cluster drift, and describe a reconcile loop that treats Git as source of truth.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [kubernetes-deploy, cicd-pipeline-fix]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/gitops /workspace/docs"
+  - "printf 'Ticket: Design a GitOps sync for payments-web.\\nGit holds Deployment+Service + overlays + sync policy.\\nDetect drift vs Git and reconcile toward Git (hotfix exception with follow-up commit).\\n' > /workspace/gitops/TICKET.md"
+tasks:
+  - id: desired-state
+    title: Declare desired-state contents
+    description: 'Create /workspace/gitops/desired-state.txt with exactly three non-empty lines covering (1) Deployment + Service manifests, (2) environment overlays, and (3) sync policy (auto-sync vs manual promote).'
+    hints:
+      - 'Tip code GITOPS_SOURCE: Git holds desired state; clusters are projections of that state.'
+      - 'Include the words Deployment, overlay, and sync across the three lines.'
+      - 'Exactly three non-empty lines in desired-state.txt.'
+    checks:
+      - type: file
+        name: Desired state file present
+        path: /workspace/gitops/desired-state.txt
+        value: Deployment
+      - type: file
+        name: Mentions overlays
+        path: /workspace/gitops/desired-state.txt
+        value: overlay
+      - type: file
+        name: Mentions sync policy
+        path: /workspace/gitops/desired-state.txt
+        value: sync
+      - type: command
+        name: Exactly three non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/gitops/desired-state.txt) -eq 3 ]"
+  - id: drift-plan
+    title: Plan drift detection and reconcile
+    description: 'Create /workspace/gitops/drift-plan.txt with exactly four non-empty lines covering detect drift (live vs Git), reconcile toward Git, never rely on untracked live-only edits as the primary fix, and an emergency hotfix path that still lands a follow-up commit.'
+    hints:
+      - 'Tip code DRIFT_RECONCILE: treat cluster drift as a signal to sync Git, not a permanent live patch.'
+      - 'Tip code NO_SNOWFLAKE: avoid untracked live-only edits as the primary fix path.'
+      - 'Include the words drift, Git, and hotfix.'
+    checks:
+      - type: file
+        name: Drift plan present
+        path: /workspace/gitops/drift-plan.txt
+        value: drift
+      - type: file
+        name: Mentions Git
+        path: /workspace/gitops/drift-plan.txt
+        value: Git
+      - type: file
+        name: Mentions hotfix path
+        path: /workspace/gitops/drift-plan.txt
+        value: hotfix
+      - type: command
+        name: Exactly four non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/gitops/drift-plan.txt) -eq 4 ]"
+  - id: sync-loop
+    title: Document the sync loop
+    description: 'Write /workspace/docs/sync-loop.md (at least 5 lines) explaining watch/pull Git, compare to live cluster, apply diffs, and report health/sync status. Include the phrases reconcile and source of truth. Write /workspace/gitops/STATUS.txt containing DESIRED_OK.'
+    hints:
+      - 'Tip code SYNC_LOOP: watch → compare → apply → report is the GitOps heartbeat.'
+      - 'Tip code SOURCE_OF_TRUTH: one declared source; many projected environments.'
+      - 'STATUS.txt should include DESIRED_OK.'
+    checks:
+      - type: file
+        name: Sync loop brief present
+        path: /workspace/docs/sync-loop.md
+        value: reconcile
+      - type: file
+        name: Source of truth named
+        path: /workspace/docs/sync-loop.md
+        value: source of truth
+      - type: command
+        name: Sync loop has depth
+        command: "[ $(wc -l < /workspace/docs/sync-loop.md) -ge 5 ]"
+      - type: file
+        name: Desired status ok
+        path: /workspace/gitops/STATUS.txt
+        value: DESIRED_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

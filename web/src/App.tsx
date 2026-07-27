@@ -39,6 +39,14 @@ function formatMinutes(total: number) {
   return mins ? `${hours}h ${mins}m` : `${hours}h`
 }
 
+function parseTipHint(hint: string): { code?: string; text: string } {
+  const match = hint.match(/Tip codes?\s*:?\s*([A-Z][A-Z0-9_]*)\s*[:.—-]\s*(.+)/i)
+    || hint.match(/Tip codes?\s*:?\s*([A-Z][A-Z0-9_]*)/i)
+  if (!match) return { text: hint }
+  const rest = (match[2] || hint.slice(match[0].length)).trim().replace(/^[:.—-]\s*/, '')
+  return { code: match[1].toUpperCase(), text: rest || hint }
+}
+
 function tipCodesFor(result: Validation, lab?: Lab) {
   const codes = new Set<string>()
   const failedTaskIds = new Set(result.checks.filter(c => !c.passed && c.taskId).map(c => c.taskId as string))
@@ -51,6 +59,37 @@ function tipCodesFor(result: Validation, lab?: Lab) {
     }
   }
   return [...codes]
+}
+
+function tipGlossaryFor(lab?: Lab) {
+  const byCode = new Map<string, string>()
+  for (const task of lab?.tasks || []) {
+    for (const hint of task.hints || []) {
+      const parsed = parseTipHint(hint)
+      if (parsed.code && !byCode.has(parsed.code)) byCode.set(parsed.code, parsed.text)
+    }
+  }
+  const fromLesson = lab?.lesson?.matchAll(/`([A-Z][A-Z0-9_]{2,})`\s*[—–-]\s*([^\n]+)/g) || []
+  for (const match of fromLesson) {
+    if (!byCode.has(match[1])) byCode.set(match[1], match[2].trim())
+  }
+  return [...byCode.entries()].map(([code, text]) => ({ code, text }))
+}
+
+function useLearningPathOrder() {
+  const [pathLabs, setPathLabs] = useState<string[]>([])
+  useEffect(() => {
+    request<LearningPath[]>('/api/paths').then(paths => {
+      const ordered = paths[0]?.phases.flatMap(phase => phase.modules.flatMap(module => module.labs || [])) || []
+      setPathLabs(ordered)
+    }).catch(() => setPathLabs([]))
+  }, [])
+  const nextLabId = (labId: string) => {
+    const index = pathLabs.indexOf(labId)
+    if (index < 0 || index >= pathLabs.length - 1) return undefined
+    return pathLabs[index + 1]
+  }
+  return { pathLabs, nextLabId }
 }
 
 function useLabsAndProgress() {
@@ -202,6 +241,7 @@ function BrowserTerminal({ labId, active }: { labId: string; active: boolean }) 
 function Lesson() {
   const { id = '' } = useParams()
   const { missingPrereqs, isLocked, labMap } = useLabsAndProgress()
+  const { nextLabId } = useLearningPathOrder()
   const [lab, setLab] = useState<Lab>()
   const [started, setStarted] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -209,10 +249,12 @@ function Lesson() {
   const [error, setError] = useState('')
   const [manualHints, setManualHints] = useState<Record<string, number>>({})
   const [ghostHints, setGhostHints] = useState<Record<string, number>>({})
+  const [glossaryOpen, setGlossaryOpen] = useState(false)
   useEffect(() => {
     setResult(undefined)
     setManualHints({})
     setGhostHints({})
+    setGlossaryOpen(false)
     request<Lab>(`/api/labs/${id}`).then(setLab).catch(e => setError(e.message))
     request<Session>(`/api/labs/${id}/status`).then(s => setStarted(s.running)).catch(() => setStarted(false))
     request<{ taskProgress?: TaskProgress[] }>(`/api/progress/${id}`).then(detail => {
@@ -222,6 +264,9 @@ function Lesson() {
     }).catch(() => undefined)
   }, [id])
   const locked = lab ? isLocked(lab) : false
+  const glossary = useMemo(() => tipGlossaryFor(lab), [lab])
+  const nextId = nextLabId(id)
+  const nextLab = nextId ? labMap[nextId] : undefined
   const act = async (action: 'start' | 'reset' | 'validate' | 'stop') => {
     setBusy(true); setError('')
     try {
@@ -247,6 +292,14 @@ function Lesson() {
     <aside><Link to="/path">← Learning path</Link><p className="eyebrow">{lab.difficulty} · {lab.estimatedMinutes} MIN</p><h1>{lab.title}</h1>
       {lab.prerequisites?.length > 0 && <p className="meta">Prerequisites: {lab.prerequisites.map(p => labMap[p]?.title || p).join(', ')}{locked ? ' (incomplete)' : ''}</p>}
       {locked && <p className="error">Locked until you complete: {missingPrereqs(lab).join(', ')}</p>}
+      {glossary.length > 0 && <div className="tip-glossary">
+        <button className="link-button" onClick={() => setGlossaryOpen(open => !open)} aria-expanded={glossaryOpen}>
+          {glossaryOpen ? 'Hide tip glossary' : `Tip glossary (${glossary.length})`}
+        </button>
+        {glossaryOpen && <dl className="tip-glossary-list">
+          {glossary.map(entry => <div key={entry.code}><dt>{entry.code}</dt><dd>{entry.text}</dd></div>)}
+        </dl>}
+      </div>}
       <article dangerouslySetInnerHTML={lessonHTML} /><h2>Objectives</h2>
       {lab.tasks.map(task => {
         const revealed = revealedFor(task)
@@ -283,6 +336,8 @@ function Lesson() {
               <li>Cleanliness {result.score.cleanliness}/3 · {result.score.failedValidations} failed validate{result.score.failedValidations === 1 ? '' : 's'}, {result.score.hintsRevealed} ghost hint{result.score.hintsRevealed === 1 ? '' : 's'}</li>
             </ul>
             <p className="meta">Progress saved — open the dashboard to review stars.</p>
+            {nextId && <p className="next-lab"><Link to={`/labs/${nextId}`}>Next lab → {nextLab?.title || nextId}</Link></p>}
+            {!nextId && <p className="next-lab"><Link to="/path">Back to learning path →</Link></p>}
           </div>}
         </>}
       </section>

@@ -76,7 +76,7 @@ phases:
           - docker-volumes
   - id: iac
     title: Phase 2c — Infrastructure as Code
-    summary: Local Terraform planning drills for modules and remote state.
+    summary: Local Terraform and Ansible planning drills for modules, state, and config management.
     modules:
       - id: learn-terraform
         title: Learn Terraform
@@ -85,6 +85,13 @@ phases:
           - terraform-basics
           - terraform-modules
           - terraform-state-backend
+      - id: learn-ansible
+        title: Learn Ansible
+        summary: Inventories, playbooks with handlers, and idempotency planning for platform hosts.
+        labs:
+          - ansible-inventory-basics
+          - ansible-playbook-basics
+          - ansible-handlers-idempotency
   - id: application-dev
     title: Phase 2b — Application Development
     summary: Build small HTTP services in Go and Python, plus SQL query drills.
@@ -146,6 +153,12 @@ phases:
         labs:
           - cicd-pipeline-fix
           - cicd-security-scan
+      - id: learn-gitops
+        title: Learn GitOps
+        summary: Declarative desired state, drift reconcile loops, and Kustomize overlay promotion.
+        labs:
+          - gitops-manifest-sync
+          - gitops-kustomize-overlay
       - id: learn-observability
         title: Logging & Observability
         summary: Structured logs, metrics, alerts, and on-call debugging.
