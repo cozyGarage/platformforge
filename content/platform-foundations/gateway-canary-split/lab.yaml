@@ -1,0 +1,81 @@
+version: 1
+id: gateway-canary-split
+title: Plan Gateway Canary Traffic Splits
+summary: Design an HTTPRoute weight split between stable and canary Services, plus a rollback checklist.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [gateway-api-http-route, observability-metrics-alerts]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/gateway /workspace/docs"
+  - "printf 'Ticket: canary payments-api at 10%% weight.\\nNeed weighted backendRefs and a rollback checklist.\\n' > /workspace/gateway/TICKET.md"
+tasks:
+  - id: weighted-route
+    title: Author weighted HTTPRoute
+    description: 'Create /workspace/gateway/canary-route.yaml with kind: HTTPRoute, metadata.name payments-api-canary, hostnames including api.payments.example, and backendRefs for payments-api (weight 90) and payments-api-canary (weight 10). Include both Service names and both weights literally.'
+    hints:
+      - 'Tip code WEIGHT_SPLIT: backendRefs weights should sum to 100 for a clean canary.'
+      - 'Tip code CANARY_NAME: keep canary Service distinct (payments-api-canary).'
+      - 'Include weight: 90 and weight: 10.'
+    checks:
+      - type: file
+        name: Canary route present
+        path: /workspace/gateway/canary-route.yaml
+        value: "kind: HTTPRoute"
+      - type: file
+        name: Route named
+        path: /workspace/gateway/canary-route.yaml
+        value: payments-api-canary
+      - type: file
+        name: Stable service present
+        path: /workspace/gateway/canary-route.yaml
+        value: payments-api
+      - type: file
+        name: Canary service present
+        path: /workspace/gateway/canary-route.yaml
+        value: payments-api-canary
+      - type: file
+        name: Host configured
+        path: /workspace/gateway/canary-route.yaml
+        value: api.payments.example
+      - type: command
+        name: Stable weight 90
+        command: "grep -Eq 'weight:[[:space:]]*90' /workspace/gateway/canary-route.yaml"
+      - type: command
+        name: Canary weight 10
+        command: "grep -Eq 'weight:[[:space:]]*10' /workspace/gateway/canary-route.yaml"
+  - id: rollback-checklist
+    title: Write canary rollback checklist
+    description: 'Write /workspace/docs/CANARY.md with headings Metrics, Promote, and Rollback. Metrics must mention error rate or latency. Promote must mention 100% or weight 100. Rollback must mention weight 0 or remove canary. Write /workspace/gateway/STATUS.txt containing CANARY_OK.'
+    hints:
+      - 'Tip code CANARY_METRICS: watch error rate/latency before promoting weights.'
+      - 'Tip code CANARY_ROLLBACK: rollback is weight 0 (or detach) on the canary backendRef.'
+      - 'STATUS.txt should include CANARY_OK.'
+    checks:
+      - type: file
+        name: Metrics section present
+        path: /workspace/docs/CANARY.md
+        value: Metrics
+      - type: file
+        name: Promote section present
+        path: /workspace/docs/CANARY.md
+        value: Promote
+      - type: file
+        name: Rollback section present
+        path: /workspace/docs/CANARY.md
+        value: Rollback
+      - type: command
+        name: Metrics mention SLIs
+        command: "grep -A3 '^#* *Metrics' /workspace/docs/CANARY.md | grep -Eqi 'error rate|latency'"
+      - type: command
+        name: Promote mentions full weight
+        command: "grep -A3 '^#* *Promote' /workspace/docs/CANARY.md | grep -Eqi '100%|weight 100|100'"
+      - type: command
+        name: Rollback mentions zeroing canary
+        command: "grep -A3 '^#* *Rollback' /workspace/docs/CANARY.md | grep -Eqi 'weight 0|remove canary|detach'"
+      - type: file
+        name: Canary status ok
+        path: /workspace/gateway/STATUS.txt
+        value: CANARY_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

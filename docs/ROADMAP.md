@@ -20,11 +20,11 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Containers | Docker | 3 labs |
 | IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
-| Kubernetes | Core + CKA drills | 12 labs (live k3d) |
+| Kubernetes | Core + CKA + policy + Gateway API | 16 labs |
 | Delivery | CI/CD, GitOps, Helm, secrets ops, observability, leadership, portfolio | 16 labs + 5 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (81 interactive + 5 capstones)
+### Lab inventory (85 interactive + 5 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -49,6 +49,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 **Kubernetes** — `kubernetes-deploy`, `kubernetes-service`, `kubernetes-configmap`, `kubernetes-scaling`, `kubernetes-namespaces`
 
 **CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`, `kubernetes-ingress`, `kubernetes-storage`, `kubernetes-backup-restore`, `kubernetes-etcd-snapshot`
+
+**Policy as code** — `policy-kyverno-basics`, `policy-opa-constraints`
+
+**Gateway API** — `gateway-api-http-route`, `gateway-canary-split`
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
 
@@ -139,8 +143,8 @@ UX now shipped from PatchLab:
 
 1. Portfolio polish (real image build/push when registry tooling is available)
 2. Live etcdctl against control-plane when privileged lab runtime allows
-3. Policy-as-code (OPA/Kyverno) admission planning drills
-4. Service mesh / Gateway API traffic planning labs
+3. Policy/Gateway live apply labs on k3d when CRDs are available in the runtime image
+4. SLO / error-budget planning drills for FinTech on-call
 
 ## How to add a lab
 

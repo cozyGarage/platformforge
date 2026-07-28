@@ -1,0 +1,80 @@
+version: 1
+id: gateway-api-http-route
+title: Plan a Gateway API HTTPRoute
+summary: Sketch GatewayClass, Gateway, and HTTPRoute objects that expose payments-api on api.payments.example.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [kubernetes-ingress, kubernetes-service]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/gateway /workspace/docs"
+  - "printf 'Ticket: migrate api.payments.example from Ingress to Gateway API.\\nNeed GatewayClass, Gateway listener, and HTTPRoute to Service payments-api:80.\\n' > /workspace/gateway/TICKET.md"
+tasks:
+  - id: gateway-objects
+    title: Sketch GatewayClass and Gateway
+    description: 'Create /workspace/gateway/gatewayclass.yaml with kind: GatewayClass and metadata.name payments-gatewayclass (controllerName can be example.com/payments-gateway). Create /workspace/gateway/gateway.yaml with kind: Gateway, metadata.name payments-gateway, gatewayClassName payments-gatewayclass, and a listener hostname or port mentioning 443 or 80 plus hostname api.payments.example.'
+    hints:
+      - 'Tip code GW_CLASS: GatewayClass selects the controller implementation.'
+      - 'Tip code GW_LISTENER: Gateway listeners declare hostname/port/protocol.'
+      - 'Include api.payments.example on the Gateway listener.'
+    checks:
+      - type: file
+        name: GatewayClass present
+        path: /workspace/gateway/gatewayclass.yaml
+        value: "kind: GatewayClass"
+      - type: file
+        name: GatewayClass named
+        path: /workspace/gateway/gatewayclass.yaml
+        value: payments-gatewayclass
+      - type: file
+        name: Gateway present
+        path: /workspace/gateway/gateway.yaml
+        value: "kind: Gateway"
+      - type: file
+        name: Gateway references class
+        path: /workspace/gateway/gateway.yaml
+        value: payments-gatewayclass
+      - type: file
+        name: Listener hostname set
+        path: /workspace/gateway/gateway.yaml
+        value: api.payments.example
+  - id: httproute
+    title: Route to payments-api
+    description: 'Create /workspace/gateway/httproute.yaml with kind: HTTPRoute, metadata.name payments-api-route, parentRefs to payments-gateway, hostnames including api.payments.example, and a backendRef to Service payments-api port 80. Write /workspace/docs/MIGRATION.md mentioning Ingress and Gateway API. Write /workspace/gateway/STATUS.txt containing GATEWAY_OK.'
+    hints:
+      - 'Tip code HTTP_ROUTE: HTTPRoute attaches to a Gateway via parentRefs and targets Services via backendRefs.'
+      - 'Tip code MIGRATE_INGRESS: document how Gateway API replaces classic Ingress hosts.'
+      - 'STATUS.txt should include GATEWAY_OK.'
+    checks:
+      - type: file
+        name: HTTPRoute kind
+        path: /workspace/gateway/httproute.yaml
+        value: "kind: HTTPRoute"
+      - type: file
+        name: HTTPRoute named
+        path: /workspace/gateway/httproute.yaml
+        value: payments-api-route
+      - type: file
+        name: Parent ref to gateway
+        path: /workspace/gateway/httproute.yaml
+        value: payments-gateway
+      - type: file
+        name: Host configured
+        path: /workspace/gateway/httproute.yaml
+        value: api.payments.example
+      - type: file
+        name: Backend service named
+        path: /workspace/gateway/httproute.yaml
+        value: payments-api
+      - type: command
+        name: Backend port 80
+        command: "grep -Eq 'port:[[:space:]]*80' /workspace/gateway/httproute.yaml"
+      - type: command
+        name: Migration mentions both APIs
+        command: "grep -qi 'Ingress' /workspace/docs/MIGRATION.md && grep -Eqi 'Gateway API|HTTPRoute' /workspace/docs/MIGRATION.md"
+      - type: file
+        name: Gateway status ok
+        path: /workspace/gateway/STATUS.txt
+        value: GATEWAY_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
