@@ -156,7 +156,7 @@ phases:
           - gateway-canary-split
   - id: delivery
     title: Phase 4 — Delivery & Reliability
-    summary: CI/CD pipelines, GitOps, Helm, secrets ops, structured logging, and incident response.
+    summary: CI/CD pipelines, GitOps, Helm, secrets ops, observability, SLOs, and incident response.
     modules:
       - id: learn-cicd
         title: Learn CI/CD
@@ -190,6 +190,13 @@ phases:
         labs:
           - observability-structured-logs
           - observability-metrics-alerts
+      - id: learn-sre
+        title: Reliability & On-Call
+        summary: SLOs, error budgets, and multi-window burn-rate alerts for FinTech services.
+        labs:
+          - slo-definition-basics
+          - error-budget-policy
+          - burn-rate-alerts
       - id: capstone
         title: Capstone Projects
         summary: Multi-skill incidents spanning reliability, compliance, and platform design.

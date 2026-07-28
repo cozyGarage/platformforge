@@ -1,0 +1,69 @@
+version: 1
+id: slo-definition-basics
+title: Define an Availability SLO
+summary: Turn success/total request counts into an SLI ratio, pick a 99.9% SLO target, and document a 30-day measurement window for payments-api.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [observability-metrics-alerts]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache bc >/dev/null"
+  - "mkdir -p /workspace/slo /workspace/docs"
+  - "printf 'http_requests_total{status=\"200\"} 9970\\nhttp_requests_total{status=\"500\"} 30\\n' > /workspace/slo/api.prom"
+  - "printf 'Ticket: payments-api needs an availability SLO.\\nCompute SLI from success/total, target 99.9%, window 30d.\\n' > /workspace/slo/TICKET.md"
+tasks:
+  - id: compute-sli
+    title: Compute the availability SLI
+    description: 'From /workspace/slo/api.prom, treat status 200 as success and all samples as total. Write the success count to /workspace/slo/success.txt, total to /workspace/slo/total.txt, and the SLI percent with one decimal place to /workspace/slo/sli.txt (9970/10000*100 = 99.7).'
+    hints:
+      - 'Tip code SLI_RATIO: availability SLI = successful requests / total requests.'
+      - 'Success is the 200 counter (9970); total is 9970+30=10000.'
+      - 'sli.txt should contain 99.7'
+    checks:
+      - type: file
+        name: Success count recorded
+        path: /workspace/slo/success.txt
+        value: "9970"
+      - type: file
+        name: Total count recorded
+        path: /workspace/slo/total.txt
+        value: "10000"
+      - type: file
+        name: SLI percent recorded
+        path: /workspace/slo/sli.txt
+        value: "99.7"
+  - id: define-slo
+    title: Author the SLO brief
+    description: 'Create /workspace/docs/SLO.md with headings SLI, Target, and Window. SLI must mention success or availability. Target must include 99.9. Window must mention 30. Write /workspace/slo/STATUS.txt containing SLO_OK.'
+    hints:
+      - 'Tip code SLO_TARGET: pick an explicit target like 99.9% availability.'
+      - 'Tip code WINDOW_30D: state the measurement window (30 days) so budget math is comparable.'
+      - 'STATUS.txt should include SLO_OK.'
+    checks:
+      - type: file
+        name: SLI section present
+        path: /workspace/docs/SLO.md
+        value: SLI
+      - type: file
+        name: Target section present
+        path: /workspace/docs/SLO.md
+        value: Target
+      - type: file
+        name: Window section present
+        path: /workspace/docs/SLO.md
+        value: Window
+      - type: command
+        name: SLI mentions availability
+        command: "grep -A3 '^#* *SLI' /workspace/docs/SLO.md | grep -Eqi 'success|availability'"
+      - type: command
+        name: Target is 99.9
+        command: "grep -A3 '^#* *Target' /workspace/docs/SLO.md | grep -Fq '99.9'"
+      - type: command
+        name: Window is 30 days
+        command: "grep -A3 '^#* *Window' /workspace/docs/SLO.md | grep -Eqi '30'"
+      - type: file
+        name: SLO status ok
+        path: /workspace/slo/STATUS.txt
+        value: SLO_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

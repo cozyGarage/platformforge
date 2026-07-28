@@ -21,10 +21,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA + policy + Gateway API | 16 labs |
-| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, leadership, portfolio | 16 labs + 5 capstones |
+| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 19 labs + 5 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (85 interactive + 5 capstones)
+### Lab inventory (88 interactive + 5 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -55,6 +55,8 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 **Gateway API** — `gateway-api-http-route`, `gateway-canary-split`
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
+
+**Reliability / SRE** — `slo-definition-basics`, `error-budget-policy`, `burn-rate-alerts`
 
 **GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`
 
@@ -138,13 +140,14 @@ UX now shipped from PatchLab:
 4. **Path remaining-time + tip-code chips** — phase/path ETA and failure tip chips on validate
 5. **Next-lab CTA + tip glossary** — after pass, continue along the path; open a lab tip glossary drawer
 6. **Tip chips → glossary** — failed-validate tip chips jump-open the matching glossary entry
+7. **Continue where you left off** — Learning Path hero links to the next incomplete unlocked lab
 
 ## Next authoring priorities
 
 1. Portfolio polish (real image build/push when registry tooling is available)
 2. Live etcdctl against control-plane when privileged lab runtime allows
 3. Policy/Gateway live apply labs on k3d when CRDs are available in the runtime image
-4. SLO / error-budget planning drills for FinTech on-call
+4. Chaos / game-day planning drills tied to error-budget freezes
 
 ## How to add a lab
 
