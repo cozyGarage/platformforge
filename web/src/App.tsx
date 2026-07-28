@@ -157,6 +157,19 @@ function LearningPathView() {
   const remainingMinutes = pathLabs
     .filter(labId => statusFor(labId) !== 'completed')
     .reduce((sum, labId) => sum + (labMap[labId]?.estimatedMinutes || 0), 0)
+  const continueLabId = useMemo(() => {
+    if (!path) return undefined
+    for (const labId of pathLabs) {
+      if (statusFor(labId) === 'completed') continue
+      const lab = labMap[labId]
+      const module = path.phases.flatMap(phase => phase.modules).find(item => item.labs?.includes(labId))
+      if (module && !moduleUnlocked(module, path, statusFor)) continue
+      if (isLocked(lab)) continue
+      return labId
+    }
+    return undefined
+  }, [path, pathLabs, labMap, statusFor, isLocked])
+  const continueLab = continueLabId ? labMap[continueLabId] : undefined
   if (loadError) return <p className="error">{loadError}</p>
   if (!path) return <p className="loading">Loading learning path…</p>
   return <>
@@ -165,6 +178,8 @@ function LearningPathView() {
       <h1>{path.title}</h1>
       <p>{path.summary}</p>
       <p className="meta">Progress: {completedCount}/{pathLabs.length} labs completed · ~{formatMinutes(remainingMinutes)} remaining</p>
+      {continueLabId && <p className="continue-cta"><Link to={`/labs/${continueLabId}`}>Continue → {continueLab?.title || continueLabId}</Link></p>}
+      {!continueLabId && completedCount > 0 && completedCount === pathLabs.length && <p className="continue-cta done">Path complete — review stars on the dashboard.</p>}
       {path.source && <p className="meta">{path.source}</p>}
     </section>
     {error && <p className="error">{error}</p>}

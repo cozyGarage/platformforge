@@ -1,0 +1,78 @@
+version: 1
+id: burn-rate-alerts
+title: Design Multi-Window Burn Alerts
+summary: Sketch fast and slow burn-rate alerts for a 99.9% SLO and leave an on-call note that points to rollback.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [error-budget-policy]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/alerts /workspace/docs"
+  - "printf 'Ticket: page on fast burn, ticket on slow burn for payments-api 99.9% SLO.\\nNeed alert YAMLs plus on-call note.\\n' > /workspace/alerts/TICKET.md"
+tasks:
+  - id: burn-alerts
+    title: Author fast and slow burn alerts
+    description: 'Create /workspace/alerts/burn-fast.yaml with alert name PaymentsBurnFast, window 1h, and action page. Create /workspace/alerts/burn-slow.yaml with alert name PaymentsBurnSlow, window 6h, and action ticket. Both files must mention burn rate or burn-rate and the SLO 99.9.'
+    hints:
+      - 'Tip code BURN_FAST_SLOW: short window pages; longer window opens a ticket.'
+      - 'Tip code PAGE_VS_TICKET: page for acute burn; ticket for sustained slower burn.'
+      - 'Include PaymentsBurnFast / PaymentsBurnSlow and windows 1h / 6h.'
+    checks:
+      - type: file
+        name: Fast burn alert named
+        path: /workspace/alerts/burn-fast.yaml
+        value: PaymentsBurnFast
+      - type: file
+        name: Fast window 1h
+        path: /workspace/alerts/burn-fast.yaml
+        value: 1h
+      - type: file
+        name: Fast action page
+        path: /workspace/alerts/burn-fast.yaml
+        value: page
+      - type: file
+        name: Slow burn alert named
+        path: /workspace/alerts/burn-slow.yaml
+        value: PaymentsBurnSlow
+      - type: file
+        name: Slow window 6h
+        path: /workspace/alerts/burn-slow.yaml
+        value: 6h
+      - type: file
+        name: Slow action ticket
+        path: /workspace/alerts/burn-slow.yaml
+        value: ticket
+      - type: command
+        name: Both mention burn
+        command: "grep -Eqi 'burn' /workspace/alerts/burn-fast.yaml && grep -Eqi 'burn' /workspace/alerts/burn-slow.yaml"
+      - type: command
+        name: Both mention 99.9 SLO
+        command: "grep -Fq '99.9' /workspace/alerts/burn-fast.yaml && grep -Fq '99.9' /workspace/alerts/burn-slow.yaml"
+  - id: oncall-note
+    title: Write the on-call note
+    description: 'Write /workspace/docs/ONCALL.md with headings Fast burn and Slow burn. Fast burn must mention page and rollback. Slow burn must mention ticket and error budget. Write /workspace/alerts/STATUS.txt containing BURN_OK.'
+    hints:
+      - 'Tip code ROLLBACK_FIRST: fast burn mitigation starts with rollback, not a meeting.'
+      - 'STATUS.txt should include BURN_OK.'
+      - 'Keep headings scannable for 3am.'
+    checks:
+      - type: file
+        name: Fast burn section present
+        path: /workspace/docs/ONCALL.md
+        value: Fast burn
+      - type: file
+        name: Slow burn section present
+        path: /workspace/docs/ONCALL.md
+        value: Slow burn
+      - type: command
+        name: Fast burn mentions page and rollback
+        command: "grep -A3 '^#* *Fast burn' /workspace/docs/ONCALL.md | grep -Eqi 'page' && grep -A3 '^#* *Fast burn' /workspace/docs/ONCALL.md | grep -Eqi 'rollback'"
+      - type: command
+        name: Slow burn mentions ticket and budget
+        command: "grep -A3 '^#* *Slow burn' /workspace/docs/ONCALL.md | grep -Eqi 'ticket' && grep -A3 '^#* *Slow burn' /workspace/docs/ONCALL.md | grep -Eqi 'budget'"
+      - type: file
+        name: Burn status ok
+        path: /workspace/alerts/STATUS.txt
+        value: BURN_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

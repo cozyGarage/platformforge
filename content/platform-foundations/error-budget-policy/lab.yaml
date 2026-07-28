@@ -1,0 +1,68 @@
+version: 1
+id: error-budget-policy
+title: Write an Error Budget Policy
+summary: Calculate remaining error budget from an SLO burn and document freeze, slow-roll, and page gates for payments-api.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [slo-definition-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/slo /workspace/docs"
+  - "printf 'slo_target_percent=99.9\\nsli_percent=99.7\\nwindow_days=30\\n' > /workspace/slo/inputs.env"
+  - "printf 'Ticket: payments-api burned budget early.\\nCompute remaining budget and write freeze/slow-roll/page policy.\\n' > /workspace/slo/TICKET.md"
+tasks:
+  - id: budget-math
+    title: Compute remaining budget
+    description: 'Using inputs.env, allowed failure percent is (100 - 99.9) = 0.1. Actual failure percent is (100 - 99.7) = 0.3. Write allowed failure percent to /workspace/slo/allowed.txt as 0.1, actual failure percent to /workspace/slo/actual.txt as 0.3, and remaining budget percent to /workspace/slo/remaining.txt as -0.2 (actual exceeds allowed).'
+    hints:
+      - 'Tip code BUDGET_MATH: remaining ≈ allowed_failure - actual_failure (negative means over budget).'
+      - 'allowed.txt should be 0.1; actual.txt should be 0.3; remaining.txt should be -0.2.'
+      - 'Negative remaining means the freeze gate should engage.'
+    checks:
+      - type: file
+        name: Allowed failure recorded
+        path: /workspace/slo/allowed.txt
+        value: "0.1"
+      - type: file
+        name: Actual failure recorded
+        path: /workspace/slo/actual.txt
+        value: "0.3"
+      - type: file
+        name: Remaining budget recorded
+        path: /workspace/slo/remaining.txt
+        value: "-0.2"
+  - id: policy-gates
+    title: Document freeze and page gates
+    description: 'Create /workspace/docs/BUDGET_POLICY.md with headings Freeze, Slow-roll, and Page. Freeze must mention deploy or release freeze when over budget. Slow-roll must mention canary or reduced blast radius when budget is low. Page must mention burn or page when budget drains fast. Write /workspace/slo/STATUS.txt containing BUDGET_OK.'
+    hints:
+      - 'Tip code FREEZE_GATE: over budget means pause risky deploys until burn slows.'
+      - 'Tip code BURN_FAST: fast budget drain pages on-call; slow drain opens a ticket.'
+      - 'STATUS.txt should include BUDGET_OK.'
+    checks:
+      - type: file
+        name: Freeze section present
+        path: /workspace/docs/BUDGET_POLICY.md
+        value: Freeze
+      - type: file
+        name: Slow-roll section present
+        path: /workspace/docs/BUDGET_POLICY.md
+        value: Slow-roll
+      - type: file
+        name: Page section present
+        path: /workspace/docs/BUDGET_POLICY.md
+        value: Page
+      - type: command
+        name: Freeze mentions deploy freeze
+        command: "grep -A3 '^#* *Freeze' /workspace/docs/BUDGET_POLICY.md | grep -Eqi 'deploy|release|freeze'"
+      - type: command
+        name: Slow-roll mentions canary
+        command: "grep -A3 '^#* *Slow-roll' /workspace/docs/BUDGET_POLICY.md | grep -Eqi 'canary|blast'"
+      - type: command
+        name: Page mentions burn
+        command: "grep -A3 '^#* *Page' /workspace/docs/BUDGET_POLICY.md | grep -Eqi 'burn|page'"
+      - type: file
+        name: Budget status ok
+        path: /workspace/slo/STATUS.txt
+        value: BUDGET_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
