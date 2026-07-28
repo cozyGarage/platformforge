@@ -1,0 +1,72 @@
+version: 1
+id: policy-opa-constraints
+title: Plan OPA Gatekeeper Constraints
+summary: Sketch a ConstraintTemplate plus Constraint that requires a cost-center label, and document Audit vs Deny modes.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [policy-kyverno-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/policy /workspace/docs"
+  - "printf 'Ticket: finance wants cost-center labels enforced via Gatekeeper.\\nNeed ConstraintTemplate, Constraint, and mode notes.\\n' > /workspace/policy/TICKET.md"
+tasks:
+  - id: constraint-template
+    title: Sketch ConstraintTemplate
+    description: 'Create /workspace/policy/constrainttemplate.yaml with kind: ConstraintTemplate, metadata.name k8srequiredcostcenter (or similar containing costcenter), and a spec that mentions rego or Rego plus the label key cost-center.'
+    hints:
+      - 'Tip code OPA_TEMPLATE: ConstraintTemplate defines the Rego logic and CRD shape.'
+      - 'Include kind: ConstraintTemplate and cost-center.'
+      - 'Rego (or rego:) should appear in the template body.'
+    checks:
+      - type: file
+        name: ConstraintTemplate kind
+        path: /workspace/policy/constrainttemplate.yaml
+        value: "kind: ConstraintTemplate"
+      - type: command
+        name: Template name references cost center
+        command: "grep -Eqi 'costcenter|cost-center' /workspace/policy/constrainttemplate.yaml"
+      - type: file
+        name: Mentions cost-center label
+        path: /workspace/policy/constrainttemplate.yaml
+        value: cost-center
+      - type: command
+        name: Mentions Rego
+        command: "grep -Eqi 'rego' /workspace/policy/constrainttemplate.yaml"
+  - id: constraint-and-modes
+    title: Add Constraint and mode notes
+    description: 'Create /workspace/policy/constraint.yaml with a kind containing Required or Constraint, metadata.name need-cost-center, and a match or kinds section mentioning Pod or Deployment. Write /workspace/docs/MODES.md with headings Audit and Deny. Audit must mention report or warn. Deny must mention block or reject. Write /workspace/policy/STATUS.txt containing OPA_OK.'
+    hints:
+      - 'Tip code OPA_CONSTRAINT: Constraints instantiate a template against matched kinds.'
+      - 'Tip code AUDIT_FIRST: roll out in Audit before Deny to avoid prod outages.'
+      - 'STATUS.txt should include OPA_OK.'
+    checks:
+      - type: file
+        name: Constraint present
+        path: /workspace/policy/constraint.yaml
+        value: need-cost-center
+      - type: command
+        name: Constraint kind-like
+        command: "grep -Eqi 'kind:.*(Constraint|Required)' /workspace/policy/constraint.yaml"
+      - type: command
+        name: Matches workloads
+        command: "grep -Eqi 'Pod|Deployment' /workspace/policy/constraint.yaml"
+      - type: file
+        name: Audit section present
+        path: /workspace/docs/MODES.md
+        value: Audit
+      - type: file
+        name: Deny section present
+        path: /workspace/docs/MODES.md
+        value: Deny
+      - type: command
+        name: Audit mentions report/warn
+        command: "grep -A3 '^#* *Audit' /workspace/docs/MODES.md | grep -Eqi 'report|warn'"
+      - type: command
+        name: Deny mentions block/reject
+        command: "grep -A3 '^#* *Deny' /workspace/docs/MODES.md | grep -Eqi 'block|reject'"
+      - type: file
+        name: OPA status ok
+        path: /workspace/policy/STATUS.txt
+        value: OPA_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

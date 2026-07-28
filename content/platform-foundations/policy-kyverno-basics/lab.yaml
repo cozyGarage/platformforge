@@ -1,0 +1,75 @@
+version: 1
+id: policy-kyverno-basics
+title: Plan Kyverno Baseline Policies
+summary: Author Kyverno ClusterPolicy sketches that require app labels and block :latest images for payments workloads.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [kubernetes-rbac, kubernetes-deploy]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/policy /workspace/docs"
+  - "printf 'Ticket: payments cluster needs admission baselines.\\nRequire app label; block image tags ending in :latest.\\n' > /workspace/policy/TICKET.md"
+tasks:
+  - id: require-labels
+    title: Require app labels
+    description: 'Create /workspace/policy/require-labels.yaml with kind: ClusterPolicy, metadata.name require-app-label, and a rule that mentions validation or validate plus the label key app. Include the word enforce or Enforce somewhere in the file.'
+    hints:
+      - 'Tip code KYN_LABEL: baseline ClusterPolicy should validate that metadata.labels.app exists.'
+      - 'Tip code KYN_ENFORCE: set failure/action semantics toward Enforce for prod baselines.'
+      - 'Include kind: ClusterPolicy and name require-app-label.'
+    checks:
+      - type: file
+        name: ClusterPolicy kind
+        path: /workspace/policy/require-labels.yaml
+        value: "kind: ClusterPolicy"
+      - type: file
+        name: Policy named
+        path: /workspace/policy/require-labels.yaml
+        value: require-app-label
+      - type: file
+        name: Mentions app label
+        path: /workspace/policy/require-labels.yaml
+        value: app
+      - type: command
+        name: Mentions validation
+        command: "grep -Eqi 'validat|validation' /workspace/policy/require-labels.yaml"
+      - type: command
+        name: Mentions enforce
+        command: "grep -Eqi 'enforce' /workspace/policy/require-labels.yaml"
+  - id: block-latest
+    title: Block latest tags
+    description: 'Create /workspace/policy/block-latest.yaml with kind: ClusterPolicy, metadata.name block-latest-tag, and content that rejects or denies images containing :latest. Mention image or containers. Write /workspace/docs/POLICY.md with headings Labels and Images summarizing both policies. Write /workspace/policy/STATUS.txt containing KYVERNO_OK.'
+    hints:
+      - 'Tip code NO_LATEST_TAG: admission should deny container images tagged :latest.'
+      - 'POLICY.md should be scannable with Labels and Images headings.'
+      - 'STATUS.txt should include KYVERNO_OK.'
+    checks:
+      - type: file
+        name: Block-latest policy present
+        path: /workspace/policy/block-latest.yaml
+        value: "kind: ClusterPolicy"
+      - type: file
+        name: Block-latest named
+        path: /workspace/policy/block-latest.yaml
+        value: block-latest-tag
+      - type: file
+        name: Mentions latest tag
+        path: /workspace/policy/block-latest.yaml
+        value: ":latest"
+      - type: command
+        name: Mentions image or containers
+        command: "grep -Eqi 'image|containers' /workspace/policy/block-latest.yaml"
+      - type: file
+        name: Labels section present
+        path: /workspace/docs/POLICY.md
+        value: Labels
+      - type: file
+        name: Images section present
+        path: /workspace/docs/POLICY.md
+        value: Images
+      - type: file
+        name: Kyverno status ok
+        path: /workspace/policy/STATUS.txt
+        value: KYVERNO_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
