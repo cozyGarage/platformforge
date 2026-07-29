@@ -1,0 +1,86 @@
+version: 1
+id: gameday-budget-freeze
+title: Run a Budget-Aware Game Day
+summary: Facilitate a payments game day with roles, freeze gate, success criteria, and a post-game learning note tied to error budget.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [chaos-experiment-basics, error-budget-policy, leadership-postmortem]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/gameday /workspace/docs"
+  - "printf 'Ticket: schedule a payments-api game day under error-budget freeze rules.\\nNeed agenda, roles, freeze gate, and learning note.\\n' > /workspace/gameday/TICKET.md"
+tasks:
+  - id: agenda-and-roles
+    title: Write agenda and roles
+    description: 'Create /workspace/gameday/AGENDA.md with headings Roles, Timeline, and Freeze gate. Roles must mention facilitator and scribe (or on-call). Timeline must mention inject or experiment. Freeze gate must mention error budget or remaining budget. Also create /workspace/gameday/roles.txt with exactly three non-empty lines listing facilitator, scribe, and on-call.'
+    hints:
+      - 'Tip code GAME_ROLES: facilitator runs the clock; scribe captures evidence; on-call owns abort.'
+      - 'Tip code FREEZE_FIRST: do not inject chaos if the service is already over budget.'
+      - 'roles.txt needs exactly three lines: facilitator, scribe, on-call.'
+    checks:
+      - type: file
+        name: Roles section present
+        path: /workspace/gameday/AGENDA.md
+        value: Roles
+      - type: file
+        name: Timeline section present
+        path: /workspace/gameday/AGENDA.md
+        value: Timeline
+      - type: file
+        name: Freeze gate section present
+        path: /workspace/gameday/AGENDA.md
+        value: Freeze gate
+      - type: command
+        name: Roles mention facilitator
+        command: "grep -A4 '^#* *Roles' /workspace/gameday/AGENDA.md | grep -Eqi 'facilitator'"
+      - type: command
+        name: Roles mention scribe or on-call
+        command: "grep -A4 '^#* *Roles' /workspace/gameday/AGENDA.md | grep -Eqi 'scribe|on-call|oncall'"
+      - type: command
+        name: Timeline mentions inject
+        command: "grep -A4 '^#* *Timeline' /workspace/gameday/AGENDA.md | grep -Eqi 'inject|experiment'"
+      - type: command
+        name: Freeze gate mentions budget
+        command: "grep -A4 '^#* *Freeze gate' /workspace/gameday/AGENDA.md | grep -Eqi 'error budget|remaining budget|budget'"
+      - type: command
+        name: Roles file has three lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/gameday/roles.txt) -eq 3 ]"
+      - type: command
+        name: Roles file lists the three roles
+        command: "grep -Eqi 'facilitator' /workspace/gameday/roles.txt && grep -Eqi 'scribe' /workspace/gameday/roles.txt && grep -Eqi 'on-call|oncall' /workspace/gameday/roles.txt"
+  - id: success-and-learn
+    title: Capture success criteria and learning
+    description: 'Write /workspace/docs/SUCCESS.md mentioning steady state and abort. Write /workspace/docs/LEARNING.md with headings What worked, What hurt, and Follow-up. Follow-up must mention error budget or freeze or alert. Write /workspace/gameday/STATUS.txt containing GAMEDAY_OK.'
+    hints:
+      - 'Tip code LEARN_CLOSE: game days end with follow-ups that change alerts, freezes, or runbooks.'
+      - 'STATUS.txt should include GAMEDAY_OK.'
+      - 'SUCCESS.md should mention both steady state and abort.'
+    checks:
+      - type: file
+        name: Success criteria present
+        path: /workspace/docs/SUCCESS.md
+        value: steady
+      - type: command
+        name: Success mentions abort
+        command: "grep -Eqi 'abort' /workspace/docs/SUCCESS.md"
+      - type: file
+        name: What worked section
+        path: /workspace/docs/LEARNING.md
+        value: What worked
+      - type: file
+        name: What hurt section
+        path: /workspace/docs/LEARNING.md
+        value: What hurt
+      - type: file
+        name: Follow-up section
+        path: /workspace/docs/LEARNING.md
+        value: Follow-up
+      - type: command
+        name: Follow-up ties to reliability controls
+        command: "grep -A3 '^#* *Follow-up' /workspace/docs/LEARNING.md | grep -Eqi 'error budget|freeze|alert'"
+      - type: file
+        name: Game day status ok
+        path: /workspace/gameday/STATUS.txt
+        value: GAMEDAY_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

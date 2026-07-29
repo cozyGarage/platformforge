@@ -1,0 +1,75 @@
+version: 1
+id: chaos-experiment-basics
+title: Plan a Chaos Experiment
+summary: Write a payments-api chaos experiment with hypothesis, blast radius, abort criteria, and a single safe failure mode.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [burn-rate-alerts, kubernetes-deploy]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/chaos /workspace/docs"
+  - "printf 'Ticket: validate payments-api survives a single replica kill.\\nNeed hypothesis, blast radius, abort criteria, and experiment.yaml.\\n' > /workspace/chaos/TICKET.md"
+tasks:
+  - id: experiment-spec
+    title: Author the experiment sketch
+    description: 'Create /workspace/chaos/experiment.yaml with name payments-api-pod-kill, target Deployment payments-api, action kill-pod (or pod-kill), and steadyStateHypothesis mentioning availability or ready. Include blastRadius mentioning 1 replica or one pod.'
+    hints:
+      - 'Tip code ONE_FAILURE: start with a single-pod kill before cascading faults.'
+      - 'Tip code STEADY_STATE: declare what healthy looks like before you inject failure.'
+      - 'Include payments-api and kill-pod (or pod-kill).'
+    checks:
+      - type: file
+        name: Experiment named
+        path: /workspace/chaos/experiment.yaml
+        value: payments-api-pod-kill
+      - type: file
+        name: Targets payments-api
+        path: /workspace/chaos/experiment.yaml
+        value: payments-api
+      - type: command
+        name: Action is pod kill
+        command: "grep -Eqi 'kill-pod|pod-kill' /workspace/chaos/experiment.yaml"
+      - type: command
+        name: Steady state declared
+        command: "grep -Eqi 'steadyState|steady.state|hypothesis' /workspace/chaos/experiment.yaml"
+      - type: command
+        name: Steady state mentions availability
+        command: "grep -Eqi 'availability|ready' /workspace/chaos/experiment.yaml"
+      - type: command
+        name: Blast radius limited
+        command: "grep -Eqi 'blastRadius|blast radius|1 replica|one pod' /workspace/chaos/experiment.yaml"
+  - id: abort-and-hypothesis
+    title: Document hypothesis and abort
+    description: 'Write /workspace/docs/EXPERIMENT.md with headings Hypothesis, Blast radius, and Abort. Hypothesis must mention survive or recover. Blast radius must mention one pod or single replica. Abort must mention error budget or freeze or rollback. Write /workspace/chaos/STATUS.txt containing CHAOS_OK.'
+    hints:
+      - 'Tip code ABORT_BUDGET: abort when burn accelerates or freeze gate trips.'
+      - 'STATUS.txt should include CHAOS_OK.'
+      - 'Keep headings scannable for the game-day facilitator.'
+    checks:
+      - type: file
+        name: Hypothesis section present
+        path: /workspace/docs/EXPERIMENT.md
+        value: Hypothesis
+      - type: file
+        name: Blast radius section present
+        path: /workspace/docs/EXPERIMENT.md
+        value: Blast radius
+      - type: file
+        name: Abort section present
+        path: /workspace/docs/EXPERIMENT.md
+        value: Abort
+      - type: command
+        name: Hypothesis mentions survival
+        command: "grep -A3 '^#* *Hypothesis' /workspace/docs/EXPERIMENT.md | grep -Eqi 'survive|recover'"
+      - type: command
+        name: Blast radius is small
+        command: "grep -A3 '^#* *Blast radius' /workspace/docs/EXPERIMENT.md | grep -Eqi 'one pod|single replica|1 replica'"
+      - type: command
+        name: Abort ties to budget
+        command: "grep -A3 '^#* *Abort' /workspace/docs/EXPERIMENT.md | grep -Eqi 'error budget|freeze|rollback'"
+      - type: file
+        name: Chaos status ok
+        path: /workspace/chaos/STATUS.txt
+        value: CHAOS_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
