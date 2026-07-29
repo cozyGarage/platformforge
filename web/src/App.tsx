@@ -53,9 +53,8 @@ function tipCodesFor(result: Validation, lab?: Lab) {
   for (const task of lab?.tasks || []) {
     if (!failedTaskIds.has(task.id)) continue
     for (const hint of task.hints || []) {
-      const match = hint.match(/Tip codes?\s*:?\s*([A-Z][A-Z0-9_]*(?:\s*,\s*[A-Z][A-Z0-9_]*)*)/i)
-      if (!match) continue
-      for (const code of match[1].split(/\s*,\s*/)) codes.add(code.trim())
+      const parsed = parseTipHint(hint)
+      if (parsed.code) codes.add(parsed.code)
     }
   }
   return [...codes]
@@ -157,19 +156,13 @@ function LearningPathView() {
   const remainingMinutes = pathLabs
     .filter(labId => statusFor(labId) !== 'completed')
     .reduce((sum, labId) => sum + (labMap[labId]?.estimatedMinutes || 0), 0)
-  const continueLabId = useMemo(() => {
-    if (!path) return undefined
-    for (const labId of pathLabs) {
-      if (statusFor(labId) === 'completed') continue
-      const lab = labMap[labId]
-      const module = path.phases.flatMap(phase => phase.modules).find(item => item.labs?.includes(labId))
-      if (module && !moduleUnlocked(module, path, statusFor)) continue
-      if (isLocked(lab)) continue
-      return labId
-    }
-    return undefined
-  }, [path, pathLabs, labMap, statusFor, isLocked])
+  const continueLabId = path && pathLabs.find(labId => {
+    if (statusFor(labId) === 'completed') return false
+    const module = path.phases.flatMap(phase => phase.modules).find(item => item.labs.includes(labId))
+    return !!module && moduleUnlocked(module, path, statusFor) && !isLocked(labMap[labId])
+  })
   const continueLab = continueLabId ? labMap[continueLabId] : undefined
+  const pathComplete = completedCount > 0 && completedCount === pathLabs.length
   if (loadError) return <p className="error">{loadError}</p>
   if (!path) return <p className="loading">Loading learning path…</p>
   return <>
@@ -179,7 +172,7 @@ function LearningPathView() {
       <p>{path.summary}</p>
       <p className="meta">Progress: {completedCount}/{pathLabs.length} labs completed · ~{formatMinutes(remainingMinutes)} remaining</p>
       {continueLabId && <p className="continue-cta"><Link to={`/labs/${continueLabId}`}>Continue → {continueLab?.title || continueLabId}</Link></p>}
-      {!continueLabId && completedCount > 0 && completedCount === pathLabs.length && <p className="continue-cta done">Path complete — review stars on the dashboard.</p>}
+      {!continueLabId && pathComplete && <p className="continue-cta done">Path complete — review stars on the dashboard.</p>}
       {path.source && <p className="meta">{path.source}</p>}
     </section>
     {error && <p className="error">{error}</p>}
@@ -314,6 +307,7 @@ function Lesson() {
   }
   const revealedFor = (task: Task) => Math.max(manualHints[task.id] || 0, ghostHints[task.id] || 0)
   const lessonHTML = useMemo(() => ({ __html: DOMPurify.sanitize(marked.parse(lab?.lesson || '') as string) }), [lab?.lesson])
+  const failedTipCodes = result && result.status !== 'passed' ? tipCodesFor(result, lab) : []
   if (!lab) return <p className="loading">{error || 'Loading lab…'}</p>
   return <div className="lesson">
     <aside><Link to="/path">← Learning path</Link><p className="eyebrow">{lab.difficulty} · {lab.estimatedMinutes} MIN</p><h1>{lab.title}</h1>
@@ -350,8 +344,8 @@ function Lesson() {
       <section className="results"><h2>Validation</h2>
         {!result && <p>Complete the objectives, then validate your environment. After {result?.ghostHintEvery || 2} failed validates on a task, a ghost hint appears.</p>}
         {result && <><p className={result.status === 'passed' ? 'success' : 'error'}>{result.passed}/{result.checks.length} checks passed</p>
-          {result.status !== 'passed' && tipCodesFor(result, lab).length > 0 && <div className="tip-chips" aria-label="Tip codes">
-            {tipCodesFor(result, lab).map(code => <button type="button" className="tip-chip" key={code} onClick={() => openTip(code)}>{code}</button>)}
+          {failedTipCodes.length > 0 && <div className="tip-chips" aria-label="Tip codes">
+            {failedTipCodes.map(code => <button type="button" className="tip-chip" key={code} onClick={() => openTip(code)}>{code}</button>)}
           </div>}
           {result.checks.map((check, i) => <div className={`check ${check.passed ? 'pass' : 'fail'}`} key={i}><strong>{check.passed ? '✓' : '×'} {check.name}</strong><span>{check.message}</span></div>)}
           {result.status === 'passed' && result.score && <div className="debrief">
