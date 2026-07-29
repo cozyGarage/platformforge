@@ -1,0 +1,83 @@
+version: 1
+id: finops-cost-guardrails
+title: Plan FinOps Cost Guardrails
+summary: Define required cost labels, a monthly budget alert, and a rightsizing note for payments-api workloads.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [kubernetes-deploy, observability-metrics-alerts]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/finops /workspace/docs"
+  - "printf 'Ticket: finance wants cost guardrails on payments-api.\\nNeed labels, budget alert, rightsizing note.\\n' > /workspace/finops/TICKET.md"
+  - "printf 'cpu_request_cores=2\\ncpu_usage_cores=0.4\\nmemory_request_gi=4\\nmemory_usage_gi=1.2\\n' > /workspace/finops/usage.env"
+tasks:
+  - id: cost-labels
+    title: Require cost allocation labels
+    description: 'Create /workspace/finops/labels.yaml listing required labels team, service, and env (or environment). Include example values team: payments, service: payments-api, and env: prod. Write /workspace/finops/LABEL_POLICY.md with headings Required and Enforcement. Enforcement must mention admission or scorecard or CI.'
+    hints:
+      - 'Tip code COST_LABELS: team + service + env are the minimum allocation keys.'
+      - 'Tip code LABEL_ENFORCE: enforce via admission, scorecard, or CI — not hope.'
+      - 'Include team: payments and service: payments-api.'
+    checks:
+      - type: file
+        name: Labels file present
+        path: /workspace/finops/labels.yaml
+        value: "team:"
+      - type: file
+        name: Service label present
+        path: /workspace/finops/labels.yaml
+        value: "service:"
+      - type: command
+        name: Env label present
+        command: "grep -Eq 'env:|environment:' /workspace/finops/labels.yaml"
+      - type: file
+        name: Payments team example
+        path: /workspace/finops/labels.yaml
+        value: "team: payments"
+      - type: file
+        name: Payments-api service example
+        path: /workspace/finops/labels.yaml
+        value: payments-api
+      - type: file
+        name: Required section present
+        path: /workspace/finops/LABEL_POLICY.md
+        value: Required
+      - type: file
+        name: Enforcement section present
+        path: /workspace/finops/LABEL_POLICY.md
+        value: Enforcement
+      - type: command
+        name: Enforcement mechanism named
+        command: "grep -A3 '^#* *Enforcement' /workspace/finops/LABEL_POLICY.md | grep -Eqi 'admission|scorecard|CI'"
+  - id: budget-and-rightsizing
+    title: Budget alert and rightsizing note
+    description: 'Create /workspace/finops/budget-alert.yaml with alert name PaymentsMonthlyBudget and threshold mentioning 80 or 80%. Using usage.env, write /workspace/docs/RIGHTSIZE.md noting CPU request is oversized vs usage (mention 2 and 0.4) and recommend lower requests. Write /workspace/finops/STATUS.txt containing FINOPS_OK.'
+    hints:
+      - 'Tip code BUDGET_ALERT: page or ticket before the month is fully spent — often at 80%.'
+      - 'Tip code RIGHTSIZE: requests far above usage waste quota and money.'
+      - 'STATUS.txt should include FINOPS_OK.'
+    checks:
+      - type: file
+        name: Budget alert named
+        path: /workspace/finops/budget-alert.yaml
+        value: PaymentsMonthlyBudget
+      - type: command
+        name: Budget threshold ~80%
+        command: "grep -Eq '80%|80' /workspace/finops/budget-alert.yaml"
+      - type: file
+        name: Rightsizing note present
+        path: /workspace/docs/RIGHTSIZE.md
+        value: "2"
+      - type: file
+        name: Rightsizing mentions usage
+        path: /workspace/docs/RIGHTSIZE.md
+        value: "0.4"
+      - type: command
+        name: Rightsizing recommends lower requests
+        command: "grep -Eqi 'request|rightsize|reduc' /workspace/docs/RIGHTSIZE.md"
+      - type: file
+        name: FinOps status ok
+        path: /workspace/finops/STATUS.txt
+        value: FINOPS_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

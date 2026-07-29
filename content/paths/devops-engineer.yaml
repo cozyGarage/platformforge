@@ -226,8 +226,15 @@ phases:
           - portfolio-showcase
   - id: platform-engineering
     title: Phase 5 — Platform Engineering
-    summary: Data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.
+    summary: Platform product skills, data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.
     modules:
+      - id: learn-platform-product
+        title: Platform Product Skills
+        summary: IDP golden paths, FinOps guardrails, and multi-env promotion ADRs.
+        labs:
+          - idp-golden-path-basics
+          - finops-cost-guardrails
+          - multi-env-promotion-adr
       - id: data-platform
         title: Data & Streaming
         labs:

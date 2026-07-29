@@ -1,0 +1,70 @@
+version: 1
+id: idp-golden-path-basics
+title: Plan an IDP Golden Path
+summary: Sketch a paved-road service template, scorecard gates, and self-service checklist for payments teams.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [gitops-kustomize-overlay, cicd-pipeline-fix]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/idp /workspace/docs"
+  - "printf 'Ticket: platform wants a golden path for new payments services.\\nNeed template layout, scorecard, and self-service steps.\\n' > /workspace/idp/TICKET.md"
+tasks:
+  - id: service-template
+    title: Sketch the service template
+    description: 'Create /workspace/idp/template-layout.txt with exactly five non-empty lines covering: (1) app source layout, (2) Dockerfile or build file, (3) Helm chart or manifests path, (4) CI pipeline stub, (5) README with runbook link. Include the words Dockerfile (or Containerfile), Helm (or manifests), and CI.'
+    hints:
+      - 'Tip code PAVED_ROAD: the template is the default path — exceptions need an ADR.'
+      - 'Tip code TEMPLATE_FIVE: source, build, deploy, CI, and docs — all five.'
+      - 'Exactly five non-empty lines.'
+    checks:
+      - type: file
+        name: Template layout present
+        path: /workspace/idp/template-layout.txt
+        value: README
+      - type: command
+        name: Mentions container build
+        command: "grep -Eqi 'Dockerfile|Containerfile' /workspace/idp/template-layout.txt"
+      - type: command
+        name: Mentions Helm or manifests
+        command: "grep -Eqi 'Helm|manifests' /workspace/idp/template-layout.txt"
+      - type: command
+        name: Mentions CI
+        command: "grep -Eqi 'CI|pipeline' /workspace/idp/template-layout.txt"
+      - type: command
+        name: Exactly five non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/idp/template-layout.txt) -eq 5 ]"
+  - id: scorecard-and-selfserve
+    title: Define scorecard and self-service
+    description: 'Write /workspace/docs/SCORECARD.md with headings Required and Optional. Required must mention health or /health and owner or team label. Optional may mention docs or runbook. Write /workspace/idp/self-service.md (at least 5 lines) mentioning create repo (or scaffold), open PR, and platform review. Write /workspace/idp/STATUS.txt containing IDP_OK.'
+    hints:
+      - 'Tip code SCORECARD_GATE: required checks block merge to the paved road.'
+      - 'Tip code SELF_SERVE: teams scaffold → PR → review; platform does not ticket-farm every service.'
+      - 'STATUS.txt should include IDP_OK.'
+    checks:
+      - type: file
+        name: Scorecard Required section
+        path: /workspace/docs/SCORECARD.md
+        value: Required
+      - type: file
+        name: Scorecard Optional section
+        path: /workspace/docs/SCORECARD.md
+        value: Optional
+      - type: command
+        name: Required mentions health
+        command: "grep -A4 '^#* *Required' /workspace/docs/SCORECARD.md | grep -Eqi 'health|/health'"
+      - type: command
+        name: Required mentions ownership
+        command: "grep -A4 '^#* *Required' /workspace/docs/SCORECARD.md | grep -Eqi 'owner|team'"
+      - type: command
+        name: Self-service has depth
+        command: "[ $(wc -l < /workspace/idp/self-service.md) -ge 5 ]"
+      - type: command
+        name: Self-service flow named
+        command: "grep -Eqi 'scaffold|create repo|template' /workspace/idp/self-service.md && grep -Eqi 'PR|pull request' /workspace/idp/self-service.md && grep -Eqi 'review' /workspace/idp/self-service.md"
+      - type: file
+        name: IDP status ok
+        path: /workspace/idp/STATUS.txt
+        value: IDP_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
