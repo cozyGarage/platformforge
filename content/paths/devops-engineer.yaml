@@ -192,11 +192,13 @@ phases:
           - observability-metrics-alerts
       - id: learn-sre
         title: Reliability & On-Call
-        summary: SLOs, error budgets, and multi-window burn-rate alerts for FinTech services.
+        summary: SLOs, error budgets, burn-rate alerts, chaos experiments, and budget-aware game days.
         labs:
           - slo-definition-basics
           - error-budget-policy
           - burn-rate-alerts
+          - chaos-experiment-basics
+          - gameday-budget-freeze
       - id: capstone
         title: Capstone Projects
         summary: Multi-skill incidents spanning reliability, compliance, and platform design.
