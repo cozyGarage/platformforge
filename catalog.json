@@ -1,0 +1,1455 @@
+{
+  "path": {
+    "id": "devops-engineer",
+    "title": "DevOps Engineer Path",
+    "summary": "Learn platform engineering through Linux, Git, containers, Kubernetes, CI/CD, and observability \u2014 inspired by Boot.dev and adapted for local hands-on labs.",
+    "source": "Structure inspired by Boot.dev DevOps path; extended with 90DaysOfDevOps topics and FinTech platform roadmap (Proxmox, PostgreSQL, Kafka)."
+  },
+  "stats": {
+    "labs": 104,
+    "minutes": 3360,
+    "hours": 56.0
+  },
+  "phases": [
+    {
+      "id": "foundations",
+      "title": "Phase 1 \u2014 Foundations",
+      "summary": "Terminal fluency, Git recovery, and the DevOps feedback loop.",
+      "modules": [
+        {
+          "id": "learn-linux",
+          "title": "Learn Linux",
+          "summary": "Command line, filesystems, permissions, and pipelines.",
+          "source": "Boot.dev \u2014 Learn Linux",
+          "labs": [
+            {
+              "id": "linux-shell-basics",
+              "title": "Linux Shell and File Basics",
+              "summary": "Practice core terminal skills\u2014navigation, file creation, and output redirection\u2014in an isolated environment.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 20,
+              "prerequisites": []
+            },
+            {
+              "id": "linux-navigation",
+              "title": "Linux Navigation and Permissions",
+              "summary": "Repair a deployment workspace using paths, ownership, modes, and pipelines.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 20,
+              "prerequisites": []
+            },
+            {
+              "id": "linux-pipelines",
+              "title": "Log Pipelines and Redirection",
+              "summary": "Use pipes, redirection, and filters to turn noisy application logs into an actionable incident summary.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "linux-navigation"
+              ]
+            },
+            {
+              "id": "linux-filesystems",
+              "title": "Filesystem Discovery",
+              "summary": "Find large files and document disk usage patterns before a node runs out of space.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 20,
+              "prerequisites": [
+                "linux-pipelines"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "terminal-mastery",
+          "title": "Terminal Mastery",
+          "summary": "Persistent sessions and fast edits on bastion hosts.",
+          "source": "",
+          "labs": [
+            {
+              "id": "terminal-tmux",
+              "title": "Survive with Tmux Sessions",
+              "summary": "Create a persistent tmux layout with named windows and a reusable config for platform work.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "linux-shell-basics"
+              ]
+            },
+            {
+              "id": "terminal-neovim",
+              "title": "Edit Faster with Neovim Basics",
+              "summary": "Create a minimal Neovim config and use it to fix a broken service unit file from the terminal.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "terminal-tmux"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "ninety-days-bridge",
+          "title": "90Days Topic Bridges",
+          "summary": "Scenario rewrites from 90DaysOfDevOps with PlatformForge validators.",
+          "source": "Adapted from 90DaysOfDevOps (CC BY-NC-SA 4.0)",
+          "labs": [
+            {
+              "id": "bash-automation-basics",
+              "title": "Automate a Backup with Bash",
+              "summary": "Write a small shell script that archives a directory and records a success marker \u2014 a 90Days-style automation drill.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "linux-shell-basics"
+              ]
+            },
+            {
+              "id": "docker-tagging-basics",
+              "title": "Pin and Tag Container Images",
+              "summary": "Replace floating tags with a pinned image reference and document a release tag naming convention.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "bash-automation-basics"
+              ]
+            },
+            {
+              "id": "kubernetes-yaml-basics",
+              "title": "Author a First Kubernetes Manifest",
+              "summary": "Write a valid Deployment YAML for a simple web workload using 90Days Kubernetes fundamentals.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "docker-tagging-basics"
+              ]
+            },
+            {
+              "id": "networking-basics",
+              "title": "Trace a Service Connection Path",
+              "summary": "Map hostname, port, and health URL for a payments API using 90Days-style networking fundamentals.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "bash-automation-basics"
+              ]
+            },
+            {
+              "id": "monitoring-basics",
+              "title": "Build a Tiny Uptime Check",
+              "summary": "Turn raw probe results into an up/down status file \u2014 a 90Days monitoring fundamentals drill.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "networking-basics"
+              ]
+            },
+            {
+              "id": "cloud-tagging-basics",
+              "title": "Tag Cloud Resources for Cost and Ownership",
+              "summary": "Apply required tags to a resource inventory so cost and ownership are auditable \u2014 a 90Days cloud fundamentals drill.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "monitoring-basics"
+              ]
+            },
+            {
+              "id": "secrets-basics",
+              "title": "Keep Secrets Out of Git",
+              "summary": "Move a leaked token into an ignored secrets file and document the rotation follow-up \u2014 a 90Days security fundamentals drill.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "cloud-tagging-basics"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "datacenter-networking",
+          "title": "Datacenter Networking Tickets",
+          "summary": "VLAN, gateway, ACL, NAT, and traceroute drills using PatchLab-style tip codes.",
+          "source": "Pedagogy inspired by cozyGarage/patchlab (CCNA/datacenter rack trainer)",
+          "labs": [
+            {
+              "id": "net-vlan-access",
+              "title": "Fix a VLAN Access Mismatch",
+              "summary": "Ticket drill inspired by PatchLab: move a server onto the correct access VLAN without breaking documentation.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "networking-basics",
+                "linux-navigation"
+              ]
+            },
+            {
+              "id": "net-default-gateway",
+              "title": "Reach the WAN via Default Gateway",
+              "summary": "Ticket drill inspired by PatchLab: fix host addressing and default gateway so off-subnet ping succeeds.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "net-vlan-access"
+              ]
+            },
+            {
+              "id": "net-firewall-acl",
+              "title": "Order Firewall ACLs Correctly",
+              "summary": "Ticket drill inspired by PatchLab: insert a host deny above a broad permit so one client is blocked and others pass.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "net-default-gateway"
+              ]
+            },
+            {
+              "id": "net-static-nat",
+              "title": "Publish a Host with Static NAT",
+              "summary": "Ticket drill inspired by PatchLab: map an internal payments host to a public address and permit inbound WAN access.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "net-firewall-acl"
+              ]
+            },
+            {
+              "id": "net-traceroute-path",
+              "title": "Repair a Broken Traceroute Path",
+              "summary": "Ticket drill inspired by PatchLab: fix a missing static route so traceroute from LAN to ISP completes.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "net-static-nat",
+                "net-default-gateway"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "networking-sandbox",
+          "title": "Networking Sandbox",
+          "summary": "Free-play ticket unlocked after the first three networking labs.",
+          "source": "",
+          "labs": [
+            {
+              "id": "net-sandbox",
+              "title": "Networking Sandbox \u2014 Free Play Ticket",
+              "summary": "Unlocked after the first three networking tickets: design a small LAN with VLAN, gateway, ACL, and a path status of your choosing.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 40,
+              "prerequisites": [
+                "net-vlan-access",
+                "net-default-gateway",
+                "net-firewall-acl"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": {
+            "completedFromModule": "datacenter-networking",
+            "count": 3
+          }
+        },
+        {
+          "id": "learn-git",
+          "title": "Learn Git",
+          "summary": "History recovery, branching, remotes, and safe collaboration.",
+          "source": "Boot.dev \u2014 Learn Git",
+          "labs": [
+            {
+              "id": "git-recovery",
+              "title": "Recover a Broken Git Release",
+              "summary": "Use Git history and the index to restore a deleted production configuration.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "linux-navigation"
+              ]
+            },
+            {
+              "id": "git-branching",
+              "title": "Branch and Merge Safely",
+              "summary": "Create a feature branch, commit a fix, and merge back to main without rewriting shared history.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "git-recovery"
+              ]
+            },
+            {
+              "id": "git-rebase-reset",
+              "title": "Rebase and Reset Without Panic",
+              "summary": "Squash noisy commits with interactive rebase and recover from a bad commit using reset.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "git-branching"
+              ]
+            },
+            {
+              "id": "git-remotes",
+              "title": "Connect and Push to a Remote",
+              "summary": "Add a remote repository, push main with upstream tracking, and verify the remote has your commits.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "git-rebase-reset"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        }
+      ]
+    },
+    {
+      "id": "containers",
+      "title": "Phase 2 \u2014 Containers & Networking",
+      "summary": "Debug images, compose multi-container apps, and reason about connectivity.",
+      "modules": [
+        {
+          "id": "learn-docker",
+          "title": "Learn Docker",
+          "summary": "Dockerfiles, debugging, and Compose networking.",
+          "source": "Boot.dev \u2014 Learn Docker",
+          "labs": [
+            {
+              "id": "docker-debugging",
+              "title": "Debug a Container Image",
+              "summary": "Diagnose a broken image definition and produce a safe, reproducible container specification.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "git-recovery"
+              ]
+            },
+            {
+              "id": "docker-networking",
+              "title": "Repair Service Networking",
+              "summary": "Fix a Compose topology so an API uses service discovery instead of loopback.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "docker-debugging"
+              ]
+            },
+            {
+              "id": "docker-volumes",
+              "title": "Persist Data with Volumes",
+              "summary": "Fix a Compose file so application data survives container restarts using named volumes.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "docker-networking"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        }
+      ]
+    },
+    {
+      "id": "iac",
+      "title": "Phase 2c \u2014 Infrastructure as Code",
+      "summary": "Local Terraform and Ansible planning drills for modules, state, and config management.",
+      "modules": [
+        {
+          "id": "learn-terraform",
+          "title": "Learn Terraform",
+          "summary": "Root modules, reusable network modules, and remote state backends.",
+          "source": "",
+          "labs": [
+            {
+              "id": "terraform-basics",
+              "title": "Author a Terraform Root Module",
+              "summary": "Write a pinned Terraform root module with locals and an output for a payments app label.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "linux-navigation"
+              ]
+            },
+            {
+              "id": "terraform-modules",
+              "title": "Split a Terraform Network Module",
+              "summary": "Extract a reusable network module with a variable and output, then call it from the root module.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "terraform-basics"
+              ]
+            },
+            {
+              "id": "terraform-state-backend",
+              "title": "Configure a Remote State Backend",
+              "summary": "Author a partial backend config for S3-style remote state with locking and encryption called out in a runbook.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "terraform-modules",
+                "aws-s3-basics"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "learn-ansible",
+          "title": "Learn Ansible",
+          "summary": "Inventories, playbooks with handlers, and idempotency planning for platform hosts.",
+          "source": "",
+          "labs": [
+            {
+              "id": "ansible-inventory-basics",
+              "title": "Build an Ansible Inventory",
+              "summary": "Author a static inventory grouping bastion and payments hosts with a shared deploy group.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "linux-navigation"
+              ]
+            },
+            {
+              "id": "ansible-playbook-basics",
+              "title": "Write a Hardening Playbook",
+              "summary": "Author a playbook that targets the deploy group, becomes root, and installs nginx with a handler notify.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "ansible-inventory-basics"
+              ]
+            },
+            {
+              "id": "ansible-handlers-idempotency",
+              "title": "Prove Handler Idempotency",
+              "summary": "Document why unchanged packages skip handlers, and add a check mode note for safe dry-runs.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "ansible-playbook-basics"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        }
+      ]
+    },
+    {
+      "id": "application-dev",
+      "title": "Phase 2b \u2014 Application Development",
+      "summary": "Build small HTTP services in Go and Python, plus SQL query drills.",
+      "modules": [
+        {
+          "id": "learn-http-go",
+          "title": "Learn HTTP Servers & Go",
+          "summary": "Health endpoints, JSON handlers, and go test.",
+          "source": "Boot.dev \u2014 Learn HTTP Servers / Learn Go",
+          "labs": [
+            {
+              "id": "http-health-server",
+              "title": "Serve a Go Health Endpoint",
+              "summary": "Write a tiny Go HTTP server that listens on :8080 and answers /health with ok.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "linux-pipelines"
+              ]
+            },
+            {
+              "id": "http-json-api",
+              "title": "Build a Tiny JSON API in Go",
+              "summary": "Extend HTTP skills with a /payments endpoint that returns JSON and a content-type header.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 40,
+              "prerequisites": [
+                "http-health-server"
+              ]
+            },
+            {
+              "id": "go-testing-basics",
+              "title": "Prove Behavior with Go Tests",
+              "summary": "Extract a pure function and add a failing-then-passing unit test for payment fee calculation.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "http-json-api"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "learn-python-sql",
+          "title": "Learn Python & SQL",
+          "summary": "Python HTTP services, packaging, SQLite fundamentals, and advanced query/async drills.",
+          "source": "Boot.dev \u2014 Learn Python / Learn SQL",
+          "labs": [
+            {
+              "id": "python-health-server",
+              "title": "Serve a Python Health Endpoint",
+              "summary": "Write a tiny Python HTTP server that listens on :8080 and answers /health with ok.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "linux-pipelines"
+              ]
+            },
+            {
+              "id": "python-json-api",
+              "title": "Build a Python JSON API",
+              "summary": "Add a /payments JSON endpoint beside /health using Python's http.server.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "python-health-server"
+              ]
+            },
+            {
+              "id": "python-async-service",
+              "title": "Build an Async Python Service",
+              "summary": "Use asyncio with Python's standard library to serve health and payment responses concurrently.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 40,
+              "prerequisites": [
+                "python-json-api"
+              ]
+            },
+            {
+              "id": "python-packaging-basics",
+              "title": "Package a Python Module",
+              "summary": "Turn fee logic into an importable package with pyproject metadata and a passing unit test.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "python-json-api"
+              ]
+            },
+            {
+              "id": "sql-query-basics",
+              "title": "Query Payments with SQL",
+              "summary": "Load a SQLite ledger and write queries that answer balance and high-value payment questions.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "linux-pipelines"
+              ]
+            },
+            {
+              "id": "sql-joins-basics",
+              "title": "Join Accounts and Payments",
+              "summary": "Use SQL joins to answer who paid what across normalized ledger tables.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "sql-query-basics"
+              ]
+            },
+            {
+              "id": "sql-indexes-explain",
+              "title": "Speed Queries with Indexes",
+              "summary": "Add an index for account lookups and capture EXPLAIN output proving SQLite can use it.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "sql-joins-basics"
+              ]
+            },
+            {
+              "id": "sql-window-functions",
+              "title": "Rank Payments with Window Functions",
+              "summary": "Use SQLite window functions to rank payments and calculate running totals by account.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "sql-indexes-explain"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        }
+      ]
+    },
+    {
+      "id": "kubernetes",
+      "title": "Phase 3 \u2014 Kubernetes",
+      "summary": "Deploy reliable workloads on live k3d clusters, then practice CKA-style controls, admission policy, and Gateway API planning.",
+      "modules": [
+        {
+          "id": "learn-kubernetes",
+          "title": "Learn Kubernetes",
+          "summary": "Deployments, Services, ConfigMaps, scaling, and namespaces with kubectl.",
+          "source": "Boot.dev \u2014 Learn Kubernetes",
+          "labs": [
+            {
+              "id": "kubernetes-deploy",
+              "title": "Deploy a Reliable Workload to Kubernetes",
+              "summary": "Fix a broken Deployment manifest, apply it to a live k3d cluster, and verify probes and resource limits.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 40,
+              "prerequisites": [
+                "docker-networking"
+              ]
+            },
+            {
+              "id": "kubernetes-service",
+              "title": "Expose a Deployment with a Service",
+              "summary": "Create a ClusterIP Service so other workloads can reach your API Deployment inside k3d.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "kubernetes-deploy"
+              ]
+            },
+            {
+              "id": "kubernetes-configmap",
+              "title": "Inject Configuration with ConfigMaps",
+              "summary": "Mount a ConfigMap as environment variables for a Deployment running in k3d.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "kubernetes-service"
+              ]
+            },
+            {
+              "id": "kubernetes-scaling",
+              "title": "Scale a Deployment Horizontally",
+              "summary": "Increase replica count and verify all pods become ready in your k3d cluster.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "kubernetes-configmap"
+              ]
+            },
+            {
+              "id": "kubernetes-namespaces",
+              "title": "Isolate Workloads with Namespaces",
+              "summary": "Create a dedicated namespace, deploy an app into it, and verify resources are scoped correctly.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "kubernetes-scaling"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "cka-prep",
+          "title": "CKA-Style Scenarios",
+          "summary": "NetworkPolicy, RBAC, troubleshooting, Ingress, storage, backup/restore, and etcd runbooks.",
+          "source": "",
+          "labs": [
+            {
+              "id": "kubernetes-networkpolicy",
+              "title": "Restrict Pod Traffic with NetworkPolicy",
+              "summary": "Author a default-deny Ingress policy and an allow rule so only the frontend can reach the API.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "kubernetes-namespaces"
+              ]
+            },
+            {
+              "id": "kubernetes-rbac",
+              "title": "Grant Least-Privilege RBAC",
+              "summary": "Create a ServiceAccount, Role, and RoleBinding so a deployer can manage Deployments only in the payments namespace.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "kubernetes-networkpolicy"
+              ]
+            },
+            {
+              "id": "kubernetes-troubleshooting",
+              "title": "Troubleshoot a Broken Release",
+              "summary": "Fix ImagePullBackOff and an empty Service selector so the api workload becomes Ready and has Endpoints.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 40,
+              "prerequisites": [
+                "kubernetes-rbac"
+              ]
+            },
+            {
+              "id": "kubernetes-ingress",
+              "title": "Route External Traffic with Ingress",
+              "summary": "Expose the api Service through an Ingress host rule and confirm the object is programmed in the cluster.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "kubernetes-troubleshooting"
+              ]
+            },
+            {
+              "id": "kubernetes-storage",
+              "title": "Persist Data with PVC and Volume Mounts",
+              "summary": "Create a PersistentVolumeClaim and mount it into the api Deployment at /data.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 40,
+              "prerequisites": [
+                "kubernetes-ingress"
+              ]
+            },
+            {
+              "id": "kubernetes-backup-restore",
+              "title": "Backup and Restore Cluster Objects",
+              "summary": "Snapshot critical manifests, simulate an accidental delete, and restore the payments ConfigMap from backup.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "kubernetes-storage"
+              ]
+            },
+            {
+              "id": "kubernetes-etcd-snapshot",
+              "title": "Practice etcd Snapshot Runbooks",
+              "summary": "Author a control-plane backup runbook and produce a verifiable snapshot artifact for disaster recovery drills.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "kubernetes-backup-restore"
+              ]
+            }
+          ],
+          "comingSoon": [
+            "Live etcdctl against control-plane (runtime)"
+          ],
+          "unlock": null
+        },
+        {
+          "id": "learn-policy",
+          "title": "Policy as Code",
+          "summary": "Kyverno baselines and OPA/Gatekeeper constraints for labels, digests, and cost centers.",
+          "source": "",
+          "labs": [
+            {
+              "id": "policy-kyverno-basics",
+              "title": "Plan Kyverno Baseline Policies",
+              "summary": "Author Kyverno ClusterPolicy sketches that require app labels and block :latest images for payments workloads.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "kubernetes-rbac",
+                "kubernetes-deploy"
+              ]
+            },
+            {
+              "id": "policy-opa-constraints",
+              "title": "Plan OPA Gatekeeper Constraints",
+              "summary": "Sketch a ConstraintTemplate plus Constraint that requires a cost-center label, and document Audit vs Deny modes.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "policy-kyverno-basics"
+              ]
+            }
+          ],
+          "comingSoon": [
+            "Live Kyverno apply on k3d (runtime)"
+          ],
+          "unlock": null
+        },
+        {
+          "id": "learn-gateway",
+          "title": "Gateway API",
+          "summary": "Replace Ingress with Gateway/HTTPRoute sketches and weighted canary splits.",
+          "source": "",
+          "labs": [
+            {
+              "id": "gateway-api-http-route",
+              "title": "Plan a Gateway API HTTPRoute",
+              "summary": "Sketch GatewayClass, Gateway, and HTTPRoute objects that expose payments-api on api.payments.example.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "kubernetes-ingress",
+                "kubernetes-service"
+              ]
+            },
+            {
+              "id": "gateway-canary-split",
+              "title": "Plan Gateway Canary Traffic Splits",
+              "summary": "Design an HTTPRoute weight split between stable and canary Services, plus a rollback checklist.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "gateway-api-http-route",
+                "observability-metrics-alerts"
+              ]
+            }
+          ],
+          "comingSoon": [
+            "Live Gateway API apply on k3d (runtime)"
+          ],
+          "unlock": null
+        }
+      ]
+    },
+    {
+      "id": "delivery",
+      "title": "Phase 4 \u2014 Delivery & Reliability",
+      "summary": "CI/CD pipelines, GitOps, Helm, secrets ops, observability, SLOs, and incident response.",
+      "modules": [
+        {
+          "id": "learn-cicd",
+          "title": "Learn CI/CD",
+          "summary": "Fix broken pipelines, add security gates, and ship safely.",
+          "source": "Boot.dev \u2014 Learn CI/CD",
+          "labs": [
+            {
+              "id": "cicd-pipeline-fix",
+              "title": "Fix a Broken CI Pipeline",
+              "summary": "Repair a GitHub Actions workflow missing test and lint stages before deploy.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "git-branching"
+              ]
+            },
+            {
+              "id": "cicd-security-scan",
+              "title": "Add a Supply Chain Security Gate",
+              "summary": "Stop a leaked secret from shipping and require a vulnerability scan job before deploy.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "cicd-pipeline-fix"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "learn-gitops",
+          "title": "Learn GitOps",
+          "summary": "Declarative desired state, drift reconcile loops, and Kustomize overlay promotion.",
+          "source": "",
+          "labs": [
+            {
+              "id": "gitops-manifest-sync",
+              "title": "Plan a GitOps Manifest Sync Loop",
+              "summary": "Capture desired state in Git, detect cluster drift, and describe a reconcile loop that treats Git as source of truth.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "kubernetes-deploy",
+                "cicd-pipeline-fix"
+              ]
+            },
+            {
+              "id": "gitops-kustomize-overlay",
+              "title": "Plan Kustomize Overlay Promotions",
+              "summary": "Sketch a base plus overlay layout, promote digests upward across envs, and call out overlay drift risks.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "gitops-manifest-sync",
+                "kubernetes-configmap"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "learn-helm",
+          "title": "Learn Helm",
+          "summary": "Chart skeletons, values overrides, and digest-friendly env promotion.",
+          "source": "",
+          "labs": [
+            {
+              "id": "helm-chart-basics",
+              "title": "Author a Helm Chart Skeleton",
+              "summary": "Build Chart.yaml, values.yaml, and a Deployment template with standard Helm placeholders for payments-web.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "kubernetes-deploy",
+                "gitops-kustomize-overlay"
+              ]
+            },
+            {
+              "id": "helm-values-overrides",
+              "title": "Plan Helm Values Overrides",
+              "summary": "Separate shared chart defaults from env values files and document a safe --set vs -f override policy.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "helm-chart-basics"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "learn-secrets-ops",
+          "title": "Secrets Operations",
+          "summary": "External Secrets Operator planning and credential rotation runbooks.",
+          "source": "",
+          "labs": [
+            {
+              "id": "secrets-external-operator",
+              "title": "Plan External Secrets Sync",
+              "summary": "Design an ExternalSecret that syncs from a vault-backed SecretStore without committing plaintext credentials.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "secrets-basics",
+                "kubernetes-configmap",
+                "helm-chart-basics"
+              ]
+            },
+            {
+              "id": "secrets-rotation-runbook",
+              "title": "Write a Secrets Rotation Runbook",
+              "summary": "Author a rotation runbook covering detect leak, rotate backend secret, refresh ExternalSecret, and verify consumers.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "secrets-external-operator"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "learn-observability",
+          "title": "Logging & Observability",
+          "summary": "Structured logs, metrics, alerts, and on-call debugging.",
+          "source": "Boot.dev \u2014 Learn Logging and Observability",
+          "labs": [
+            {
+              "id": "observability-structured-logs",
+              "title": "Parse Structured Logs",
+              "summary": "Query JSON log lines to find failing requests and produce an on-call summary file.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "linux-pipelines"
+              ]
+            },
+            {
+              "id": "observability-metrics-alerts",
+              "title": "Turn Metrics into an Alert",
+              "summary": "Compute an HTTP error rate from Prometheus-style metrics and author a threshold alert plus on-call note.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "observability-structured-logs"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "learn-sre",
+          "title": "Reliability & On-Call",
+          "summary": "SLOs, error budgets, burn-rate alerts, chaos experiments, game days, and shift handoffs.",
+          "source": "",
+          "labs": [
+            {
+              "id": "slo-definition-basics",
+              "title": "Define an Availability SLO",
+              "summary": "Turn success/total request counts into an SLI ratio, pick a 99.9% SLO target, and document a 30-day measurement window for payments-api.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "observability-metrics-alerts"
+              ]
+            },
+            {
+              "id": "error-budget-policy",
+              "title": "Write an Error Budget Policy",
+              "summary": "Calculate remaining error budget from an SLO burn and document freeze, slow-roll, and page gates for payments-api.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "slo-definition-basics"
+              ]
+            },
+            {
+              "id": "burn-rate-alerts",
+              "title": "Design Multi-Window Burn Alerts",
+              "summary": "Sketch fast and slow burn-rate alerts for a 99.9% SLO and leave an on-call note that points to rollback.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "error-budget-policy"
+              ]
+            },
+            {
+              "id": "chaos-experiment-basics",
+              "title": "Plan a Chaos Experiment",
+              "summary": "Write a payments-api chaos experiment with hypothesis, blast radius, abort criteria, and a single safe failure mode.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "burn-rate-alerts",
+                "kubernetes-deploy"
+              ]
+            },
+            {
+              "id": "gameday-budget-freeze",
+              "title": "Run a Budget-Aware Game Day",
+              "summary": "Facilitate a payments game day with roles, freeze gate, success criteria, and a post-game learning note tied to error budget.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "chaos-experiment-basics",
+                "error-budget-policy",
+                "leadership-postmortem"
+              ]
+            },
+            {
+              "id": "oncall-handoff-basics",
+              "title": "Write an On-Call Handoff",
+              "summary": "Produce a shift handoff with severity ladder, open pages, error-budget status, and escalation contacts for payments-api.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "burn-rate-alerts"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "capstone",
+          "title": "Capstone Projects",
+          "summary": "Multi-skill incidents spanning reliability, compliance, and platform design.",
+          "source": "",
+          "labs": [
+            {
+              "id": "incident-capstone",
+              "title": "Capstone \u2014 Restore the Checkout Platform",
+              "summary": "Triage a multi-layer release failure and leave an auditable incident record.",
+              "difficulty": "capstone",
+              "estimatedMinutes": 60,
+              "prerequisites": [
+                "linux-navigation",
+                "git-recovery",
+                "docker-debugging",
+                "docker-networking",
+                "kubernetes-deploy"
+              ]
+            },
+            {
+              "id": "payments-reliability-capstone",
+              "title": "Capstone \u2014 Stabilize Payments Reliability",
+              "summary": "Restore a broken checkout release, reconcile the ledger, add an alert, and leave an auditable incident record.",
+              "difficulty": "capstone",
+              "estimatedMinutes": 70,
+              "prerequisites": [
+                "incident-capstone",
+                "sql-query-basics",
+                "observability-metrics-alerts"
+              ]
+            },
+            {
+              "id": "compliance-release-capstone",
+              "title": "Capstone \u2014 Ship a Compliant Data Release",
+              "summary": "Mask a customer export, produce DORA evidence, write an audit pack, and scope a least-privilege IAM role before release.",
+              "difficulty": "capstone",
+              "estimatedMinutes": 65,
+              "prerequisites": [
+                "compliance-masking",
+                "dora-evidence",
+                "aws-iam-basics",
+                "leadership-postmortem"
+              ]
+            },
+            {
+              "id": "platform-landing-zone-capstone",
+              "title": "Capstone \u2014 Design a Platform Landing Zone",
+              "summary": "Produce a local FinTech landing-zone pack: least-privilege IAM, secure S3, VPC plan, Kubernetes baseline, and a rollback runbook.",
+              "difficulty": "capstone",
+              "estimatedMinutes": 70,
+              "prerequisites": [
+                "aws-iam-basics",
+                "aws-s3-basics",
+                "aws-vpc-basics",
+                "kubernetes-deploy",
+                "leadership-adr"
+              ]
+            },
+            {
+              "id": "gitops-delivery-capstone",
+              "title": "Capstone \u2014 Ship a GitOps Delivery Pack",
+              "summary": "Assemble a payments-web delivery pack: Helm chart with prod digest values, GitOps sync policy, ExternalSecret without plaintext, and a rotation verify runbook \u2014 then commit clean.",
+              "difficulty": "capstone",
+              "estimatedMinutes": 70,
+              "prerequisites": [
+                "helm-values-overrides",
+                "gitops-kustomize-overlay",
+                "secrets-rotation-runbook"
+              ]
+            },
+            {
+              "id": "reliability-gameday-capstone",
+              "title": "Capstone \u2014 Reliability Game Day",
+              "summary": "Run a payments-api reliability drill: record SLO burn and freeze, execute a chaos experiment with abort, write a blameless postmortem, and commit the evidence pack.",
+              "difficulty": "capstone",
+              "estimatedMinutes": 70,
+              "prerequisites": [
+                "gameday-budget-freeze",
+                "oncall-handoff-basics",
+                "leadership-postmortem"
+              ]
+            },
+            {
+              "id": "platform-product-capstone",
+              "title": "Capstone \u2014 Platform Product Pack",
+              "summary": "Assemble a platform-product pack: golden-path template + scorecard, FinOps labels/budget, multi-env promotion ADR, and a clean commit.",
+              "difficulty": "capstone",
+              "estimatedMinutes": 70,
+              "prerequisites": [
+                "idp-golden-path-basics",
+                "finops-cost-guardrails",
+                "multi-env-promotion-adr"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "leadership",
+          "title": "Leadership Capstones",
+          "summary": "Capture decisions and run blameless learning reviews.",
+          "source": "",
+          "labs": [
+            {
+              "id": "leadership-adr",
+              "title": "Write an Architecture Decision Record",
+              "summary": "Capture a durable ADR for choosing Kubernetes Ingress over NodePort for the payments API edge.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "kubernetes-ingress"
+              ]
+            },
+            {
+              "id": "leadership-postmortem",
+              "title": "Run a Blameless Postmortem",
+              "summary": "Turn raw incident notes into a blameless postmortem with timeline, root cause, and action items.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "incident-capstone",
+                "leadership-adr"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "portfolio-project",
+          "title": "Portfolio Project",
+          "summary": "Stitch HTTP, Docker, and Kubernetes into a public demo path.",
+          "source": "",
+          "labs": [
+            {
+              "id": "portfolio-payments-api",
+              "title": "Portfolio \u2014 Payments API Service",
+              "summary": "Ship a demo-ready Go payments service with /health, /payments, and a project README.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 40,
+              "prerequisites": [
+                "http-json-api",
+                "go-testing-basics"
+              ]
+            },
+            {
+              "id": "portfolio-containerize",
+              "title": "Portfolio \u2014 Containerize the API",
+              "summary": "Package the payments API in a reproducible Dockerfile with a non-root user and pinned base image.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "portfolio-payments-api",
+                "docker-debugging"
+              ]
+            },
+            {
+              "id": "portfolio-ship-k8s",
+              "title": "Portfolio \u2014 Ship to Kubernetes",
+              "summary": "Deploy the payments API with Deployment, Service, and Ingress on a live k3d cluster.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 45,
+              "prerequisites": [
+                "portfolio-containerize",
+                "kubernetes-ingress"
+              ]
+            },
+            {
+              "id": "portfolio-showcase",
+              "title": "Portfolio \u2014 Public Demo Writeup",
+              "summary": "Write the DEMO.md hiring managers read \u2014 architecture, runbook, and evidence of the full path.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "portfolio-ship-k8s",
+                "leadership-adr"
+              ]
+            }
+          ],
+          "comingSoon": [
+            "Portfolio registry build/push (runtime)"
+          ],
+          "unlock": null
+        }
+      ]
+    },
+    {
+      "id": "platform-engineering",
+      "title": "Phase 5 \u2014 Platform Engineering",
+      "summary": "Platform product skills, data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.",
+      "modules": [
+        {
+          "id": "learn-platform-product",
+          "title": "Platform Product Skills",
+          "summary": "IDP golden paths, FinOps guardrails, and multi-env promotion ADRs.",
+          "source": "",
+          "labs": [
+            {
+              "id": "idp-golden-path-basics",
+              "title": "Plan an IDP Golden Path",
+              "summary": "Sketch a paved-road service template, scorecard gates, and self-service checklist for payments teams.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "gitops-kustomize-overlay",
+                "cicd-pipeline-fix"
+              ]
+            },
+            {
+              "id": "finops-cost-guardrails",
+              "title": "Plan FinOps Cost Guardrails",
+              "summary": "Define required cost labels, a monthly budget alert, and a rightsizing note for payments-api workloads.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "kubernetes-deploy",
+                "observability-metrics-alerts"
+              ]
+            },
+            {
+              "id": "multi-env-promotion-adr",
+              "title": "ADR \u2014 Multi-Env Promotion Path",
+              "summary": "Record an ADR choosing digest-pinned Helm values promotion via GitOps over imperative kubectl per environment.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "helm-values-overrides",
+                "gitops-manifest-sync",
+                "secrets-external-operator",
+                "leadership-adr"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "data-platform",
+          "title": "Data & Streaming",
+          "summary": "",
+          "source": "",
+          "labs": [
+            {
+              "id": "postgresql-pitr",
+              "title": "Point-in-Time Recovery Drill",
+              "summary": "Reconstruct a payments table to a recovery target by replaying a base backup and WAL segments, stopping before the bad change.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "linux-pipelines"
+              ]
+            },
+            {
+              "id": "kafka-debezium-cdc",
+              "title": "Capture Database Changes with CDC",
+              "summary": "Configure a Debezium-style connector and materialize change events into a sink table file.",
+              "difficulty": "advanced",
+              "estimatedMinutes": 35,
+              "prerequisites": [
+                "postgresql-pitr"
+              ]
+            },
+            {
+              "id": "redis-ha-failover-plan",
+              "title": "Plan Redis HA Failover",
+              "summary": "Document a payments Redis primary/replica topology, failover trigger, and client cutover checklist without data-loss windows.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "postgresql-pitr",
+                "observability-metrics-alerts"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "compliance",
+          "title": "Compliance & Security",
+          "summary": "",
+          "source": "",
+          "labs": [
+            {
+              "id": "compliance-masking",
+              "title": "Mask PII Before Export",
+              "summary": "Redact personal data from a customer export so the file is safe to share with vendors.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "linux-pipelines"
+              ]
+            },
+            {
+              "id": "dora-evidence",
+              "title": "Produce DORA Evidence from Deploy Logs",
+              "summary": "Calculate deployment frequency and change-fail rate from release and incident records for an audit folder.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "cicd-security-scan"
+              ]
+            },
+            {
+              "id": "pci-dss-basics",
+              "title": "Close Basic PCI-DSS Gaps",
+              "summary": "Fix a checkout config that logs full card data, uses HTTP, and stores PAN on disk.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "compliance-masking"
+              ]
+            },
+            {
+              "id": "soc2-change-evidence",
+              "title": "Assemble SOC 2 Change Evidence",
+              "summary": "Build a change-evidence pack with ticket link, approval, diff summary, and post-deploy verification for a payments release.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "dora-evidence",
+                "pci-dss-basics"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "bare-metal",
+          "title": "Bare Metal & Virtualization",
+          "summary": "",
+          "source": "",
+          "labs": [
+            {
+              "id": "proxmox-planning",
+              "title": "Plan a Proxmox Homelab Platform",
+              "summary": "Turn a blank inventory into a concrete Proxmox node and VM placement plan for a FinTech lab.",
+              "difficulty": "beginner",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "linux-filesystems"
+              ]
+            },
+            {
+              "id": "debian-platform-baseline",
+              "title": "Establish a Debian Platform Baseline",
+              "summary": "Harden a host baseline by disabling root SSH passwords, pinning critical packages, and recording the standard.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "proxmox-planning"
+              ]
+            },
+            {
+              "id": "rack-capacity-planning",
+              "title": "Plan Rack Power and Capacity",
+              "summary": "Size a payments edge rack for power budget, network uplinks, and growth headroom before ordering hardware.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "proxmox-planning",
+                "debian-platform-baseline"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        },
+        {
+          "id": "aws-local",
+          "title": "AWS Local Simulations",
+          "summary": "IAM, S3, and VPC design drills without a cloud account.",
+          "source": "",
+          "labs": [
+            {
+              "id": "aws-iam-basics",
+              "title": "Model Least-Privilege IAM",
+              "summary": "Author an IAM policy that allows S3 read on one bucket and deny everything else for a deployer role.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "cicd-security-scan"
+              ]
+            },
+            {
+              "id": "aws-s3-basics",
+              "title": "Design a Private Artifact Bucket",
+              "summary": "Configure a private S3 bucket policy and lifecycle rules for CI artifacts without public access.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 25,
+              "prerequisites": [
+                "aws-iam-basics"
+              ]
+            },
+            {
+              "id": "aws-vpc-basics",
+              "title": "Sketch a Three-Tier VPC",
+              "summary": "Define public/private subnet layout, NAT placement, and security group rules for a payments API.",
+              "difficulty": "intermediate",
+              "estimatedMinutes": 30,
+              "prerequisites": [
+                "aws-s3-basics"
+              ]
+            }
+          ],
+          "comingSoon": [],
+          "unlock": null
+        }
+      ]
+    }
+  ],
+  "repo": "https://github.com/cozyGarage/platformforge",
+  "companion": {
+    "name": "PatchLab",
+    "url": "https://cozygarage.github.io/patchlab/",
+    "repo": "https://github.com/cozyGarage/patchlab"
+  }
+}
