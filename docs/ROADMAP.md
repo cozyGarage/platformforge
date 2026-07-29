@@ -144,10 +144,10 @@ UX now shipped from PatchLab:
 
 ## Roadmap phases
 
-### Phase A — Close the reliability loop (in progress / shipping)
+### Phase A — Close the reliability loop (shipped this cycle)
 1. `oncall-handoff-basics` — severity ladder, open pages, escalation roles
 2. `reliability-gameday-capstone` — burn → freeze → chaos → postmortem evidence pack
-3. Catalog Continue CTA (mirror path hero)
+3. Catalog Continue CTA (shared with Learning Path)
 
 ### Phase B — Platform product skills (next)
 1. IDP / golden-path planning (service template, scorecard, paved road)
