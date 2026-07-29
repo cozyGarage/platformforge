@@ -56,7 +56,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
 
-**Reliability / SRE** — `slo-definition-basics`, `error-budget-policy`, `burn-rate-alerts`
+**Reliability / SRE** — `slo-definition-basics`, `error-budget-policy`, `burn-rate-alerts`, `chaos-experiment-basics`, `gameday-budget-freeze`
 
 **GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`
 
@@ -147,7 +147,7 @@ UX now shipped from PatchLab:
 1. Portfolio polish (real image build/push when registry tooling is available)
 2. Live etcdctl against control-plane when privileged lab runtime allows
 3. Policy/Gateway live apply labs on k3d when CRDs are available in the runtime image
-4. Chaos / game-day planning drills tied to error-budget freezes
+4. Reliability capstone stitching SLO burn + chaos game day + postmortem
 
 ## How to add a lab
 
