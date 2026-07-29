@@ -192,13 +192,14 @@ phases:
           - observability-metrics-alerts
       - id: learn-sre
         title: Reliability & On-Call
-        summary: SLOs, error budgets, burn-rate alerts, chaos experiments, and budget-aware game days.
+        summary: SLOs, error budgets, burn-rate alerts, chaos experiments, game days, and shift handoffs.
         labs:
           - slo-definition-basics
           - error-budget-policy
           - burn-rate-alerts
           - chaos-experiment-basics
           - gameday-budget-freeze
+          - oncall-handoff-basics
       - id: capstone
         title: Capstone Projects
         summary: Multi-skill incidents spanning reliability, compliance, and platform design.
@@ -208,6 +209,7 @@ phases:
           - compliance-release-capstone
           - platform-landing-zone-capstone
           - gitops-delivery-capstone
+          - reliability-gameday-capstone
       - id: leadership
         title: Leadership Capstones
         summary: Capture decisions and run blameless learning reviews.

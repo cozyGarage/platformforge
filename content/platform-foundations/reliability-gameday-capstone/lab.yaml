@@ -1,0 +1,118 @@
+version: 1
+id: reliability-gameday-capstone
+title: Capstone — Reliability Game Day
+summary: 'Run a payments-api reliability drill: record SLO burn and freeze, execute a chaos experiment with abort, write a blameless postmortem, and commit the evidence pack.'
+difficulty: capstone
+estimatedMinutes: 70
+prerequisites: [gameday-budget-freeze, oncall-handoff-basics, leadership-postmortem]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git >/dev/null"
+  - "mkdir -p /workspace/slo /workspace/chaos /workspace/gameday /workspace/docs /workspace/oncall"
+  - "cd /workspace && git init -q && git config user.email learner@platformforge.local && git config user.name Learner"
+  - "printf 'slo_target_percent=99.9\\nsli_percent=99.6\\nbudget_remaining_percent=-0.2\\n' > /workspace/slo/inputs.env"
+  - "printf 'name: draft\\ntarget: unknown\\n' > /workspace/chaos/experiment.yaml"
+  - "printf 'Ticket: payments-api game day under freeze.\\nRecord burn/freeze, run pod-kill experiment with abort, postmortem, handoff, commit.\\n' > /workspace/TICKET.md"
+  - "cd /workspace && git add . && git commit -qm 'reliability drill draft'"
+tasks:
+  - id: burn-and-freeze
+    title: Record burn and engage freeze
+    description: 'Write /workspace/slo/burn.txt containing -0.2 (from inputs.env budget_remaining_percent). Create /workspace/gameday/FREEZE.md with headings Status and Rule. Status must mention freeze or frozen. Rule must mention error budget or over budget. Write /workspace/oncall/open-pages.txt containing PaymentsBurnFast.'
+    hints:
+      - 'Tip code FREEZE_GATE: negative remaining budget means freeze risky changes before inject.'
+      - 'Tip code OPEN_PAGES: list PaymentsBurnFast explicitly in open-pages.txt.'
+      - 'burn.txt should be exactly the remaining budget value -0.2.'
+    checks:
+      - type: file
+        name: Burn remaining recorded
+        path: /workspace/slo/burn.txt
+        value: "-0.2"
+      - type: file
+        name: Freeze status section
+        path: /workspace/gameday/FREEZE.md
+        value: Status
+      - type: file
+        name: Freeze rule section
+        path: /workspace/gameday/FREEZE.md
+        value: Rule
+      - type: command
+        name: Status mentions freeze
+        command: "grep -A3 '^#* *Status' /workspace/gameday/FREEZE.md | grep -Eqi 'freeze|frozen'"
+      - type: command
+        name: Rule mentions budget
+        command: "grep -A3 '^#* *Rule' /workspace/gameday/FREEZE.md | grep -Eqi 'error budget|over budget'"
+      - type: file
+        name: Open page recorded
+        path: /workspace/oncall/open-pages.txt
+        value: PaymentsBurnFast
+  - id: chaos-with-abort
+    title: Run the chaos experiment plan
+    description: 'Replace /workspace/chaos/experiment.yaml with name payments-api-pod-kill, target payments-api, action kill-pod or pod-kill, and steadyStateHypothesis mentioning availability or ready. Write /workspace/docs/ABORT.md mentioning error budget or freeze and rollback. Write /workspace/gameday/roles.txt with exactly three non-empty lines including facilitator, scribe, and on-call.'
+    hints:
+      - 'Tip code ONE_FAILURE: keep the inject to a single-pod kill.'
+      - 'Tip code ABORT_BUDGET: abort criteria must reference budget/freeze and rollback.'
+      - 'roles.txt needs facilitator, scribe, and on-call.'
+    checks:
+      - type: file
+        name: Experiment named
+        path: /workspace/chaos/experiment.yaml
+        value: payments-api-pod-kill
+      - type: file
+        name: Targets payments-api
+        path: /workspace/chaos/experiment.yaml
+        value: payments-api
+      - type: command
+        name: Action is pod kill
+        command: "grep -Eqi 'kill-pod|pod-kill' /workspace/chaos/experiment.yaml"
+      - type: command
+        name: Steady state declared
+        command: "grep -Eqi 'availability|ready' /workspace/chaos/experiment.yaml"
+      - type: command
+        name: Abort ties to reliability controls
+        command: "grep -Eqi 'error budget|freeze' /workspace/docs/ABORT.md && grep -Eqi 'rollback' /workspace/docs/ABORT.md"
+      - type: command
+        name: Roles file complete
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/gameday/roles.txt) -eq 3 ] && grep -Eqi 'facilitator' /workspace/gameday/roles.txt && grep -Eqi 'scribe' /workspace/gameday/roles.txt && grep -Eqi 'on-call|oncall' /workspace/gameday/roles.txt"
+  - id: postmortem-and-commit
+    title: Write postmortem and commit the pack
+    description: 'Create /workspace/docs/postmortem.md with headings Summary, Timeline, Root cause, Impact, and Action items. Root cause must mention chaos or inject or replica. Action items must mention alert or freeze or validation. Write /workspace/docs/LEARNING.md mentioning follow-up. Commit all changes so git status is clean and HEAD has at least two commits.'
+    hints:
+      - 'Tip code LEARN_CLOSE: action items must change alerts, freezes, or validation — not vibes.'
+      - 'Keep the postmortem blameless — systems and process.'
+      - 'Confirm git status --porcelain is empty after committing.'
+    checks:
+      - type: file
+        name: Summary present
+        path: /workspace/docs/postmortem.md
+        value: Summary
+      - type: file
+        name: Timeline present
+        path: /workspace/docs/postmortem.md
+        value: Timeline
+      - type: file
+        name: Root cause present
+        path: /workspace/docs/postmortem.md
+        value: Root cause
+      - type: file
+        name: Impact present
+        path: /workspace/docs/postmortem.md
+        value: Impact
+      - type: file
+        name: Action items present
+        path: /workspace/docs/postmortem.md
+        value: Action items
+      - type: command
+        name: Root cause mentions experiment
+        command: "grep -A4 '^#* *Root cause' /workspace/docs/postmortem.md | grep -Eqi 'chaos|inject|replica'"
+      - type: command
+        name: Action items are concrete
+        command: "grep -A4 '^#* *Action items' /workspace/docs/postmortem.md | grep -Eqi 'alert|freeze|validation'"
+      - type: file
+        name: Learning note present
+        path: /workspace/docs/LEARNING.md
+        value: follow-up
+      - type: command
+        name: Evidence pack committed
+        command: "cd /workspace && test \"$(git rev-list --count HEAD)\" -ge 2 && test -z \"$(git status --porcelain)\""
+limits: {cpus: "0.75", memory: 192m, pids: 96, timeout: 3600, network: false}
