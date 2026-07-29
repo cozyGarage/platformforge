@@ -77,18 +77,37 @@ function tipGlossaryFor(lab?: Lab) {
 
 function useLearningPathOrder() {
   const [pathLabs, setPathLabs] = useState<string[]>([])
+  const [path, setPath] = useState<LearningPath>()
   useEffect(() => {
     request<LearningPath[]>('/api/paths').then(paths => {
-      const ordered = paths[0]?.phases.flatMap(phase => phase.modules.flatMap(module => module.labs || [])) || []
-      setPathLabs(ordered)
-    }).catch(() => setPathLabs([]))
+      const first = paths[0]
+      setPath(first)
+      setPathLabs(first?.phases.flatMap(phase => phase.modules.flatMap(module => module.labs || [])) || [])
+    }).catch(() => { setPath(undefined); setPathLabs([]) })
   }, [])
   const nextLabId = (labId: string) => {
     const index = pathLabs.indexOf(labId)
     if (index < 0 || index >= pathLabs.length - 1) return undefined
     return pathLabs[index + 1]
   }
-  return { pathLabs, nextLabId }
+  return { path, pathLabs, nextLabId }
+}
+
+function useContinueLab(
+  statusFor: (id: string) => string | undefined,
+  isLocked: (lab?: Lab) => boolean,
+  labMap: Record<string, Lab>,
+) {
+  const { path, pathLabs } = useLearningPathOrder()
+  const continueLabId = path && pathLabs.find(labId => {
+    if (statusFor(labId) === 'completed') return false
+    const module = path.phases.flatMap(phase => phase.modules).find(item => item.labs.includes(labId))
+    return !!module && moduleUnlocked(module, path, statusFor) && !isLocked(labMap[labId])
+  })
+  return {
+    continueLabId,
+    continueLab: continueLabId ? labMap[continueLabId] : undefined,
+  }
 }
 
 function useLabsAndProgress() {
@@ -109,12 +128,14 @@ function useLabsAndProgress() {
 }
 
 function Catalog() {
-  const { labs, error, statusFor, scoreFor, isLocked, missingPrereqs } = useLabsAndProgress()
+  const { labs, error, statusFor, scoreFor, isLocked, missingPrereqs, labMap } = useLabsAndProgress()
+  const { continueLabId, continueLab } = useContinueLab(statusFor, isLocked, labMap)
   return <>
     <section className="hero">
       <p className="eyebrow">LOCAL-FIRST PLATFORM ENGINEERING</p>
       <h1>Learn by fixing real systems.</h1>
       <p>Short lessons. Isolated environments. Deterministic validation. Follow the <Link to="/path">DevOps Engineer Path</Link> or browse all labs.</p>
+      {continueLabId && <p className="continue-cta"><Link to={`/labs/${continueLabId}`}>Continue → {continueLab?.title || continueLabId}</Link></p>}
     </section>
     {error && <p className="error">{error}</p>}
     <section className="grid">{labs.map((lab, index) => {
@@ -148,6 +169,7 @@ function LearningPathView() {
   const { labMap, statusFor, scoreFor, error, isLocked, missingPrereqs } = useLabsAndProgress()
   const [path, setPath] = useState<LearningPath>()
   const [loadError, setLoadError] = useState('')
+  const { continueLabId, continueLab } = useContinueLab(statusFor, isLocked, labMap)
   useEffect(() => {
     request<LearningPath[]>('/api/paths').then(paths => setPath(paths[0])).catch(e => setLoadError(e.message))
   }, [])
@@ -156,12 +178,6 @@ function LearningPathView() {
   const remainingMinutes = pathLabs
     .filter(labId => statusFor(labId) !== 'completed')
     .reduce((sum, labId) => sum + (labMap[labId]?.estimatedMinutes || 0), 0)
-  const continueLabId = path && pathLabs.find(labId => {
-    if (statusFor(labId) === 'completed') return false
-    const module = path.phases.flatMap(phase => phase.modules).find(item => item.labs.includes(labId))
-    return !!module && moduleUnlocked(module, path, statusFor) && !isLocked(labMap[labId])
-  })
-  const continueLab = continueLabId ? labMap[continueLabId] : undefined
   const pathComplete = completedCount > 0 && completedCount === pathLabs.length
   if (loadError) return <p className="error">{loadError}</p>
   if (!path) return <p className="loading">Loading learning path…</p>

@@ -1,0 +1,74 @@
+version: 1
+id: oncall-handoff-basics
+title: Write an On-Call Handoff
+summary: Produce a shift handoff with severity ladder, open pages, error-budget status, and escalation contacts for payments-api.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [burn-rate-alerts]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/oncall /workspace/docs"
+  - "printf 'Ticket: outgoing on-call must hand off payments-api cleanly.\\nNeed severity ladder, open pages, budget status, escalation.\\n' > /workspace/oncall/TICKET.md"
+  - "printf 'open_pages:\\n  - PaymentsBurnFast firing since 02:10 UTC\\nbudget_remaining_percent: -0.1\\n' > /workspace/oncall/snapshot.yaml"
+tasks:
+  - id: severity-and-pages
+    title: Document severity and open pages
+    description: 'Create /workspace/oncall/HANDOFF.md with headings Severity, Open pages, and Error budget. Severity must list at least SEV1 and SEV2. Open pages must mention PaymentsBurnFast. Error budget must mention over budget or remaining. Also write /workspace/oncall/open-pages.txt containing PaymentsBurnFast on its own line.'
+    hints:
+      - 'Tip code SEV_LADDER: SEV1 pages now; SEV2 is urgent but contained.'
+      - 'Tip code OPEN_PAGES: hand off every firing page by name — do not say \"the burn alert\".'
+      - 'Pull PaymentsBurnFast from snapshot.yaml.'
+    checks:
+      - type: file
+        name: Severity section present
+        path: /workspace/oncall/HANDOFF.md
+        value: Severity
+      - type: file
+        name: Open pages section present
+        path: /workspace/oncall/HANDOFF.md
+        value: Open pages
+      - type: file
+        name: Error budget section present
+        path: /workspace/oncall/HANDOFF.md
+        value: Error budget
+      - type: command
+        name: Severity lists SEV1 and SEV2
+        command: "grep -A6 '^#* *Severity' /workspace/oncall/HANDOFF.md | grep -Fq 'SEV1' && grep -A6 '^#* *Severity' /workspace/oncall/HANDOFF.md | grep -Fq 'SEV2'"
+      - type: file
+        name: Open pages mention burn alert
+        path: /workspace/oncall/HANDOFF.md
+        value: PaymentsBurnFast
+      - type: command
+        name: Budget status called out
+        command: "grep -A4 '^#* *Error budget' /workspace/oncall/HANDOFF.md | grep -Eqi 'over budget|remaining'"
+      - type: file
+        name: Open pages file lists alert
+        path: /workspace/oncall/open-pages.txt
+        value: PaymentsBurnFast
+  - id: escalation
+    title: Add escalation path
+    description: 'Extend /workspace/oncall/HANDOFF.md with a heading Escalation that mentions platform on-call and product owner (or incident commander). Write /workspace/docs/ESCALATION.txt with exactly three non-empty lines: primary on-call, secondary on-call, and incident commander. Write /workspace/oncall/STATUS.txt containing HANDOFF_OK.'
+    hints:
+      - 'Tip code ESCALATE_NAMED: name roles, not people — primary, secondary, incident commander.'
+      - 'STATUS.txt should include HANDOFF_OK.'
+      - 'Exactly three lines in ESCALATION.txt.'
+    checks:
+      - type: file
+        name: Escalation section present
+        path: /workspace/oncall/HANDOFF.md
+        value: Escalation
+      - type: command
+        name: Escalation mentions platform or product
+        command: "grep -A4 '^#* *Escalation' /workspace/oncall/HANDOFF.md | grep -Eqi 'platform|product|incident commander'"
+      - type: command
+        name: Escalation file has three lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/docs/ESCALATION.txt) -eq 3 ]"
+      - type: command
+        name: Escalation roles listed
+        command: "grep -Eqi 'primary' /workspace/docs/ESCALATION.txt && grep -Eqi 'secondary' /workspace/docs/ESCALATION.txt && grep -Eqi 'incident commander|commander' /workspace/docs/ESCALATION.txt"
+      - type: file
+        name: Handoff status ok
+        path: /workspace/oncall/STATUS.txt
+        value: HANDOFF_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

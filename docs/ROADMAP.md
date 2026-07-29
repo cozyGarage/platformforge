@@ -21,10 +21,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA + policy + Gateway API | 16 labs |
-| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 21 labs + 5 capstones |
+| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 22 labs + 6 capstones |
 | Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
 
-### Lab inventory (90 interactive + 5 capstones)
+### Lab inventory (91 interactive + 6 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -56,7 +56,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`
 
-**Reliability / SRE** — `slo-definition-basics`, `error-budget-policy`, `burn-rate-alerts`, `chaos-experiment-basics`, `gameday-budget-freeze`
+**Reliability / SRE** — `slo-definition-basics`, `error-budget-policy`, `burn-rate-alerts`, `chaos-experiment-basics`, `gameday-budget-freeze`, `oncall-handoff-basics`
 
 **GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`
 
@@ -76,7 +76,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **AWS local sims** — `aws-iam-basics`, `aws-s3-basics`, `aws-vpc-basics`
 
-**Capstones** — `incident-capstone`, `payments-reliability-capstone`, `compliance-release-capstone`, `platform-landing-zone-capstone`, `gitops-delivery-capstone`
+**Capstones** — `incident-capstone`, `payments-reliability-capstone`, `compliance-release-capstone`, `platform-landing-zone-capstone`, `gitops-delivery-capstone`, `reliability-gameday-capstone`
 
 ## Boot.dev modules → PlatformForge status
 
@@ -140,14 +140,29 @@ UX now shipped from PatchLab:
 4. **Path remaining-time + tip-code chips** — phase/path ETA and failure tip chips on validate
 5. **Next-lab CTA + tip glossary** — after pass, continue along the path; open a lab tip glossary drawer
 6. **Tip chips → glossary** — failed-validate tip chips jump-open the matching glossary entry
-7. **Continue where you left off** — Learning Path hero links to the next incomplete unlocked lab
+7. **Continue where you left off** — Learning Path and Catalog heroes link to the next incomplete unlocked lab
 
-## Next authoring priorities
+## Roadmap phases
 
-1. Portfolio polish (real image build/push when registry tooling is available)
-2. Live etcdctl against control-plane when privileged lab runtime allows
-3. Policy/Gateway live apply labs on k3d when CRDs are available in the runtime image
-4. Reliability capstone stitching SLO burn + chaos game day + postmortem
+### Phase A — Close the reliability loop (shipped this cycle)
+1. `oncall-handoff-basics` — severity ladder, open pages, escalation roles
+2. `reliability-gameday-capstone` — burn → freeze → chaos → postmortem evidence pack
+3. Catalog Continue CTA (shared with Learning Path)
+
+### Phase B — Platform product skills (next)
+1. IDP / golden-path planning (service template, scorecard, paved road)
+2. FinOps / cost-guardrails (labels, budgets, rightsizing)
+3. Multi-env promotion ADR (Helm / GitOps / secrets)
+
+### Phase C — Runtime unlock (blocked until tooling)
+1. Portfolio real image build/push (registry available)
+2. Live `etcdctl` against control-plane (privileged runtime)
+3. Live Kyverno / Gateway apply on k3d (CRDs in lab image)
+
+### Phase D — Curriculum polish
+1. Rebalance Delivery vs Platform Engineering depth (data / compliance / bare metal)
+2. Path `comingSoon` slots for Phase C so the UI shows the future without fake labs
+3. Site/Pages curriculum index refresh after each phase
 
 ## How to add a lab
 
