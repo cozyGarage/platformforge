@@ -1,0 +1,69 @@
+version: 1
+id: redis-ha-failover-plan
+title: Plan Redis HA Failover
+summary: Document a payments Redis primary/replica topology, failover trigger, and client cutover checklist without data-loss windows.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [postgresql-pitr, observability-metrics-alerts]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/redis /workspace/docs"
+  - "printf 'Ticket: payments needs Redis HA plan.\\nPrimary/replica, failover trigger, client cutover.\\n' > /workspace/redis/TICKET.md"
+tasks:
+  - id: topology
+    title: Sketch primary/replica topology
+    description: 'Create /workspace/redis/topology.txt with exactly four non-empty lines covering: (1) primary role, (2) at least one replica, (3) replication link or async/sync note, (4) sentinel or cluster or failover manager name. Include the words primary and replica.'
+    hints:
+      - 'Tip code REDIS_TOPO: name primary, replica, and who promotes on failure.'
+      - 'Exactly four non-empty lines.'
+      - 'Mention Sentinel, cluster, or an equivalent failover manager.'
+    checks:
+      - type: file
+        name: Topology present
+        path: /workspace/redis/topology.txt
+        value: primary
+      - type: file
+        name: Replica mentioned
+        path: /workspace/redis/topology.txt
+        value: replica
+      - type: command
+        name: Failover manager named
+        command: "grep -Eqi 'sentinel|cluster|failover' /workspace/redis/topology.txt"
+      - type: command
+        name: Exactly four non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/redis/topology.txt) -eq 4 ]"
+  - id: failover-runbook
+    title: Write failover and cutover notes
+    description: 'Write /workspace/docs/FAILOVER.md with headings Trigger, Promote, and Clients. Trigger must mention health or lag or down. Promote must mention replica. Clients must mention reconnect or DNS or endpoint. Write /workspace/redis/STATUS.txt containing REDIS_HA_OK.'
+    hints:
+      - 'Tip code FAILOVER_TRIGGER: define objective failure signals before humans argue.'
+      - 'Tip code CLIENT_CUTOVER: clients must learn the new primary — reconnect/DNS/endpoint.'
+      - 'STATUS.txt should include REDIS_HA_OK.'
+    checks:
+      - type: file
+        name: Trigger section present
+        path: /workspace/docs/FAILOVER.md
+        value: Trigger
+      - type: file
+        name: Promote section present
+        path: /workspace/docs/FAILOVER.md
+        value: Promote
+      - type: file
+        name: Clients section present
+        path: /workspace/docs/FAILOVER.md
+        value: Clients
+      - type: command
+        name: Trigger mentions health signals
+        command: "grep -A3 '^#* *Trigger' /workspace/docs/FAILOVER.md | grep -Eqi 'health|lag|down'"
+      - type: command
+        name: Promote mentions replica
+        command: "grep -A3 '^#* *Promote' /workspace/docs/FAILOVER.md | grep -Eqi 'replica'"
+      - type: command
+        name: Clients mention cutover
+        command: "grep -A3 '^#* *Clients' /workspace/docs/FAILOVER.md | grep -Eqi 'reconnect|DNS|endpoint'"
+      - type: file
+        name: Redis HA status ok
+        path: /workspace/redis/STATUS.txt
+        value: REDIS_HA_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

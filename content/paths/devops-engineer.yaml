@@ -142,18 +142,24 @@ phases:
           - kubernetes-storage
           - kubernetes-backup-restore
           - kubernetes-etcd-snapshot
+        comingSoon:
+          - Live etcdctl against control-plane (runtime)
       - id: learn-policy
         title: Policy as Code
         summary: Kyverno baselines and OPA/Gatekeeper constraints for labels, digests, and cost centers.
         labs:
           - policy-kyverno-basics
           - policy-opa-constraints
+        comingSoon:
+          - Live Kyverno apply on k3d (runtime)
       - id: learn-gateway
         title: Gateway API
         summary: Replace Ingress with Gateway/HTTPRoute sketches and weighted canary splits.
         labs:
           - gateway-api-http-route
           - gateway-canary-split
+        comingSoon:
+          - Live Gateway API apply on k3d (runtime)
   - id: delivery
     title: Phase 4 — Delivery & Reliability
     summary: CI/CD pipelines, GitOps, Helm, secrets ops, observability, SLOs, and incident response.
@@ -210,6 +216,7 @@ phases:
           - platform-landing-zone-capstone
           - gitops-delivery-capstone
           - reliability-gameday-capstone
+          - platform-product-capstone
       - id: leadership
         title: Leadership Capstones
         summary: Capture decisions and run blameless learning reviews.
@@ -224,6 +231,8 @@ phases:
           - portfolio-containerize
           - portfolio-ship-k8s
           - portfolio-showcase
+        comingSoon:
+          - Portfolio registry build/push (runtime)
   - id: platform-engineering
     title: Phase 5 — Platform Engineering
     summary: Platform product skills, data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.
@@ -240,17 +249,20 @@ phases:
         labs:
           - postgresql-pitr
           - kafka-debezium-cdc
+          - redis-ha-failover-plan
       - id: compliance
         title: Compliance & Security
         labs:
           - compliance-masking
           - dora-evidence
           - pci-dss-basics
+          - soc2-change-evidence
       - id: bare-metal
         title: Bare Metal & Virtualization
         labs:
           - proxmox-planning
           - debian-platform-baseline
+          - rack-capacity-planning
       - id: aws-local
         title: AWS Local Simulations
         summary: IAM, S3, and VPC design drills without a cloud account.

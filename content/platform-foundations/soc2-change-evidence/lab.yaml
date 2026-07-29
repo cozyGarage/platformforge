@@ -1,0 +1,78 @@
+version: 1
+id: soc2-change-evidence
+title: Assemble SOC 2 Change Evidence
+summary: Build a change-evidence pack with ticket link, approval, diff summary, and post-deploy verification for a payments release.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [dora-evidence, pci-dss-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/compliance /workspace/docs"
+  - "printf 'Ticket: SOC 2 asks for change evidence on payments-api 1.8.0.\\nNeed ticket, approval, diff, verify.\\n' > /workspace/compliance/TICKET.md"
+  - "printf 'change_id: CHG-2048\\nversion: 1.8.0\\n' > /workspace/compliance/change.env"
+tasks:
+  - id: evidence-pack
+    title: Author the evidence files
+    description: 'Create /workspace/compliance/ticket.txt containing CHG-2048. Create /workspace/compliance/approval.txt mentioning approved and a role (change manager or platform lead). Create /workspace/compliance/diff-summary.md (at least 4 lines) mentioning 1.8.0 and either Helm or GitOps or values. Create /workspace/compliance/verify.txt mentioning health or smoke.'
+    hints:
+      - 'Tip code EVIDENCE_FOUR: ticket, approval, diff, verify — auditors want all four.'
+      - 'Pull CHG-2048 and 1.8.0 from change.env.'
+      - 'approval.txt must say approved and name a role.'
+    checks:
+      - type: file
+        name: Ticket id recorded
+        path: /workspace/compliance/ticket.txt
+        value: CHG-2048
+      - type: file
+        name: Approval recorded
+        path: /workspace/compliance/approval.txt
+        value: approved
+      - type: command
+        name: Approval names a role
+        command: "grep -Eqi 'change manager|platform lead|CAB|approver' /workspace/compliance/approval.txt"
+      - type: file
+        name: Diff mentions version
+        path: /workspace/compliance/diff-summary.md
+        value: "1.8.0"
+      - type: command
+        name: Diff mentions delivery system
+        command: "grep -Eqi 'Helm|GitOps|values' /workspace/compliance/diff-summary.md"
+      - type: command
+        name: Diff has depth
+        command: "[ $(wc -l < /workspace/compliance/diff-summary.md) -ge 4 ]"
+      - type: command
+        name: Verify mentions check
+        command: "grep -Eqi 'health|smoke' /workspace/compliance/verify.txt"
+  - id: evidence-index
+    title: Index the pack
+    description: 'Write /workspace/docs/EVIDENCE.md with headings Ticket, Approval, Diff, and Verify linking the four artifacts by filename. Write /workspace/compliance/STATUS.txt containing SOC2_OK.'
+    hints:
+      - 'Tip code EVIDENCE_INDEX: one index file that points auditors at each artifact.'
+      - 'STATUS.txt should include SOC2_OK.'
+      - 'Mention ticket.txt, approval.txt, diff-summary.md, verify.txt.'
+    checks:
+      - type: file
+        name: Ticket heading present
+        path: /workspace/docs/EVIDENCE.md
+        value: Ticket
+      - type: file
+        name: Approval heading present
+        path: /workspace/docs/EVIDENCE.md
+        value: Approval
+      - type: file
+        name: Diff heading present
+        path: /workspace/docs/EVIDENCE.md
+        value: Diff
+      - type: file
+        name: Verify heading present
+        path: /workspace/docs/EVIDENCE.md
+        value: Verify
+      - type: command
+        name: Index references artifacts
+        command: "grep -q 'ticket.txt' /workspace/docs/EVIDENCE.md && grep -q 'approval.txt' /workspace/docs/EVIDENCE.md && grep -q 'diff-summary.md' /workspace/docs/EVIDENCE.md && grep -q 'verify.txt' /workspace/docs/EVIDENCE.md"
+      - type: file
+        name: SOC2 status ok
+        path: /workspace/compliance/STATUS.txt
+        value: SOC2_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

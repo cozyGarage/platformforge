@@ -21,10 +21,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA + policy + Gateway API | 16 labs |
-| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 22 labs + 6 capstones |
-| Platform Engineering | Platform product, data, compliance, bare metal, AWS sims | 13 labs |
+| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 22 labs + 7 capstones |
+| Platform Engineering | Platform product, data, compliance, bare metal, AWS sims | 16 labs |
 
-### Lab inventory (94 interactive + 6 capstones)
+### Lab inventory (97 interactive + 7 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -68,17 +68,17 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **Portfolio project** — `portfolio-payments-api`, `portfolio-containerize`, `portfolio-ship-k8s`, `portfolio-showcase`
 
-**Data platform** — `postgresql-pitr`, `kafka-debezium-cdc`
+**Data platform** — `postgresql-pitr`, `kafka-debezium-cdc`, `redis-ha-failover-plan`
 
-**Compliance** — `compliance-masking`, `dora-evidence`, `pci-dss-basics`
+**Compliance** — `compliance-masking`, `dora-evidence`, `pci-dss-basics`, `soc2-change-evidence`
 
-**Bare metal** — `proxmox-planning`, `debian-platform-baseline`
+**Bare metal** — `proxmox-planning`, `debian-platform-baseline`, `rack-capacity-planning`
 
 **AWS local sims** — `aws-iam-basics`, `aws-s3-basics`, `aws-vpc-basics`
 
 **Platform product** — `idp-golden-path-basics`, `finops-cost-guardrails`, `multi-env-promotion-adr`
 
-**Capstones** — `incident-capstone`, `payments-reliability-capstone`, `compliance-release-capstone`, `platform-landing-zone-capstone`, `gitops-delivery-capstone`, `reliability-gameday-capstone`
+**Capstones** — `incident-capstone`, `payments-reliability-capstone`, `compliance-release-capstone`, `platform-landing-zone-capstone`, `gitops-delivery-capstone`, `reliability-gameday-capstone`, `platform-product-capstone`
 
 ## Boot.dev modules → PlatformForge status
 
@@ -151,21 +151,26 @@ UX now shipped from PatchLab:
 2. `reliability-gameday-capstone` — burn → freeze → chaos → postmortem evidence pack
 3. Catalog Continue CTA (shared with Learning Path)
 
-### Phase B — Platform product skills (shipped this cycle)
+### Phase B — Platform product skills (shipped)
 1. `idp-golden-path-basics` — service template, scorecard, self-service
 2. `finops-cost-guardrails` — cost labels, budget alert, rightsizing
 3. `multi-env-promotion-adr` — GitOps/Helm digest promotion ADR + checklist
 
-### Phase C — Runtime unlock (blocked until tooling)
+### Phase C — Runtime unlock (blocked until tooling; shown as comingSoon in path UI)
 1. Portfolio real image build/push (registry available)
 2. Live `etcdctl` against control-plane (privileged runtime)
 3. Live Kyverno / Gateway apply on k3d (CRDs in lab image)
 
-### Phase D — Curriculum polish (next)
-1. Rebalance Delivery vs Platform Engineering depth (data / compliance / bare metal)
-2. Path `comingSoon` slots for Phase C so the UI shows the future without fake labs
-3. Site/Pages curriculum index refresh after each phase
-4. Optional: platform-product capstone stitching IDP + FinOps + promotion ADR
+### Phase D — Curriculum polish (shipped this cycle)
+1. Platform Engineering depth — `redis-ha-failover-plan`, `soc2-change-evidence`, `rack-capacity-planning`
+2. Path `comingSoon` slots for Phase C on portfolio / etcd / policy / gateway modules
+3. Site/Pages rebuilds from path on main CI deploy
+4. `platform-product-capstone` — stitches IDP + FinOps + promotion ADR
+
+### Phase E — Next horizons
+1. Unlock Phase C when registry / privileged etcd / CRD-enabled k3d images exist
+2. Observability depth (tracing / SLI recording rules planning)
+3. Multi-cluster / fleet GitOps planning drills
 ## How to add a lab
 
 1. Create `content/<pack>/<lab-id>/lab.yaml` + `lesson.md`

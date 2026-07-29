@@ -1,0 +1,69 @@
+version: 1
+id: rack-capacity-planning
+title: Plan Rack Power and Capacity
+summary: Size a payments edge rack for power budget, network uplinks, and growth headroom before ordering hardware.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [proxmox-planning, debian-platform-baseline]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/rack /workspace/docs"
+  - "printf 'Ticket: order rack R12 for payments edge.\\nNeed power budget, uplinks, growth headroom.\\n' > /workspace/rack/TICKET.md"
+  - "printf 'servers=8\\nwatts_per_server=450\\npdu_budget_watts=5000\\nuplinks=2\\n' > /workspace/rack/inputs.env"
+tasks:
+  - id: power-budget
+    title: Compute power draw vs PDU
+    description: 'Using inputs.env, write servers count to /workspace/rack/servers.txt, total draw (8*450=3600) to /workspace/rack/draw.txt, and remaining PDU headroom (5000-3600=1400) to /workspace/rack/headroom.txt. Create /workspace/docs/POWER.md mentioning PDU and headroom.'
+    hints:
+      - 'Tip code PDU_MATH: draw = servers × watts; headroom = PDU budget − draw.'
+      - 'draw.txt should be 3600; headroom.txt should be 1400.'
+      - 'POWER.md should mention PDU and headroom.'
+    checks:
+      - type: file
+        name: Server count recorded
+        path: /workspace/rack/servers.txt
+        value: "8"
+      - type: file
+        name: Draw recorded
+        path: /workspace/rack/draw.txt
+        value: "3600"
+      - type: file
+        name: Headroom recorded
+        path: /workspace/rack/headroom.txt
+        value: "1400"
+      - type: file
+        name: Power note mentions PDU
+        path: /workspace/docs/POWER.md
+        value: PDU
+      - type: file
+        name: Power note mentions headroom
+        path: /workspace/docs/POWER.md
+        value: headroom
+  - id: uplinks-and-growth
+    title: Document uplinks and growth
+    description: 'Write /workspace/rack/NETWORK.md with headings Uplinks and Growth. Uplinks must mention 2 or dual. Growth must mention spare or headroom or expand. Write /workspace/rack/STATUS.txt containing RACK_OK.'
+    hints:
+      - 'Tip code DUAL_UPLINK: edge racks need redundant uplinks, not a single cable hope.'
+      - 'Tip code GROWTH_SLOT: leave spare power/ports for the next four servers.'
+      - 'STATUS.txt should include RACK_OK.'
+    checks:
+      - type: file
+        name: Uplinks section present
+        path: /workspace/rack/NETWORK.md
+        value: Uplinks
+      - type: file
+        name: Growth section present
+        path: /workspace/rack/NETWORK.md
+        value: Growth
+      - type: command
+        name: Uplinks mention redundancy
+        command: "grep -A3 '^#* *Uplinks' /workspace/rack/NETWORK.md | grep -Eqi '2|dual'"
+      - type: command
+        name: Growth mentions spare capacity
+        command: "grep -A3 '^#* *Growth' /workspace/rack/NETWORK.md | grep -Eqi 'spare|headroom|expand'"
+      - type: file
+        name: Rack status ok
+        path: /workspace/rack/STATUS.txt
+        value: RACK_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

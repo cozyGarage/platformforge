@@ -1,0 +1,95 @@
+version: 1
+id: platform-product-capstone
+title: Capstone — Platform Product Pack
+summary: 'Assemble a platform-product pack: golden-path template + scorecard, FinOps labels/budget, multi-env promotion ADR, and a clean commit.'
+difficulty: capstone
+estimatedMinutes: 70
+prerequisites: [idp-golden-path-basics, finops-cost-guardrails, multi-env-promotion-adr]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "apk add --no-cache git >/dev/null"
+  - "mkdir -p /workspace/idp /workspace/finops /workspace/docs/adr"
+  - "cd /workspace && git init -q && git config user.email learner@platformforge.local && git config user.name Learner"
+  - "printf 'Ticket: ship the platform product pack for payments services.\\nTemplate, scorecard, FinOps labels, promotion ADR, commit.\\n' > /workspace/TICKET.md"
+  - "cd /workspace && git add . && git commit -qm 'platform product draft'"
+tasks:
+  - id: golden-path-pack
+    title: Produce template and scorecard
+    description: 'Create /workspace/idp/template-layout.txt with exactly five non-empty lines covering source, Dockerfile or Containerfile, Helm or manifests, CI, and README. Write /workspace/docs/SCORECARD.md with headings Required and Optional; Required must mention health and owner or team.'
+    hints:
+      - 'Tip code PAVED_ROAD: template is the default path.'
+      - 'Tip code SCORECARD_GATE: Required blocks the paved road.'
+      - 'Exactly five template lines.'
+    checks:
+      - type: command
+        name: Template has five lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/idp/template-layout.txt) -eq 5 ]"
+      - type: command
+        name: Template mentions build and deploy
+        command: "grep -Eqi 'Dockerfile|Containerfile' /workspace/idp/template-layout.txt && grep -Eqi 'Helm|manifests' /workspace/idp/template-layout.txt && grep -Eqi 'CI|pipeline' /workspace/idp/template-layout.txt"
+      - type: file
+        name: Scorecard Required
+        path: /workspace/docs/SCORECARD.md
+        value: Required
+      - type: file
+        name: Scorecard Optional
+        path: /workspace/docs/SCORECARD.md
+        value: Optional
+      - type: command
+        name: Required mentions health and ownership
+        command: "grep -A4 '^#* *Required' /workspace/docs/SCORECARD.md | grep -Eqi 'health' && grep -A4 '^#* *Required' /workspace/docs/SCORECARD.md | grep -Eqi 'owner|team'"
+  - id: finops-and-adr
+    title: Add FinOps guardrails and promotion ADR
+    description: 'Create /workspace/finops/labels.yaml with team: payments and service: payments-api plus an env or environment label. Create /workspace/finops/budget-alert.yaml named PaymentsMonthlyBudget with threshold 80 or 80%. Create /workspace/docs/adr/0002-multi-env-promotion.md with Status Accepted, Decision mentioning GitOps or Helm values, and Consequences mentioning digest.'
+    hints:
+      - 'Tip code COST_LABELS: team + service + env.'
+      - 'Tip code PROMOTE_GIT: Decision chooses GitOps/Helm values over laptop kubectl.'
+      - 'Status must include Accepted.'
+    checks:
+      - type: file
+        name: Team label set
+        path: /workspace/finops/labels.yaml
+        value: "team: payments"
+      - type: file
+        name: Service label set
+        path: /workspace/finops/labels.yaml
+        value: payments-api
+      - type: command
+        name: Env label present
+        command: "grep -Eq 'env:|environment:' /workspace/finops/labels.yaml"
+      - type: file
+        name: Budget alert named
+        path: /workspace/finops/budget-alert.yaml
+        value: PaymentsMonthlyBudget
+      - type: command
+        name: Budget threshold ~80
+        command: "grep -Eq '80%|80' /workspace/finops/budget-alert.yaml"
+      - type: command
+        name: ADR accepted
+        command: "grep -A2 '^#* *Status' /workspace/docs/adr/0002-multi-env-promotion.md | grep -Fq 'Accepted'"
+      - type: command
+        name: ADR decision is GitOps/Helm
+        command: "grep -A6 '^#* *Decision' /workspace/docs/adr/0002-multi-env-promotion.md | grep -Eqi 'GitOps|Helm values|values-'"
+      - type: command
+        name: ADR consequences mention digest
+        command: "grep -A6 '^#* *Consequences' /workspace/docs/adr/0002-multi-env-promotion.md | grep -Eqi 'digest'"
+  - id: pack-commit
+    title: Index and commit
+    description: 'Write /workspace/docs/PLATFORM_PACK.md mentioning golden path, FinOps, and promotion. Write /workspace/idp/STATUS.txt containing PLATFORM_OK. Commit all changes so git status is clean and HEAD has at least two commits.'
+    hints:
+      - 'Tip code PACK_INDEX: one pack note that names the three product pillars.'
+      - 'STATUS.txt should include PLATFORM_OK.'
+      - 'Confirm git status --porcelain is empty after committing.'
+    checks:
+      - type: command
+        name: Pack note covers pillars
+        command: "grep -Eqi 'golden path|template|scorecard' /workspace/docs/PLATFORM_PACK.md && grep -Eqi 'FinOps|cost|budget' /workspace/docs/PLATFORM_PACK.md && grep -Eqi 'promotion|GitOps|ADR' /workspace/docs/PLATFORM_PACK.md"
+      - type: file
+        name: Platform status ok
+        path: /workspace/idp/STATUS.txt
+        value: PLATFORM_OK
+      - type: command
+        name: Pack committed
+        command: "cd /workspace && test \"$(git rev-list --count HEAD)\" -ge 2 && test -z \"$(git status --porcelain)\""
+limits: {cpus: "0.75", memory: 192m, pids: 96, timeout: 3600, network: false}
