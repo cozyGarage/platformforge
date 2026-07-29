@@ -22,9 +22,9 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA + policy + Gateway API | 16 labs |
 | Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 22 labs + 6 capstones |
-| Platform Engineering | Data, compliance, bare metal, AWS sims | 10 labs |
+| Platform Engineering | Platform product, data, compliance, bare metal, AWS sims | 13 labs |
 
-### Lab inventory (91 interactive + 6 capstones)
+### Lab inventory (94 interactive + 6 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -75,6 +75,8 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 **Bare metal** — `proxmox-planning`, `debian-platform-baseline`
 
 **AWS local sims** — `aws-iam-basics`, `aws-s3-basics`, `aws-vpc-basics`
+
+**Platform product** — `idp-golden-path-basics`, `finops-cost-guardrails`, `multi-env-promotion-adr`
 
 **Capstones** — `incident-capstone`, `payments-reliability-capstone`, `compliance-release-capstone`, `platform-landing-zone-capstone`, `gitops-delivery-capstone`, `reliability-gameday-capstone`
 
@@ -144,26 +146,26 @@ UX now shipped from PatchLab:
 
 ## Roadmap phases
 
-### Phase A — Close the reliability loop (shipped this cycle)
+### Phase A — Close the reliability loop (shipped)
 1. `oncall-handoff-basics` — severity ladder, open pages, escalation roles
 2. `reliability-gameday-capstone` — burn → freeze → chaos → postmortem evidence pack
 3. Catalog Continue CTA (shared with Learning Path)
 
-### Phase B — Platform product skills (next)
-1. IDP / golden-path planning (service template, scorecard, paved road)
-2. FinOps / cost-guardrails (labels, budgets, rightsizing)
-3. Multi-env promotion ADR (Helm / GitOps / secrets)
+### Phase B — Platform product skills (shipped this cycle)
+1. `idp-golden-path-basics` — service template, scorecard, self-service
+2. `finops-cost-guardrails` — cost labels, budget alert, rightsizing
+3. `multi-env-promotion-adr` — GitOps/Helm digest promotion ADR + checklist
 
 ### Phase C — Runtime unlock (blocked until tooling)
 1. Portfolio real image build/push (registry available)
 2. Live `etcdctl` against control-plane (privileged runtime)
 3. Live Kyverno / Gateway apply on k3d (CRDs in lab image)
 
-### Phase D — Curriculum polish
+### Phase D — Curriculum polish (next)
 1. Rebalance Delivery vs Platform Engineering depth (data / compliance / bare metal)
 2. Path `comingSoon` slots for Phase C so the UI shows the future without fake labs
 3. Site/Pages curriculum index refresh after each phase
-
+4. Optional: platform-product capstone stitching IDP + FinOps + promotion ADR
 ## How to add a lab
 
 1. Create `content/<pack>/<lab-id>/lab.yaml` + `lesson.md`

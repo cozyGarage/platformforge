@@ -1,0 +1,90 @@
+version: 1
+id: multi-env-promotion-adr
+title: ADR — Multi-Env Promotion Path
+summary: Record an ADR choosing digest-pinned Helm values promotion via GitOps over imperative kubectl per environment.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [helm-values-overrides, gitops-manifest-sync, secrets-external-operator, leadership-adr]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/docs/adr /workspace/context"
+  - "printf 'Options on the table:\\nA) kubectl apply per env from laptops\\nB) Helm values-<env>.yaml promoted in Git, synced by GitOps, secrets via ExternalSecret\\nConstraints: auditability, same digest upward, no plaintext secrets in Git.\\n' > /workspace/context/notes.txt"
+tasks:
+  - id: write-adr
+    title: Author the promotion ADR
+    description: 'Create /workspace/docs/adr/0002-multi-env-promotion.md with headings Status, Context, Decision, and Consequences. Status must be Accepted. Decision must choose GitOps (or Helm values promotion) and reject kubectl-from-laptop as the primary path. Consequences must mention digest and ExternalSecret or secrets. Also write /workspace/docs/adr/README.md linking to 0002-multi-env-promotion.md.'
+    hints:
+      - 'Tip code PROMOTE_GIT: promotions are Git commits of values/overlays — not laptop kubectl.'
+      - 'Tip code DIGEST_UP: same image digest moves dev → stage → prod.'
+      - 'Status should include Accepted.'
+    checks:
+      - type: file
+        name: ADR exists
+        path: /workspace/docs/adr/0002-multi-env-promotion.md
+        value: Status
+      - type: file
+        name: Context section
+        path: /workspace/docs/adr/0002-multi-env-promotion.md
+        value: Context
+      - type: file
+        name: Decision section
+        path: /workspace/docs/adr/0002-multi-env-promotion.md
+        value: Decision
+      - type: file
+        name: Consequences section
+        path: /workspace/docs/adr/0002-multi-env-promotion.md
+        value: Consequences
+      - type: command
+        name: Status is Accepted
+        command: "grep -A2 '^#* *Status' /workspace/docs/adr/0002-multi-env-promotion.md | grep -Fq 'Accepted'"
+      - type: command
+        name: Decision chooses GitOps/Helm path
+        command: "grep -A6 '^#* *Decision' /workspace/docs/adr/0002-multi-env-promotion.md | grep -Eqi 'GitOps|Helm values|values-'"
+      - type: command
+        name: Decision rejects laptop kubectl primary
+        command: "grep -A8 '^#* *Decision' /workspace/docs/adr/0002-multi-env-promotion.md | grep -Eqi 'kubectl|laptop'"
+      - type: command
+        name: Consequences mention digest
+        command: "grep -A6 '^#* *Consequences' /workspace/docs/adr/0002-multi-env-promotion.md | grep -Eqi 'digest'"
+      - type: command
+        name: Consequences mention secrets approach
+        command: "grep -A6 '^#* *Consequences' /workspace/docs/adr/0002-multi-env-promotion.md | grep -Eqi 'ExternalSecret|secrets'"
+      - type: file
+        name: ADR index links decision
+        path: /workspace/docs/adr/README.md
+        value: 0002-multi-env-promotion.md
+  - id: promote-checklist
+    title: Add a promote checklist
+    description: 'Write /workspace/docs/PROMOTE.md with headings Dev, Stage, and Prod. Dev must mention values-dev or overlays/dev. Stage must mention digest. Prod must mention ExternalSecret or freeze or approval. Write /workspace/docs/adr/STATUS.txt containing ADR_OK.'
+    hints:
+      - 'Tip code ENV_LADDER: dev first, then stage, then prod — same digest.'
+      - 'STATUS.txt should include ADR_OK.'
+      - 'Keep headings scannable for release managers.'
+    checks:
+      - type: file
+        name: Dev section present
+        path: /workspace/docs/PROMOTE.md
+        value: Dev
+      - type: file
+        name: Stage section present
+        path: /workspace/docs/PROMOTE.md
+        value: Stage
+      - type: file
+        name: Prod section present
+        path: /workspace/docs/PROMOTE.md
+        value: Prod
+      - type: command
+        name: Dev mentions values or overlay
+        command: "grep -A3 '^#* *Dev' /workspace/docs/PROMOTE.md | grep -Eqi 'values-dev|overlays/dev|dev'"
+      - type: command
+        name: Stage mentions digest
+        command: "grep -A3 '^#* *Stage' /workspace/docs/PROMOTE.md | grep -Eqi 'digest'"
+      - type: command
+        name: Prod mentions control gate
+        command: "grep -A3 '^#* *Prod' /workspace/docs/PROMOTE.md | grep -Eqi 'ExternalSecret|freeze|approval'"
+      - type: file
+        name: ADR status ok
+        path: /workspace/docs/adr/STATUS.txt
+        value: ADR_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
