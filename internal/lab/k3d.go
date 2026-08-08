@@ -223,18 +223,6 @@ func kubectlApplyURL(ctx context.Context, kubeconfig, url string) error {
 	return kubectl(ctx, kubeconfig, "apply", "--server-side", "--force-conflicts", "-f", url)
 }
 
-func kubectlWait(ctx context.Context, kubeconfig, kind, name, ns, timeout string) error {
-	args := []string{"--kubeconfig", kubeconfig, "wait", "--for=condition=available", kind + "/" + name, "--timeout=" + timeout}
-	if ns != "" {
-		args = append(args, "-n", ns)
-	}
-	out, err := exec.CommandContext(ctx, "kubectl", args...).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("%w: %s", err, strings.TrimSpace(string(out)))
-	}
-	return nil
-}
-
 func deleteK3dCluster(ctx context.Context, name string) error {
 	if name == "" {
 		return nil
