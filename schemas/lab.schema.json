@@ -19,7 +19,22 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "type": { "enum": ["container", "k3d"] }
+        "type": { "enum": ["container", "k3d"] },
+        "addons": {
+          "type": "array",
+          "items": { "enum": ["kyverno", "gateway", "etcd-snapshot", "registry"] },
+          "uniqueItems": true
+        },
+        "hostBuild": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dockerfile", "context", "image"],
+          "properties": {
+            "dockerfile": { "type": "string", "minLength": 1 },
+            "context": { "type": "string", "minLength": 1 },
+            "image": { "type": "string", "minLength": 1 }
+          }
+        }
       }
     },
     "setup": { "type": "array", "items": { "type": "string" } },

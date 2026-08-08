@@ -17,6 +17,19 @@ Manifests follow `schemas/lab.schema.json`. Use versioned, minimal images and de
 
 Never place credentials in a lab, mount the host Docker socket, request privileged containers, or rely on hidden learner command history. Validate the desired end state so learners can discover alternative correct solutions.
 
+### k3d runtime addons
+
+For `runtime.type: k3d`, optional `runtime.addons` let the host prepare cluster capabilities **before** the learner shell starts (still no privileged lab containers, still no docker.sock):
+
+| Addon | Host behavior |
+|-------|----------------|
+| `kyverno` | `kubectl apply` Kyverno install; wait for admission controller |
+| `gateway` | Install Gateway API CRDs (`standard-install`) |
+| `etcd-snapshot` | `docker exec` into the k3d server node, take an etcd/k3s snapshot, mount `snapshot.db` into the lab |
+| `registry` | `k3d cluster create --registry-create`; export `REGISTRY` / `REGISTRY_HOST` |
+
+Optional `runtime.hostBuild` (requires `registry`) copies the lab build context to the host, runs `docker build` / `docker push`, and writes `/workspace/IMAGE` for deploy tasks. Learners author the Dockerfile; they never receive a Docker socket.
+
 Every task needs a clear objective, progressive hints, actionable validation names, deterministic reset through setup commands, and a lesson explaining the operational reason behind the exercise.
 
 ### Pedagogy notes (shared with PatchLab)

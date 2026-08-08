@@ -1,19 +1,19 @@
-# Plan Kyverno Baseline Policies
+# Apply Kyverno Baseline Policies
 
-Kyverno admits (or denies) Kubernetes objects with policies that read like YAML you already know.
+Kyverno admits (or denies) Kubernetes objects with policies that read like YAML you already know — and this lab applies them on a live k3d cluster.
 
 ## Why it matters
 
-Without admission baselines, unlabeled workloads and `:latest` tags slip into prod and break audits, rollbacks, and GitOps digests.
+Planning YAML is not enough. Admission only protects the cluster after `kubectl apply` and the webhook is Ready.
 
 ## Ticket focus
 
-1. `require-app-label` ClusterPolicy
-2. `block-latest-tag` ClusterPolicy
-3. Short POLICY.md summary
+1. ClusterPolicy `require-app-label` with Enforce
+2. ClusterPolicy `block-latest-tag`
+3. Apply both; confirm with `kubectl get clusterpolicy`
 
 ## Tip codes
 
-- `KYN_LABEL` — validate `metadata.labels.app`
-- `KYN_ENFORCE` — prefer Enforce for prod baselines
-- `NO_LATEST_TAG` — deny container images tagged `:latest`
+- `KYN_LABEL` — validate metadata.labels.app exists
+- `KYN_ENFORCE` — validationFailureAction: Enforce
+- `NO_LATEST_TAG` — deny images tagged :latest

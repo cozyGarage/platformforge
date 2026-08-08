@@ -119,7 +119,7 @@ phases:
           - sql-window-functions
   - id: kubernetes
     title: Phase 3 — Kubernetes
-    summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls, admission policy, and Gateway API planning.
+    summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls, admission policy, and Gateway API.
     modules:
       - id: learn-kubernetes
         title: Learn Kubernetes
@@ -142,24 +142,18 @@ phases:
           - kubernetes-storage
           - kubernetes-backup-restore
           - kubernetes-etcd-snapshot
-        comingSoon:
-          - Live etcdctl against control-plane (runtime)
       - id: learn-policy
         title: Policy as Code
         summary: Kyverno baselines and OPA/Gatekeeper constraints for labels, digests, and cost centers.
         labs:
           - policy-kyverno-basics
           - policy-opa-constraints
-        comingSoon:
-          - Live Kyverno apply on k3d (runtime)
       - id: learn-gateway
         title: Gateway API
-        summary: Replace Ingress with Gateway/HTTPRoute sketches and weighted canary splits.
+        summary: Replace Ingress with Gateway/HTTPRoute objects and weighted canary splits.
         labs:
           - gateway-api-http-route
           - gateway-canary-split
-        comingSoon:
-          - Live Gateway API apply on k3d (runtime)
   - id: delivery
     title: Phase 4 — Delivery & Reliability
     summary: CI/CD pipelines, GitOps, Helm, secrets ops, observability, SLOs, and incident response.
@@ -237,8 +231,6 @@ phases:
           - portfolio-containerize
           - portfolio-ship-k8s
           - portfolio-showcase
-        comingSoon:
-          - Portfolio registry build/push (runtime)
   - id: platform-engineering
     title: Phase 5 — Platform Engineering
     summary: Platform product skills, data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.
