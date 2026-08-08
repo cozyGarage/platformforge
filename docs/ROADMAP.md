@@ -50,9 +50,9 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`, `kubernetes-ingress`, `kubernetes-storage`, `kubernetes-backup-restore`, `kubernetes-etcd-snapshot`
 
-**Policy as code** — `policy-kyverno-basics`, `policy-opa-constraints`
+**Policy as code** — `policy-kyverno-basics` (live Kyverno on k3d), `policy-opa-constraints`
 
-**Gateway API** — `gateway-api-http-route`, `gateway-canary-split`
+**Gateway API** — `gateway-api-http-route` (live CRD apply on k3d), `gateway-canary-split`
 
 **CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`, `observability-tracing-plan`, `observability-sli-recording-rules`, `observability-otel-collector-plan`, `observability-correlation-plan`
 
@@ -156,10 +156,10 @@ UX now shipped from PatchLab:
 2. `finops-cost-guardrails` — cost labels, budget alert, rightsizing
 3. `multi-env-promotion-adr` — GitOps/Helm digest promotion ADR + checklist
 
-### Phase C — Runtime unlock (blocked until tooling; shown as comingSoon in path UI)
-1. Portfolio real image build/push (registry available)
-2. Live `etcdctl` against control-plane (privileged runtime)
-3. Live Kyverno / Gateway apply on k3d (CRDs in lab image)
+### Phase C — Runtime unlock (shipped this cycle)
+1. Portfolio registry build/push — `portfolio-ship-k8s` uses `addons: [registry]` + `hostBuild` (no docker.sock)
+2. Live etcd snapshot — `kubernetes-etcd-snapshot` mounts a real control-plane snapshot via host `docker exec` on the k3d server (lab stays unprivileged)
+3. Live Kyverno / Gateway apply — `policy-kyverno-basics` and `gateway-api-http-route` use `addons: [kyverno]` / `[gateway]`
 
 ### Phase D — Curriculum polish (shipped this cycle)
 1. Platform Engineering depth — `redis-ha-failover-plan`, `soc2-change-evidence`, `rack-capacity-planning`
@@ -167,22 +167,20 @@ UX now shipped from PatchLab:
 3. Site/Pages rebuilds from path on main CI deploy
 4. `platform-product-capstone` — stitches IDP + FinOps + promotion ADR
 
-### Phase E — Observability depth & fleet GitOps (shipped this cycle)
+### Phase E — Observability depth & fleet GitOps (shipped)
 1. `observability-tracing-plan` — span map, W3C propagation, sampling policy
 2. `observability-sli-recording-rules` — availability/latency recording rules feeding burn-rate alerts
 3. `gitops-fleet-multi-cluster` — hub/spoke fleet layout, cluster selectors, wave promotion
-4. Phase C runtime unlock remains blocked (registry / privileged etcd / CRD-enabled k3d)
 
-### Phase F — OTel pipeline, correlation & sync waves (shipped this cycle)
+### Phase F — OTel pipeline, correlation & sync waves (shipped)
 1. `observability-otel-collector-plan` — receivers → processors → Tempo/Prometheus exporters
 2. `observability-correlation-plan` — shared IDs, exemplars, alert → trace → logs runbook
 3. `gitops-sync-waves-plan` — canary waves, health gates, fail-closed rollback
-4. Phase C runtime unlock remains blocked (registry / privileged etcd / CRD-enabled k3d)
 
 ### Phase G — Next horizons
-1. Unlock Phase C when registry / privileged etcd / CRD-enabled k3d images exist
-2. Observability runtime (OTel collector + Tempo/Jaeger in lab image)
-3. Fleet GitOps apply against multi-cluster k3d (when available)
+1. Observability runtime (OTel collector + Tempo/Jaeger in lab image)
+2. Fleet GitOps apply against multi-cluster k3d
+3. Gateway data-plane controller (beyond CRD apply) + Kyverno mutate/generate drills
 ## How to add a lab
 
 1. Create `content/<pack>/<lab-id>/lab.yaml` + `lesson.md`

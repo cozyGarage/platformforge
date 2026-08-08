@@ -1,25 +1,62 @@
 version: 1
 id: portfolio-ship-k8s
-title: Portfolio — Ship to Kubernetes
-summary: Deploy the payments API with Deployment, Service, and Ingress on a live k3d cluster.
+title: Portfolio — Build, Push, and Ship to Kubernetes
+summary: Author a Dockerfile, let the host build/push to a k3d registry, then deploy Deployment/Service/Ingress using that image (not a public nginx stand-in).
 difficulty: advanced
-estimatedMinutes: 45
+estimatedMinutes: 55
 prerequisites: [portfolio-containerize, kubernetes-ingress]
 image: alpine/k8s:1.31.4
 shell: /bin/bash
 runtime:
   type: k3d
+  addons: [registry]
+  hostBuild:
+    dockerfile: Dockerfile
+    context: /workspace/app
+    image: payments-api:lab
 setup:
-  - "mkdir -p /workspace/k8s"
+  - "mkdir -p /workspace/k8s /workspace/app"
+  - "printf 'Ticket: ship payments-api from a local registry.\\n1) Finish Dockerfile under /workspace/app\\n2) Validate builds+pushes via PlatformForge host build\\n3) Deploy using the image in /workspace/IMAGE\\n' > /workspace/TICKET.md"
+  - "printf 'module payments\\n\\ngo 1.22\\n' > /workspace/app/go.mod"
+  - "printf 'package main\\n\\nimport (\\n\\t\"fmt\"\\n\\t\"net/http\"\\n)\\n\\nfunc main() {\\n\\thttp.HandleFunc(\"/health\", func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, \"ok\") })\\n\\thttp.ListenAndServe(\":8080\", nil)\\n}\\n' > /workspace/app/main.go"
+  - "printf '// incomplete — learner finishes Dockerfile\\n' > /workspace/app/Dockerfile"
 tasks:
-  - id: release-manifests
-    title: Deploy payments on k3d
-    description: 'Create and apply /workspace/k8s/deployment.yaml (Deployment payments, image nginx:1.27-alpine as stand-in, label app=payments, 2 replicas), /workspace/k8s/service.yaml (Service payments port 80 → app=payments), and /workspace/k8s/ingress.yaml (host payments.local path / → Service payments:80). Wait until pods are Ready.'
+  - id: dockerfile
+    title: Finish the image Dockerfile
+    description: 'Write /workspace/app/Dockerfile that builds from golang:1.22-alpine, compiles main.go to /payments, runs as non-root USER 1000 or app, EXPOSE 8080, and CMD/ENTRYPOINT the binary. Do not use latest tags. On validate, PlatformForge builds and pushes to the lab registry (no docker.sock in the lab).'
     hints:
-      - Use nginx:1.27-alpine as the demo image stand-in for the API container.
-      - Service selector must match pod labels app=payments.
-      - Ingress host payments.local with Prefix path /.
+      - 'Tip code REG_DOCKERFILE: pin golang:1.22-alpine; never latest.'
+      - 'USER app or USER 1000 after adduser/addgroup.'
+      - 'Validate triggers host build+push; then /workspace/IMAGE appears.'
     checks:
+      - type: command
+        name: Golang base pinned
+        command: "grep -Eq 'FROM golang:1\\.22-alpine' /workspace/app/Dockerfile"
+      - type: command
+        name: No latest tag
+        command: "! grep -Eqi 'latest' /workspace/app/Dockerfile"
+      - type: command
+        name: Non-root user
+        command: "grep -Eq '^USER (app|1000)$' /workspace/app/Dockerfile"
+      - type: file
+        name: Exposes 8080
+        path: /workspace/app/Dockerfile
+        value: "8080"
+      - type: command
+        name: Starts the service
+        command: "grep -Eq '^(CMD|ENTRYPOINT)' /workspace/app/Dockerfile"
+  - id: release-manifests
+    title: Deploy the registry image on k3d
+    description: 'After validate builds the image, /workspace/IMAGE contains the deploy reference. Create and apply /workspace/k8s/deployment.yaml (Deployment payments, 2 replicas, label app=payments, container image MUST equal $(cat /workspace/IMAGE) — not nginx; set imagePullPolicy: IfNotPresent), /workspace/k8s/service.yaml (Service payments port 80 → targetPort 8080), and /workspace/k8s/ingress.yaml (host payments.local path / → Service payments:80). Wait until pods are Ready.'
+    hints:
+      - 'Tip code REG_IMAGE: image: $(cat /workspace/IMAGE) — never nginx stand-ins.'
+      - 'Set imagePullPolicy: IfNotPresent when using a local registry/import.'
+      - 'Service targetPort must be 8080 to match EXPOSE.'
+    checks:
+      - type: file
+        name: IMAGE ref written
+        path: /workspace/IMAGE
+        value: payments-api:lab
       - type: file
         name: Deployment manifest
         path: /workspace/k8s/deployment.yaml
@@ -28,6 +65,12 @@ tasks:
         name: Two replicas
         path: /workspace/k8s/deployment.yaml
         value: "replicas: 2"
+      - type: command
+        name: Uses registry image
+        command: "IMG=$(tr -d '[:space:]' < /workspace/IMAGE); grep -Fq \"$IMG\" /workspace/k8s/deployment.yaml"
+      - type: command
+        name: Not nginx stand-in
+        command: "! grep -Eqi 'nginx' /workspace/k8s/deployment.yaml"
       - type: file
         name: Service manifest
         path: /workspace/k8s/service.yaml
@@ -47,5 +90,5 @@ tasks:
         command: kubectl get ingress payments
       - type: kubernetes
         name: Pods ready
-        command: kubectl wait --for=condition=ready pod -l app=payments --timeout=120s
-limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}
+        command: kubectl wait --for=condition=ready pod -l app=payments --timeout=180s
+limits: {cpus: "1.5", memory: 768m, pids: 256, timeout: 3600, network: true}

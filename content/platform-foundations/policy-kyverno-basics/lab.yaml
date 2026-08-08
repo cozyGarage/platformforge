@@ -1,23 +1,27 @@
 version: 1
 id: policy-kyverno-basics
-title: Plan Kyverno Baseline Policies
-summary: Author Kyverno ClusterPolicy sketches that require app labels and block :latest images for payments workloads.
+title: Apply Kyverno Baseline Policies
+summary: Author and apply Kyverno ClusterPolicies on a live k3d cluster that require app labels and block :latest images.
 difficulty: intermediate
-estimatedMinutes: 30
+estimatedMinutes: 40
 prerequisites: [kubernetes-rbac, kubernetes-deploy]
-image: alpine:3.21
-shell: /bin/sh
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+  addons: [kyverno]
 setup:
   - "mkdir -p /workspace/policy /workspace/docs"
-  - "printf 'Ticket: payments cluster needs admission baselines.\\nRequire app label; block image tags ending in :latest.\\n' > /workspace/policy/TICKET.md"
+  - "printf 'Ticket: payments cluster needs admission baselines.\\nRequire app label; block image tags ending in :latest.\\nApply with kubectl — Kyverno is already installed.\\n' > /workspace/policy/TICKET.md"
+  - "kubectl wait --for=condition=established crd/clusterpolicies.kyverno.io --timeout=120s"
 tasks:
   - id: require-labels
     title: Require app labels
-    description: 'Create /workspace/policy/require-labels.yaml with kind: ClusterPolicy, metadata.name require-app-label, and a rule that mentions validation or validate plus the label key app. Include the word enforce or Enforce somewhere in the file.'
+    description: 'Create /workspace/policy/require-labels.yaml with kind: ClusterPolicy, metadata.name require-app-label, and a validate rule that requires metadata.labels.app (or app.kubernetes.io/name). Set validationFailureAction to Enforce. Apply it with kubectl apply -f.'
     hints:
       - 'Tip code KYN_LABEL: baseline ClusterPolicy should validate that metadata.labels.app exists.'
-      - 'Tip code KYN_ENFORCE: set failure/action semantics toward Enforce for prod baselines.'
-      - 'Include kind: ClusterPolicy and name require-app-label.'
+      - 'Tip code KYN_ENFORCE: set validationFailureAction: Enforce for prod baselines.'
+      - 'kubectl apply -f /workspace/policy/require-labels.yaml'
     checks:
       - type: file
         name: ClusterPolicy kind
@@ -37,9 +41,12 @@ tasks:
       - type: command
         name: Mentions enforce
         command: "grep -Eqi 'enforce' /workspace/policy/require-labels.yaml"
+      - type: kubernetes
+        name: Policy applied
+        command: kubectl get clusterpolicy require-app-label
   - id: block-latest
     title: Block latest tags
-    description: 'Create /workspace/policy/block-latest.yaml with kind: ClusterPolicy, metadata.name block-latest-tag, and content that rejects or denies images containing :latest. Mention image or containers. Write /workspace/docs/POLICY.md with headings Labels and Images summarizing both policies. Write /workspace/policy/STATUS.txt containing KYVERNO_OK.'
+    description: 'Create /workspace/policy/block-latest.yaml with kind: ClusterPolicy, metadata.name block-latest-tag, that denies images containing :latest. Apply it. Write /workspace/docs/POLICY.md with headings Labels and Images. Write /workspace/policy/STATUS.txt containing KYVERNO_OK.'
     hints:
       - 'Tip code NO_LATEST_TAG: admission should deny container images tagged :latest.'
       - 'POLICY.md should be scannable with Labels and Images headings.'
@@ -60,6 +67,9 @@ tasks:
       - type: command
         name: Mentions image or containers
         command: "grep -Eqi 'image|containers' /workspace/policy/block-latest.yaml"
+      - type: kubernetes
+        name: Block-latest applied
+        command: kubectl get clusterpolicy block-latest-tag
       - type: file
         name: Labels section present
         path: /workspace/docs/POLICY.md
@@ -72,4 +82,4 @@ tasks:
         name: Kyverno status ok
         path: /workspace/policy/STATUS.txt
         value: KYVERNO_OK
-limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+limits: {cpus: "1.0", memory: 768m, pids: 256, timeout: 3600, network: true}

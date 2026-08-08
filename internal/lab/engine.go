@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -17,13 +19,16 @@ import (
 )
 
 type Session struct {
-	ID         string    `json:"id"`
-	LabID      string    `json:"labId"`
-	Container  string    `json:"container"`
-	Cluster    string    `json:"cluster,omitempty"`
-	Kubeconfig string    `json:"-"`
-	StartedAt  time.Time `json:"startedAt"`
-	Running    bool      `json:"running"`
+	ID           string    `json:"id"`
+	LabID        string    `json:"labId"`
+	Container    string    `json:"container"`
+	Cluster      string    `json:"cluster,omitempty"`
+	Kubeconfig   string    `json:"-"`
+	ArtifactDir  string    `json:"-"`
+	Registry     string    `json:"-"`
+	RegistryHost string    `json:"-"`
+	StartedAt    time.Time `json:"startedAt"`
+	Running      bool      `json:"running"`
 }
 
 type CheckResult struct {
@@ -84,15 +89,15 @@ func (e *Engine) Start(ctx context.Context, labID string) (*Session, error) {
 	_ = e.Stop(ctx, labID)
 	id := randomID()
 	name := "platformforge-" + labID + "-" + id
-	var kubeconfig string
+	var info *clusterInfo
 	var cluster string
 	if m.Runtime.Type == "k3d" {
 		cluster = k3dClusterName(labID, id)
-		cfg, err := createK3dCluster(ctx, cluster, labID)
+		cfg, err := createK3dCluster(ctx, cluster, labID, m.Runtime)
 		if err != nil {
 			return nil, err
 		}
-		kubeconfig = cfg
+		info = cfg
 		if !m.Limits.Network {
 			m.Limits.Network = true
 		}
@@ -103,8 +108,14 @@ func (e *Engine) Start(ctx context.Context, labID string) (*Session, error) {
 		"--memory", m.Limits.Memory, "--cpus", m.Limits.CPUs, "--pids-limit", fmt.Sprint(m.Limits.PIDs),
 		"--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--workdir", "/workspace",
 	}
-	if kubeconfig != "" {
-		args = append(args, "-v", kubeconfig+":/workspace/.kube/config:ro", "-e", "KUBECONFIG=/workspace/.kube/config")
+	if info != nil && info.Kubeconfig != "" {
+		args = append(args, "-v", info.Kubeconfig+":/workspace/.kube/config:ro", "-e", "KUBECONFIG=/workspace/.kube/config")
+		for _, mount := range info.ExtraMounts {
+			args = append(args, "-v", mount)
+		}
+		for _, env := range info.Env {
+			args = append(args, "-e", env)
+		}
 	}
 	if !m.Limits.Network {
 		args = append(args, "--network", "none")
@@ -115,15 +126,32 @@ func (e *Engine) Start(ctx context.Context, labID string) (*Session, error) {
 	}
 	args = append(args, m.Image, shell, "-c", "mkdir -p /workspace && sleep infinity")
 	if out, err := exec.CommandContext(ctx, "docker", args...).CombinedOutput(); err != nil {
+		if info != nil {
+			cleanupClusterInfo(info)
+			_ = deleteK3dCluster(context.Background(), cluster)
+		}
 		return nil, fmt.Errorf("start container: %w: %s", err, strings.TrimSpace(string(out)))
 	}
 	for _, setup := range m.Setup {
 		if out, err := e.exec(ctx, name, shell, setup); err != nil {
 			_ = exec.Command("docker", "rm", "-f", name).Run()
+			if info != nil {
+				cleanupClusterInfo(info)
+				_ = deleteK3dCluster(context.Background(), cluster)
+			}
 			return nil, fmt.Errorf("setup failed: %w: %s", err, out)
 		}
 	}
-	session := &Session{ID: id, LabID: labID, Container: name, Cluster: cluster, Kubeconfig: kubeconfig, StartedAt: time.Now(), Running: true}
+	session := &Session{
+		ID: id, LabID: labID, Container: name, Cluster: cluster,
+		StartedAt: time.Now(), Running: true,
+	}
+	if info != nil {
+		session.Kubeconfig = info.Kubeconfig
+		session.ArtifactDir = info.ArtifactDir
+		session.Registry = info.Registry
+		session.RegistryHost = info.RegistryHost
+	}
 	e.mu.Lock()
 	e.sessions[labID] = session
 	e.scheduleTimeout(labID, m.Limits.Timeout)
@@ -204,6 +232,18 @@ func (e *Engine) Validate(ctx context.Context, labID string) (*ValidationResult,
 		return nil, errors.New("lab is not running")
 	}
 	result := &ValidationResult{LabID: labID, Status: "failed", GhostHintEvery: progress.GhostHintEvery}
+	if m.Runtime.HostBuild != nil {
+		if err := e.hostBuildAndPush(ctx, s, m); err != nil {
+			result.Checks = append(result.Checks, CheckResult{
+				Name: "Host build and registry push", Type: "docker", Passed: false, Message: err.Error(),
+			})
+		} else {
+			result.Checks = append(result.Checks, CheckResult{
+				Name: "Host build and registry push", Type: "docker", Passed: true, Message: "Check passed",
+			})
+			result.Passed++
+		}
+	}
 	failedTasks := map[string]bool{}
 	hintCounts := map[string]int{}
 	for _, task := range m.Tasks {
@@ -304,6 +344,69 @@ func (e *Engine) Reset(ctx context.Context, labID string) (*Session, error) {
 	return e.Start(ctx, labID)
 }
 
+func (e *Engine) hostBuildAndPush(ctx context.Context, s *Session, m *content.Manifest) error {
+	hb := m.Runtime.HostBuild
+	if hb == nil {
+		return nil
+	}
+	if s.Registry == "" || s.RegistryHost == "" {
+		return errors.New("hostBuild requires runtime.addons: [registry]")
+	}
+	contextDir := hb.Context
+	if contextDir == "" {
+		contextDir = "/workspace"
+	}
+	tmp, err := os.MkdirTemp("", "platformforge-build-*")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmp)
+	// Copy build context from the lab container (no docker.sock mount for learners).
+	out, err := exec.CommandContext(ctx, "docker", "cp", s.Container+":"+contextDir+"/.", tmp+string(os.PathSeparator)).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("copy build context: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	dockerfile := hb.Dockerfile
+	if dockerfile == "" {
+		dockerfile = "Dockerfile"
+	}
+	dfPath := filepath.Join(tmp, dockerfile)
+	if _, err := os.Stat(dfPath); err != nil {
+		return fmt.Errorf("dockerfile %s not found in lab workspace", dockerfile)
+	}
+	imageLocal := s.RegistryHost + "/" + hb.Image
+	imageCluster := s.Registry + "/" + hb.Image
+	build := exec.CommandContext(ctx, "docker", "build", "-f", dfPath, "-t", imageLocal, tmp)
+	if out, err := build.CombinedOutput(); err != nil {
+		return fmt.Errorf("docker build: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	deployRef := imageCluster
+	push := exec.CommandContext(ctx, "docker", "push", imageLocal)
+	if out, err := push.CombinedOutput(); err != nil {
+		// Host dockerd often rejects HTTP registries; import into k3d nodes instead.
+		plain := hb.Image
+		tag := exec.CommandContext(ctx, "docker", "tag", imageLocal, plain)
+		if tout, terr := tag.CombinedOutput(); terr != nil {
+			return fmt.Errorf("docker push (%v: %s) and retag: %w: %s", err, strings.TrimSpace(string(out)), terr, strings.TrimSpace(string(tout)))
+		}
+		imp := exec.CommandContext(ctx, "k3d", "image", "import", plain, "-c", s.Cluster)
+		if iout, ierr := imp.CombinedOutput(); ierr != nil {
+			return fmt.Errorf("docker push (%v: %s) and k3d image import: %w: %s", err, strings.TrimSpace(string(out)), ierr, strings.TrimSpace(string(iout)))
+		}
+		deployRef = plain
+	}
+	shell := m.Shell
+	if shell == "" {
+		shell = "/bin/sh"
+	}
+	write := fmt.Sprintf("printf '%%s\\n' %s > /workspace/IMAGE && printf '%%s\\n' %s > /workspace/IMAGE_HOST && printf '%%s\\n' %s > /workspace/IMAGE_CLUSTER",
+		shellQuote(deployRef), shellQuote(imageLocal), shellQuote(imageCluster))
+	if out, err := e.exec(ctx, s.Container, shell, write); err != nil {
+		return fmt.Errorf("write IMAGE refs: %w: %s", err, out)
+	}
+	return nil
+}
+
 func (e *Engine) Stop(ctx context.Context, labID string) error {
 	s, ok := e.Session(labID)
 	e.mu.Lock()
@@ -317,7 +420,11 @@ func (e *Engine) Stop(ctx context.Context, labID string) error {
 	if s.Cluster != "" {
 		_ = deleteK3dCluster(ctx, s.Cluster)
 	}
-	cleanupKubeconfig(s.Kubeconfig)
+	if s.ArtifactDir != "" {
+		_ = os.RemoveAll(s.ArtifactDir)
+	} else {
+		cleanupKubeconfig(s.Kubeconfig)
+	}
 	out, err := exec.CommandContext(ctx, "docker", "rm", "-f", s.Container).CombinedOutput()
 	if err != nil && !strings.Contains(string(out), "No such container") {
 		return fmt.Errorf("stop container: %w: %s", err, strings.TrimSpace(string(out)))
