@@ -144,16 +144,18 @@ phases:
           - kubernetes-etcd-snapshot
       - id: learn-policy
         title: Policy as Code
-        summary: Kyverno baselines and OPA/Gatekeeper constraints for labels, digests, and cost centers.
+        summary: Kyverno validate/mutate baselines and OPA/Gatekeeper constraints for labels, digests, and cost centers.
         labs:
           - policy-kyverno-basics
+          - policy-kyverno-mutate
           - policy-opa-constraints
       - id: learn-gateway
         title: Gateway API
-        summary: Replace Ingress with Gateway/HTTPRoute objects and weighted canary splits.
+        summary: Gateway/HTTPRoute objects, canary splits, and a live Envoy Gateway data plane.
         labs:
           - gateway-api-http-route
           - gateway-canary-split
+          - gateway-api-dataplane
   - id: delivery
     title: Phase 4 — Delivery & Reliability
     summary: CI/CD pipelines, GitOps, Helm, secrets ops, observability, SLOs, and incident response.
@@ -167,12 +169,13 @@ phases:
           - cicd-security-scan
       - id: learn-gitops
         title: Learn GitOps
-        summary: Declarative desired state, drift reconcile loops, Kustomize overlays, fleet planning, and sync waves.
+        summary: Declarative desired state, drift reconcile loops, Kustomize overlays, fleet planning, sync waves, and multi-cluster apply.
         labs:
           - gitops-manifest-sync
           - gitops-kustomize-overlay
           - gitops-fleet-multi-cluster
           - gitops-sync-waves-plan
+          - gitops-fleet-apply
       - id: learn-helm
         title: Learn Helm
         summary: Chart skeletons, values overrides, and digest-friendly env promotion.
@@ -187,7 +190,7 @@ phases:
           - secrets-rotation-runbook
       - id: learn-observability
         title: Logging & Observability
-        summary: Structured logs, metrics, alerts, tracing, SLI rules, OTel collector, and correlation runbooks.
+        summary: Structured logs, metrics, alerts, tracing, SLI rules, OTel collector planning and live runtime, and correlation runbooks.
         source: "Boot.dev — Learn Logging and Observability"
         labs:
           - observability-structured-logs
@@ -196,6 +199,7 @@ phases:
           - observability-sli-recording-rules
           - observability-otel-collector-plan
           - observability-correlation-plan
+          - observability-otel-runtime
       - id: learn-sre
         title: Reliability & On-Call
         summary: SLOs, error budgets, burn-rate alerts, chaos experiments, game days, and shift handoffs.
