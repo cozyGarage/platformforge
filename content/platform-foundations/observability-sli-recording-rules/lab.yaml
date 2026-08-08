@@ -1,0 +1,76 @@
+version: 1
+id: observability-sli-recording-rules
+title: Plan SLI Recording Rules
+summary: Define availability and latency SLI recording rules that feed burn-rate alerts without scraping raw series in every query.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [observability-metrics-alerts, slo-definition-basics]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/sli /workspace/docs"
+  - "printf 'Ticket: payments-api SLOs need recording rules.\\nAvailability + latency SLIs, then burn-rate ready names.\\n' > /workspace/sli/TICKET.md"
+  - "printf 'slo_availability: 99.9\\nslo_latency_p99_ms: 300\\n' > /workspace/sli/slo.env"
+tasks:
+  - id: recording-rules
+    title: Author availability and latency rules
+    description: 'Create /workspace/sli/recording-rules.yaml mentioning job:payments_api:availability:ratio and job:payments_api:latency:p99. Include record: at least twice. Mention http_requests_total (or requests) for availability and histogram or bucket or quantile for latency. File must be at least 6 non-empty lines.'
+    hints:
+      - 'Tip code RECORD_SLI: precompute SLIs so burn-rate alerts stay cheap and stable.'
+      - 'Use the exact metric names job:payments_api:availability:ratio and job:payments_api:latency:p99.'
+      - 'Availability usually divides successful requests by total; latency uses histogram quantiles.'
+    checks:
+      - type: file
+        name: Availability rule named
+        path: /workspace/sli/recording-rules.yaml
+        value: "job:payments_api:availability:ratio"
+      - type: file
+        name: Latency rule named
+        path: /workspace/sli/recording-rules.yaml
+        value: "job:payments_api:latency:p99"
+      - type: command
+        name: Uses record key
+        command: "[ $(grep -c 'record:' /workspace/sli/recording-rules.yaml) -ge 2 ]"
+      - type: command
+        name: Availability sources requests
+        command: "grep -Eqi 'http_requests_total|requests_total|request' /workspace/sli/recording-rules.yaml"
+      - type: command
+        name: Latency sources histogram
+        command: "grep -Eqi 'histogram|bucket|quantile|le=' /workspace/sli/recording-rules.yaml"
+      - type: command
+        name: Rules file has depth
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/sli/recording-rules.yaml) -ge 6 ]"
+  - id: burn-ready
+    title: Document burn-rate inputs
+    description: 'Write /workspace/docs/SLI.md with headings Availability, Latency, and Burn. Availability must mention 99.9 or ratio. Latency must mention 300 or p99. Burn must mention burn or error budget. Write /workspace/sli/STATUS.txt containing SLI_OK.'
+    hints:
+      - 'Tip code BURN_INPUT: burn-rate alerts should consume recording-rule SLIs, not ad-hoc scrape math.'
+      - 'Pull 99.9 and 300 from slo.env.'
+      - 'STATUS.txt should include SLI_OK.'
+    checks:
+      - type: file
+        name: Availability heading present
+        path: /workspace/docs/SLI.md
+        value: Availability
+      - type: file
+        name: Latency heading present
+        path: /workspace/docs/SLI.md
+        value: Latency
+      - type: file
+        name: Burn heading present
+        path: /workspace/docs/SLI.md
+        value: Burn
+      - type: command
+        name: Availability mentions target
+        command: "grep -A3 '^#* *Availability' /workspace/docs/SLI.md | grep -Eqi '99\\.9|ratio'"
+      - type: command
+        name: Latency mentions target
+        command: "grep -A3 '^#* *Latency' /workspace/docs/SLI.md | grep -Eqi '300|p99'"
+      - type: command
+        name: Burn mentions budget math
+        command: "grep -A3 '^#* *Burn' /workspace/docs/SLI.md | grep -Eqi 'burn|error budget|budget'"
+      - type: file
+        name: SLI status ok
+        path: /workspace/sli/STATUS.txt
+        value: SLI_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
