@@ -1,0 +1,81 @@
+version: 1
+id: gitops-fleet-multi-cluster
+title: Plan Multi-Cluster Fleet GitOps
+summary: Sketch a hub-and-spoke or per-cluster GitOps layout, cluster selectors, and a safe wave promotion across regions.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [gitops-kustomize-overlay, multi-env-promotion-adr]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/fleet /workspace/docs"
+  - "printf 'Ticket: payments must run in us-east and eu-west.\\nNeed fleet GitOps layout, selectors, and wave promotion.\\n' > /workspace/fleet/TICKET.md"
+  - "printf 'clusters: us-east-1,eu-west-1\\napp: payments-web\\n' > /workspace/fleet/fleet.env"
+tasks:
+  - id: fleet-layout
+    title: Sketch fleet repository layout
+    description: 'Create /workspace/fleet/layout.txt with exactly six non-empty lines covering: (1) apps/ or charts/ for shared desired state, (2) clusters/ or sites/ registry, (3) us-east-1 entry, (4) eu-west-1 entry, (5) hub or management or App-of-Apps or ApplicationSet note, (6) one line on drift reconcile per cluster. Include the words fleet and cluster.'
+    hints:
+      - 'Tip code FLEET_LAYOUT: separate shared apps from per-cluster registry entries.'
+      - 'Exactly six non-empty lines; name both regions from fleet.env.'
+      - 'Call out hub/management control (App-of-Apps, ApplicationSet, or equivalent).'
+    checks:
+      - type: file
+        name: Fleet layout present
+        path: /workspace/fleet/layout.txt
+        value: fleet
+      - type: file
+        name: Mentions cluster
+        path: /workspace/fleet/layout.txt
+        value: cluster
+      - type: file
+        name: US region listed
+        path: /workspace/fleet/layout.txt
+        value: us-east-1
+      - type: file
+        name: EU region listed
+        path: /workspace/fleet/layout.txt
+        value: eu-west-1
+      - type: command
+        name: Shared apps path mentioned
+        command: "grep -Eqi 'apps/|charts/|base/' /workspace/fleet/layout.txt"
+      - type: command
+        name: Hub or generator mentioned
+        command: "grep -Eqi 'hub|management|app-of-apps|applicationset|application set' /workspace/fleet/layout.txt"
+      - type: command
+        name: Exactly six non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/fleet/layout.txt) -eq 6 ]"
+  - id: selectors-waves
+    title: Define selectors and promotion waves
+    description: 'Write /workspace/docs/FLEET.md with headings Selectors, Waves, and Rollback. Selectors must mention label or selector or matchLabels. Waves must mention us-east or canary or wave. Rollback must mention previous digest or revert or rollback. Write /workspace/fleet/STATUS.txt containing FLEET_OK.'
+    hints:
+      - 'Tip code CLUSTER_SELECT: target clusters with labels/selectors — not hardcoded one-off apps forever.'
+      - 'Tip code WAVE_PROMOTE: roll us-east (or a canary wave) before eu-west; keep a digest rollback path.'
+      - 'STATUS.txt should include FLEET_OK.'
+    checks:
+      - type: file
+        name: Selectors heading present
+        path: /workspace/docs/FLEET.md
+        value: Selectors
+      - type: file
+        name: Waves heading present
+        path: /workspace/docs/FLEET.md
+        value: Waves
+      - type: file
+        name: Rollback heading present
+        path: /workspace/docs/FLEET.md
+        value: Rollback
+      - type: command
+        name: Selectors mention labels
+        command: "grep -A3 '^#* *Selectors' /workspace/docs/FLEET.md | grep -Eqi 'label|selector|matchLabels'"
+      - type: command
+        name: Waves mention rollout order
+        command: "grep -A3 '^#* *Waves' /workspace/docs/FLEET.md | grep -Eqi 'us-east|canary|wave'"
+      - type: command
+        name: Rollback mentions recovery
+        command: "grep -A3 '^#* *Rollback' /workspace/docs/FLEET.md | grep -Eqi 'digest|revert|rollback'"
+      - type: file
+        name: Fleet status ok
+        path: /workspace/fleet/STATUS.txt
+        value: FLEET_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

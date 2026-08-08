@@ -1,0 +1,81 @@
+version: 1
+id: observability-tracing-plan
+title: Plan Distributed Tracing Coverage
+summary: Map critical payment spans, propagation headers, and sampling so on-call can follow a request across services.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [observability-metrics-alerts]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/tracing /workspace/docs"
+  - "printf 'Ticket: payments-api needs a tracing plan.\\nMap spans, propagation, and sampling before we wire OTel.\\n' > /workspace/tracing/TICKET.md"
+  - "printf 'service: payments-api\\ndownstream: ledger-svc,fraud-svc\\n' > /workspace/tracing/services.env"
+tasks:
+  - id: span-map
+    title: Map critical spans
+    description: 'Create /workspace/tracing/span-map.txt with exactly five non-empty lines covering: (1) entry span for payments-api or HTTP handler, (2) outbound call to ledger-svc, (3) outbound call to fraud-svc, (4) a DB or redis or queue span, (5) an error or exception span note. Include the words payments-api and span.'
+    hints:
+      - 'Tip code SPAN_MAP: name the entry span and each hop you must follow during an incident.'
+      - 'Exactly five non-empty lines.'
+      - 'Pull downstream names from services.env (ledger-svc, fraud-svc).'
+    checks:
+      - type: file
+        name: Span map present
+        path: /workspace/tracing/span-map.txt
+        value: payments-api
+      - type: file
+        name: Mentions span
+        path: /workspace/tracing/span-map.txt
+        value: span
+      - type: file
+        name: Ledger hop listed
+        path: /workspace/tracing/span-map.txt
+        value: ledger-svc
+      - type: file
+        name: Fraud hop listed
+        path: /workspace/tracing/span-map.txt
+        value: fraud-svc
+      - type: command
+        name: Mentions storage or queue span
+        command: "grep -Eqi 'db|database|redis|queue|sql' /workspace/tracing/span-map.txt"
+      - type: command
+        name: Mentions error path
+        command: "grep -Eqi 'error|exception|fault' /workspace/tracing/span-map.txt"
+      - type: command
+        name: Exactly five non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/tracing/span-map.txt) -eq 5 ]"
+  - id: propagate-sample
+    title: Define propagation and sampling
+    description: 'Write /workspace/docs/TRACING.md with headings Propagation, Sampling, and Oncall. Propagation must mention traceparent or W3C or baggage. Sampling must mention ratio or head or tail. Oncall must mention trace id or span id. Write /workspace/tracing/STATUS.txt containing TRACE_OK.'
+    hints:
+      - 'Tip code PROPAGATE: carry W3C traceparent (or equivalent) across every hop.'
+      - 'Tip code SAMPLE_POLICY: pick head or tail sampling with an explicit ratio — not vibes.'
+      - 'STATUS.txt should include TRACE_OK.'
+    checks:
+      - type: file
+        name: Propagation heading present
+        path: /workspace/docs/TRACING.md
+        value: Propagation
+      - type: file
+        name: Sampling heading present
+        path: /workspace/docs/TRACING.md
+        value: Sampling
+      - type: file
+        name: Oncall heading present
+        path: /workspace/docs/TRACING.md
+        value: Oncall
+      - type: command
+        name: Propagation mentions header standard
+        command: "grep -A3 '^#* *Propagation' /workspace/docs/TRACING.md | grep -Eqi 'traceparent|W3C|baggage'"
+      - type: command
+        name: Sampling mentions policy
+        command: "grep -A3 '^#* *Sampling' /workspace/docs/TRACING.md | grep -Eqi 'ratio|head|tail'"
+      - type: command
+        name: Oncall mentions ids
+        command: "grep -A3 '^#* *Oncall' /workspace/docs/TRACING.md | grep -Eqi 'trace id|span id|trace_id|span_id'"
+      - type: file
+        name: Trace status ok
+        path: /workspace/tracing/STATUS.txt
+        value: TRACE_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
