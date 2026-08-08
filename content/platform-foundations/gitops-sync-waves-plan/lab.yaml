@@ -1,0 +1,81 @@
+version: 1
+id: gitops-sync-waves-plan
+title: Plan GitOps Sync Waves and Health Gates
+summary: Order fleet sync waves with health checks and fail-closed gates so us-east canary success is required before eu-west.
+difficulty: intermediate
+estimatedMinutes: 30
+prerequisites: [gitops-fleet-multi-cluster]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/waves /workspace/docs"
+  - "printf 'Ticket: payments-web fleet sync needs waves and health gates.\\nCanary us-east before eu-west; fail closed on unhealthy.\\n' > /workspace/waves/TICKET.md"
+  - "printf 'canary: us-east-1\\nfollow: eu-west-1\\n' > /workspace/waves/waves.env"
+tasks:
+  - id: wave-order
+    title: Define sync wave order
+    description: 'Create /workspace/waves/order.txt with exactly six non-empty lines covering: (1) wave 0 or prerequisites (CRDs or namespaces), (2) wave 1 app or controller, (3) us-east-1 canary wave, (4) health or ready gate after canary, (5) eu-west-1 follow wave, (6) fail-closed or abort on unhealthy. Include the words wave and canary.'
+    hints:
+      - 'Tip code SYNC_WAVES: prerequisites first, canary region next, then follow regions.'
+      - 'Exactly six non-empty lines; pull us-east-1 / eu-west-1 from waves.env.'
+      - 'Say fail-closed or abort when canary health fails.'
+    checks:
+      - type: file
+        name: Wave order present
+        path: /workspace/waves/order.txt
+        value: wave
+      - type: file
+        name: Mentions canary
+        path: /workspace/waves/order.txt
+        value: canary
+      - type: file
+        name: US canary listed
+        path: /workspace/waves/order.txt
+        value: us-east-1
+      - type: file
+        name: EU follow listed
+        path: /workspace/waves/order.txt
+        value: eu-west-1
+      - type: command
+        name: Mentions health gate
+        command: "grep -Eqi 'health|ready|gate' /workspace/waves/order.txt"
+      - type: command
+        name: Mentions fail-closed
+        command: "grep -Eqi 'fail-closed|fail closed|abort|halt|block' /workspace/waves/order.txt"
+      - type: command
+        name: Exactly six non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/waves/order.txt) -eq 6 ]"
+  - id: health-gates
+    title: Document health gates and rollback
+    description: 'Write /workspace/docs/WAVES.md with headings Health, Gate, and Rollback. Health must mention ready or smoke or SLO. Gate must mention canary or us-east. Rollback must mention digest or revert or previous. Write /workspace/waves/STATUS.txt containing WAVES_OK.'
+    hints:
+      - 'Tip code HEALTH_GATE: do not advance waves until canary ready/smoke/SLO checks pass.'
+      - 'Tip code WAVE_ROLLBACK: failed canary reverts to previous digest — do not continue the fleet.'
+      - 'STATUS.txt should include WAVES_OK.'
+    checks:
+      - type: file
+        name: Health heading present
+        path: /workspace/docs/WAVES.md
+        value: Health
+      - type: file
+        name: Gate heading present
+        path: /workspace/docs/WAVES.md
+        value: Gate
+      - type: file
+        name: Rollback heading present
+        path: /workspace/docs/WAVES.md
+        value: Rollback
+      - type: command
+        name: Health mentions checks
+        command: "grep -A3 '^#* *Health' /workspace/docs/WAVES.md | grep -Eqi 'ready|smoke|SLO'"
+      - type: command
+        name: Gate mentions canary
+        command: "grep -A3 '^#* *Gate' /workspace/docs/WAVES.md | grep -Eqi 'canary|us-east'"
+      - type: command
+        name: Rollback mentions recovery
+        command: "grep -A3 '^#* *Rollback' /workspace/docs/WAVES.md | grep -Eqi 'digest|revert|previous'"
+      - type: file
+        name: Waves status ok
+        path: /workspace/waves/STATUS.txt
+        value: WAVES_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

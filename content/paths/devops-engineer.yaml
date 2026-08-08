@@ -173,11 +173,12 @@ phases:
           - cicd-security-scan
       - id: learn-gitops
         title: Learn GitOps
-        summary: Declarative desired state, drift reconcile loops, Kustomize overlays, and multi-cluster fleet planning.
+        summary: Declarative desired state, drift reconcile loops, Kustomize overlays, fleet planning, and sync waves.
         labs:
           - gitops-manifest-sync
           - gitops-kustomize-overlay
           - gitops-fleet-multi-cluster
+          - gitops-sync-waves-plan
       - id: learn-helm
         title: Learn Helm
         summary: Chart skeletons, values overrides, and digest-friendly env promotion.
@@ -192,13 +193,15 @@ phases:
           - secrets-rotation-runbook
       - id: learn-observability
         title: Logging & Observability
-        summary: Structured logs, metrics, alerts, tracing coverage, and SLI recording rules.
+        summary: Structured logs, metrics, alerts, tracing, SLI rules, OTel collector, and correlation runbooks.
         source: "Boot.dev — Learn Logging and Observability"
         labs:
           - observability-structured-logs
           - observability-metrics-alerts
           - observability-tracing-plan
           - observability-sli-recording-rules
+          - observability-otel-collector-plan
+          - observability-correlation-plan
       - id: learn-sre
         title: Reliability & On-Call
         summary: SLOs, error budgets, burn-rate alerts, chaos experiments, game days, and shift handoffs.

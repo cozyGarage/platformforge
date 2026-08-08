@@ -21,10 +21,10 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
 | Kubernetes | Core + CKA + policy + Gateway API | 16 labs |
-| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 25 labs + 7 capstones |
+| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 28 labs + 7 capstones |
 | Platform Engineering | Platform product, data, compliance, bare metal, AWS sims | 16 labs |
 
-### Lab inventory (100 interactive + 7 capstones)
+### Lab inventory (103 interactive + 7 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -54,11 +54,11 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **Gateway API** — `gateway-api-http-route`, `gateway-canary-split`
 
-**CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`, `observability-tracing-plan`, `observability-sli-recording-rules`
+**CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`, `observability-tracing-plan`, `observability-sli-recording-rules`, `observability-otel-collector-plan`, `observability-correlation-plan`
 
 **Reliability / SRE** — `slo-definition-basics`, `error-budget-policy`, `burn-rate-alerts`, `chaos-experiment-basics`, `gameday-budget-freeze`, `oncall-handoff-basics`
 
-**GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`, `gitops-fleet-multi-cluster`
+**GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`, `gitops-fleet-multi-cluster`, `gitops-sync-waves-plan`
 
 **Helm** — `helm-chart-basics`, `helm-values-overrides`
 
@@ -89,7 +89,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn Docker | ✅ 3 labs |
 | Learn Kubernetes | ✅ 5 labs + 7 CKA drills |
 | Learn CI/CD | ✅ 2 labs |
-| Learn Logging & Observability | ✅ 4 labs (logs, metrics/alerts, tracing plan, SLI recording rules) |
+| Learn Logging & Observability | ✅ 6 labs (logs, metrics/alerts, tracing, SLI rules, OTel collector, correlation) |
 | Learn AWS | ✅ 3 local simulation labs |
 | Learn HTTP Servers | ✅ Go + Python health/JSON labs |
 | Learn Go | ✅ `go-testing-basics` (+ HTTP labs in Go) |
@@ -173,9 +173,15 @@ UX now shipped from PatchLab:
 3. `gitops-fleet-multi-cluster` — hub/spoke fleet layout, cluster selectors, wave promotion
 4. Phase C runtime unlock remains blocked (registry / privileged etcd / CRD-enabled k3d)
 
-### Phase F — Next horizons
+### Phase F — OTel pipeline, correlation & sync waves (shipped this cycle)
+1. `observability-otel-collector-plan` — receivers → processors → Tempo/Prometheus exporters
+2. `observability-correlation-plan` — shared IDs, exemplars, alert → trace → logs runbook
+3. `gitops-sync-waves-plan` — canary waves, health gates, fail-closed rollback
+4. Phase C runtime unlock remains blocked (registry / privileged etcd / CRD-enabled k3d)
+
+### Phase G — Next horizons
 1. Unlock Phase C when registry / privileged etcd / CRD-enabled k3d images exist
-2. Observability runtime (OTel collector / Tempo or Jaeger in lab image)
+2. Observability runtime (OTel collector + Tempo/Jaeger in lab image)
 3. Fleet GitOps apply against multi-cluster k3d (when available)
 ## How to add a lab
 
