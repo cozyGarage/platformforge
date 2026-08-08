@@ -19,16 +19,17 @@ import (
 )
 
 type Session struct {
-	ID           string    `json:"id"`
-	LabID        string    `json:"labId"`
-	Container    string    `json:"container"`
-	Cluster      string    `json:"cluster,omitempty"`
-	Kubeconfig   string    `json:"-"`
-	ArtifactDir  string    `json:"-"`
-	Registry     string    `json:"-"`
-	RegistryHost string    `json:"-"`
-	StartedAt    time.Time `json:"startedAt"`
-	Running      bool      `json:"running"`
+	ID               string    `json:"id"`
+	LabID            string    `json:"labId"`
+	Container        string    `json:"container"`
+	Cluster          string    `json:"cluster,omitempty"`
+	SecondaryCluster string    `json:"-"`
+	Kubeconfig       string    `json:"-"`
+	ArtifactDir      string    `json:"-"`
+	Registry         string    `json:"-"`
+	RegistryHost     string    `json:"-"`
+	StartedAt        time.Time `json:"startedAt"`
+	Running          bool      `json:"running"`
 }
 
 type CheckResult struct {
@@ -129,6 +130,9 @@ func (e *Engine) Start(ctx context.Context, labID string) (*Session, error) {
 		if info != nil {
 			cleanupClusterInfo(info)
 			_ = deleteK3dCluster(context.Background(), cluster)
+			if info.SecondaryCluster != "" {
+				_ = deleteK3dCluster(context.Background(), info.SecondaryCluster)
+			}
 		}
 		return nil, fmt.Errorf("start container: %w: %s", err, strings.TrimSpace(string(out)))
 	}
@@ -138,6 +142,9 @@ func (e *Engine) Start(ctx context.Context, labID string) (*Session, error) {
 			if info != nil {
 				cleanupClusterInfo(info)
 				_ = deleteK3dCluster(context.Background(), cluster)
+				if info.SecondaryCluster != "" {
+					_ = deleteK3dCluster(context.Background(), info.SecondaryCluster)
+				}
 			}
 			return nil, fmt.Errorf("setup failed: %w: %s", err, out)
 		}
@@ -151,6 +158,7 @@ func (e *Engine) Start(ctx context.Context, labID string) (*Session, error) {
 		session.ArtifactDir = info.ArtifactDir
 		session.Registry = info.Registry
 		session.RegistryHost = info.RegistryHost
+		session.SecondaryCluster = info.SecondaryCluster
 	}
 	e.mu.Lock()
 	e.sessions[labID] = session
@@ -419,6 +427,9 @@ func (e *Engine) Stop(ctx context.Context, labID string) error {
 	}
 	if s.Cluster != "" {
 		_ = deleteK3dCluster(ctx, s.Cluster)
+	}
+	if s.SecondaryCluster != "" {
+		_ = deleteK3dCluster(ctx, s.SecondaryCluster)
 	}
 	if s.ArtifactDir != "" {
 		_ = os.RemoveAll(s.ArtifactDir)

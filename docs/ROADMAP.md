@@ -20,11 +20,11 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Containers | Docker | 3 labs |
 | IaC | Terraform + Ansible planning | 6 labs |
 | App development | Go, Python, SQL | 11 labs |
-| Kubernetes | Core + CKA + policy + Gateway API | 16 labs |
-| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 28 labs + 7 capstones |
+| Kubernetes | Core + CKA + policy + Gateway API | 18 labs |
+| Delivery | CI/CD, GitOps, Helm, secrets ops, observability, SRE, leadership, portfolio | 30 labs + 7 capstones |
 | Platform Engineering | Platform product, data, compliance, bare metal, AWS sims | 16 labs |
 
-### Lab inventory (103 interactive + 7 capstones)
+### Lab inventory (107 interactive + 7 capstones)
 
 **Linux** — `linux-shell-basics`, `linux-navigation`, `linux-pipelines`, `linux-filesystems`
 
@@ -50,15 +50,15 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 
 **CKA-style** — `kubernetes-networkpolicy`, `kubernetes-rbac`, `kubernetes-troubleshooting`, `kubernetes-ingress`, `kubernetes-storage`, `kubernetes-backup-restore`, `kubernetes-etcd-snapshot`
 
-**Policy as code** — `policy-kyverno-basics` (live Kyverno on k3d), `policy-opa-constraints`
+**Policy as code** — `policy-kyverno-basics`, `policy-kyverno-mutate` (live Kyverno), `policy-opa-constraints`
 
-**Gateway API** — `gateway-api-http-route` (live CRD apply on k3d), `gateway-canary-split`
+**Gateway API** — `gateway-api-http-route`, `gateway-canary-split`, `gateway-api-dataplane` (Envoy Gateway)
 
-**CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`, `observability-tracing-plan`, `observability-sli-recording-rules`, `observability-otel-collector-plan`, `observability-correlation-plan`
+**CI/CD & Observability** — `cicd-pipeline-fix`, `cicd-security-scan`, `observability-structured-logs`, `observability-metrics-alerts`, `observability-tracing-plan`, `observability-sli-recording-rules`, `observability-otel-collector-plan`, `observability-correlation-plan`, `observability-otel-runtime`
 
 **Reliability / SRE** — `slo-definition-basics`, `error-budget-policy`, `burn-rate-alerts`, `chaos-experiment-basics`, `gameday-budget-freeze`, `oncall-handoff-basics`
 
-**GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`, `gitops-fleet-multi-cluster`, `gitops-sync-waves-plan`
+**GitOps** — `gitops-manifest-sync`, `gitops-kustomize-overlay`, `gitops-fleet-multi-cluster`, `gitops-sync-waves-plan`, `gitops-fleet-apply`
 
 **Helm** — `helm-chart-basics`, `helm-values-overrides`
 
@@ -89,7 +89,7 @@ See [`content/paths/devops-engineer.yaml`](../content/paths/devops-engineer.yaml
 | Learn Docker | ✅ 3 labs |
 | Learn Kubernetes | ✅ 5 labs + 7 CKA drills |
 | Learn CI/CD | ✅ 2 labs |
-| Learn Logging & Observability | ✅ 6 labs (logs, metrics/alerts, tracing, SLI rules, OTel collector, correlation) |
+| Learn Logging & Observability | ✅ 7 labs (logs, metrics/alerts, tracing, SLI rules, OTel plan + runtime, correlation) |
 | Learn AWS | ✅ 3 local simulation labs |
 | Learn HTTP Servers | ✅ Go + Python health/JSON labs |
 | Learn Go | ✅ `go-testing-basics` (+ HTTP labs in Go) |
@@ -163,9 +163,8 @@ UX now shipped from PatchLab:
 
 ### Phase D — Curriculum polish (shipped this cycle)
 1. Platform Engineering depth — `redis-ha-failover-plan`, `soc2-change-evidence`, `rack-capacity-planning`
-2. Path `comingSoon` slots for Phase C on portfolio / etcd / policy / gateway modules
-3. Site/Pages rebuilds from path on main CI deploy
-4. `platform-product-capstone` — stitches IDP + FinOps + promotion ADR
+2. Site/Pages rebuilds from path on main CI deploy
+3. `platform-product-capstone` — stitches IDP + FinOps + promotion ADR
 
 ### Phase E — Observability depth & fleet GitOps (shipped)
 1. `observability-tracing-plan` — span map, W3C propagation, sampling policy
@@ -177,10 +176,16 @@ UX now shipped from PatchLab:
 2. `observability-correlation-plan` — shared IDs, exemplars, alert → trace → logs runbook
 3. `gitops-sync-waves-plan` — canary waves, health gates, fail-closed rollback
 
-### Phase G — Next horizons
-1. Observability runtime (OTel collector + Tempo/Jaeger in lab image)
-2. Fleet GitOps apply against multi-cluster k3d
-3. Gateway data-plane controller (beyond CRD apply) + Kyverno mutate/generate drills
+### Phase G — OTel runtime, mutate, Gateway data plane, multi-cluster apply (shipped this cycle)
+1. `observability-otel-runtime` — live Jaeger + OTel Collector on k3d (`addons: [otel]`)
+2. `policy-kyverno-mutate` — mutate ClusterPolicy injects `cost-center=payments`
+3. `gateway-api-dataplane` — Envoy Gateway programs Gateway/HTTPRoute (`addons: [gateway-controller]`)
+4. `gitops-fleet-apply` — apply the same workload to `east`/`west` k3d contexts (`addons: [multi-cluster]`)
+
+### Phase H — Next horizons
+1. OTel metrics/logs pipelines + Tempo (beyond Jaeger all-in-one)
+2. Kyverno generate policies + policy exceptions
+3. Progressive delivery controller (Argo Rollouts / Gateway canary analysis) on k3d
 ## How to add a lab
 
 1. Create `content/<pack>/<lab-id>/lab.yaml` + `lesson.md`

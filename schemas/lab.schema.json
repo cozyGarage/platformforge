@@ -22,7 +22,7 @@
         "type": { "enum": ["container", "k3d"] },
         "addons": {
           "type": "array",
-          "items": { "enum": ["kyverno", "gateway", "etcd-snapshot", "registry"] },
+          "items": { "enum": ["kyverno", "gateway", "gateway-controller", "etcd-snapshot", "registry", "otel", "multi-cluster"] },
           "uniqueItems": true
         },
         "hostBuild": {

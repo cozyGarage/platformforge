@@ -1,6 +1,7 @@
 package lab
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/platformforge/platformforge/internal/content"
@@ -33,5 +34,25 @@ func TestK3dClusterName(t *testing.T) {
 	}
 	if got[:3] != "pf-" {
 		t.Fatalf("prefix: %q", got)
+	}
+}
+
+func TestSecondaryClusterName(t *testing.T) {
+	primary := k3dClusterName("gitops-fleet-apply", "abcdef12")
+	got := secondaryClusterName(primary)
+	if len(got) > 32 {
+		t.Fatalf("secondary name too long: %q", got)
+	}
+	if !strings.HasSuffix(got, "-w") {
+		t.Fatalf("expected -w suffix: %q", got)
+	}
+	if !strings.Contains(got, "gitops-fleet-apply") {
+		t.Fatalf("secondary name missing lab id: %q (primary %q)", got, primary)
+	}
+}
+
+func TestOtelAddonEmbedded(t *testing.T) {
+	if len(otelAddonYAML) < 100 || !strings.Contains(string(otelAddonYAML), "otel-collector") {
+		t.Fatal("expected embedded otel addon YAML")
 	}
 }

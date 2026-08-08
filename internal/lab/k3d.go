@@ -2,6 +2,7 @@ package lab
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,23 +13,31 @@ import (
 	"github.com/platformforge/platformforge/internal/content"
 )
 
-const (
-	addonKyverno      = "kyverno"
-	addonGateway      = "gateway"
-	addonEtcdSnapshot = "etcd-snapshot"
-	addonRegistry     = "registry"
+//go:embed addons/otel.yaml
+var otelAddonYAML []byte
 
-	kyvernoInstallURL = "https://github.com/kyverno/kyverno/releases/download/v1.13.4/install.yaml"
-	gatewayCRDsURL    = "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml"
+const (
+	addonKyverno          = "kyverno"
+	addonGateway          = "gateway"
+	addonGatewayController = "gateway-controller"
+	addonEtcdSnapshot     = "etcd-snapshot"
+	addonRegistry         = "registry"
+	addonOtel             = "otel"
+	addonMultiCluster     = "multi-cluster"
+
+	kyvernoInstallURL       = "https://github.com/kyverno/kyverno/releases/download/v1.13.4/install.yaml"
+	gatewayCRDsURL          = "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml"
+	envoyGatewayInstallURL  = "https://github.com/envoyproxy/gateway/releases/download/v1.2.4/install.yaml"
 )
 
 type clusterInfo struct {
-	Kubeconfig  string
-	Registry    string // in-cluster registry host:port (k3d-<name>:5000)
-	RegistryHost string // host-side push endpoint localhost:port
-	ExtraMounts []string
-	Env         []string
-	ArtifactDir string
+	Kubeconfig       string
+	Registry         string // in-cluster registry host:port (k3d-<name>:5000)
+	RegistryHost     string // host-side push endpoint localhost:port
+	ExtraMounts      []string
+	Env              []string
+	ArtifactDir      string
+	SecondaryCluster string
 }
 
 func k3dClusterName(labID, sessionID string) string {
@@ -97,9 +106,12 @@ func createK3dCluster(ctx context.Context, name, labID string, rt content.Runtim
 			"REGISTRY_HOST="+info.RegistryHost,
 		)
 	}
-	if err := installAddons(ctx, info, name, rt); err != nil {
+	if err := installAddons(ctx, info, name, labID, rt); err != nil {
 		cleanupClusterInfo(info)
 		_ = deleteK3dCluster(context.Background(), name)
+		if info.SecondaryCluster != "" {
+			_ = deleteK3dCluster(context.Background(), info.SecondaryCluster)
+		}
 		return nil, err
 	}
 	return info, nil
@@ -128,7 +140,7 @@ func registryHostPort(ctx context.Context, regName string) (string, error) {
 	return "", fmt.Errorf("unexpected docker port output: %s", line)
 }
 
-func installAddons(ctx context.Context, info *clusterInfo, cluster string, rt content.Runtime) error {
+func installAddons(ctx context.Context, info *clusterInfo, cluster, labID string, rt content.Runtime) error {
 	if hasAddon(rt, addonKyverno) {
 		if err := kubectlApplyURL(ctx, info.Kubeconfig, kyvernoInstallURL); err != nil {
 			return fmt.Errorf("install kyverno: %w", err)
@@ -140,11 +152,11 @@ func installAddons(ctx context.Context, info *clusterInfo, cluster string, rt co
 			return fmt.Errorf("wait kyverno deployments: %w", err)
 		}
 	}
-	if hasAddon(rt, addonGateway) {
+	needGatewayCRDs := hasAddon(rt, addonGateway) || hasAddon(rt, addonGatewayController)
+	if needGatewayCRDs {
 		if err := kubectlApplyURL(ctx, info.Kubeconfig, gatewayCRDsURL); err != nil {
 			return fmt.Errorf("install gateway API CRDs: %w", err)
 		}
-		// CRDs only — apply/get of Gateway/HTTPRoute is enough for the lab.
 		waitCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 		defer cancel()
 		for i := 0; i < 30; i++ {
@@ -154,12 +166,113 @@ func installAddons(ctx context.Context, info *clusterInfo, cluster string, rt co
 			time.Sleep(2 * time.Second)
 		}
 	}
+	if hasAddon(rt, addonGatewayController) {
+		if err := kubectlApplyURL(ctx, info.Kubeconfig, envoyGatewayInstallURL); err != nil {
+			return fmt.Errorf("install envoy gateway: %w", err)
+		}
+		if err := kubectl(ctx, info.Kubeconfig, "wait", "--for=condition=available", "deploy", "-n", "envoy-gateway-system", "--all", "--timeout=180s"); err != nil {
+			return fmt.Errorf("wait envoy gateway: %w", err)
+		}
+	}
+	if hasAddon(rt, addonOtel) {
+		if err := kubectlApplyBytes(ctx, info.Kubeconfig, otelAddonYAML); err != nil {
+			return fmt.Errorf("install otel stack: %w", err)
+		}
+		if err := kubectl(ctx, info.Kubeconfig, "wait", "--for=condition=available", "deploy/jaeger", "-n", "observability", "--timeout=180s"); err != nil {
+			return fmt.Errorf("wait jaeger: %w", err)
+		}
+		if err := kubectl(ctx, info.Kubeconfig, "wait", "--for=condition=available", "deploy/otel-collector", "-n", "observability", "--timeout=180s"); err != nil {
+			return fmt.Errorf("wait otel-collector: %w", err)
+		}
+	}
 	if hasAddon(rt, addonEtcdSnapshot) {
 		if err := prepareEtcdSnapshot(ctx, info, cluster); err != nil {
 			return err
 		}
 	}
+	if hasAddon(rt, addonMultiCluster) {
+		if err := createSecondaryCluster(ctx, info, cluster, labID); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func secondaryClusterName(primary string) string {
+	// Sibling of the primary name (share lab-id prefix for cleanup); max 32 chars.
+	base := primary
+	if len(base) > 30 {
+		base = base[:30]
+	}
+	return strings.TrimRight(base, "-") + "-w"
+}
+
+func createSecondaryCluster(ctx context.Context, info *clusterInfo, primary, labID string) error {
+	sec := secondaryClusterName(primary)
+	out, err := exec.CommandContext(ctx, "k3d", "cluster", "create", sec,
+		"--servers", "1", "--agents", "0", "--wait", "--timeout", "180s",
+		"--runtime-label", "platformforge.lab="+labID+"@server:0").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("k3d secondary cluster create: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	info.SecondaryCluster = sec
+	secCfg := filepath.Join(info.ArtifactDir, "config-west")
+	out, err = exec.CommandContext(ctx, "k3d", "kubeconfig", "write", sec, "--output", secCfg).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("k3d secondary kubeconfig: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	merged := filepath.Join(info.ArtifactDir, "config-merged")
+	cmd := exec.CommandContext(ctx, "kubectl", "config", "view", "--flatten", "--merge")
+	cmd.Env = append(os.Environ(), "KUBECONFIG="+info.Kubeconfig+string(os.PathListSeparator)+secCfg)
+	flat, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("merge kubeconfigs: %w", err)
+	}
+	if err := os.WriteFile(merged, flat, 0o600); err != nil {
+		return err
+	}
+	// Rename contexts to stable east/west labels for the lab.
+	contexts, _ := exec.CommandContext(ctx, "kubectl", "--kubeconfig", merged, "config", "get-contexts", "-o", "name").Output()
+	names := strings.Fields(strings.TrimSpace(string(contexts)))
+	east, west := "", ""
+	for _, n := range names {
+		if strings.Contains(n, primary) || strings.Contains(n, "k3d-"+primary) {
+			east = n
+		}
+		if strings.Contains(n, sec) || strings.Contains(n, "k3d-"+sec) {
+			west = n
+		}
+	}
+	if east == "" && len(names) > 0 {
+		east = names[0]
+	}
+	if west == "" && len(names) > 1 {
+		west = names[1]
+	}
+	if east != "" {
+		_ = exec.CommandContext(ctx, "kubectl", "--kubeconfig", merged, "config", "rename-context", east, "east").Run()
+	}
+	if west != "" {
+		_ = exec.CommandContext(ctx, "kubectl", "--kubeconfig", merged, "config", "rename-context", west, "west").Run()
+	}
+	_ = exec.CommandContext(ctx, "kubectl", "--kubeconfig", merged, "config", "use-context", "east").Run()
+	info.Kubeconfig = merged
+	info.Env = append(info.Env,
+		"KUBECONTEXT_EAST=east",
+		"KUBECONTEXT_WEST=west",
+		"CLUSTER_EAST="+primary,
+		"CLUSTER_WEST="+sec,
+	)
+	return nil
+}
+
+func kubectlApplyBytes(ctx context.Context, kubeconfig string, yamlBytes []byte) error {
+	path := filepath.Join(os.TempDir(), fmt.Sprintf("platformforge-addon-%d.yaml", time.Now().UnixNano()))
+	if err := os.WriteFile(path, yamlBytes, 0o644); err != nil {
+		return err
+	}
+	defer os.Remove(path)
+	return kubectl(ctx, kubeconfig, "apply", "-f", path)
 }
 
 func prepareEtcdSnapshot(ctx context.Context, info *clusterInfo, cluster string) error {

@@ -25,6 +25,9 @@ For `runtime.type: k3d`, optional `runtime.addons` let the host prepare cluster 
 |-------|----------------|
 | `kyverno` | `kubectl apply` Kyverno install; wait for admission controller |
 | `gateway` | Install Gateway API CRDs (`standard-install`) |
+| `gateway-controller` | Gateway API CRDs + Envoy Gateway controller |
+| `otel` | Apply embedded Jaeger + OTel Collector manifests; wait Ready |
+| `multi-cluster` | Create a second k3d cluster; merge kubeconfig with `east` / `west` contexts |
 | `etcd-snapshot` | `docker exec` into the k3d server node, take an etcd/k3s snapshot, mount `snapshot.db` into the lab |
 | `registry` | `k3d cluster create --registry-create`; export `REGISTRY` / `REGISTRY_HOST` |
 
