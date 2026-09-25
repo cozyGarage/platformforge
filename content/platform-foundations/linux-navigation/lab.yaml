@@ -1,7 +1,7 @@
 version: 1
 id: linux-navigation
 title: Linux Navigation and Permissions
-summary: Repair a deployment workspace using paths, ownership, modes, and pipelines.
+summary: Repair a deploy script's mode and pull the error lines out of a short log.
 difficulty: beginner
 estimatedMinutes: 20
 prerequisites: []
@@ -15,28 +15,32 @@ setup:
 tasks:
   - id: executable
     title: Restore the deployment command
-    description: Make releases/deploy.sh executable without making it writable by everyone.
+    description: Make /workspace/releases/deploy.sh executable without making it world-writable. Modes 755, 750, 744, and 700 pass. Modes 644 and 777 do not.
     hints:
-      - Inspect the current mode with ls -l.
-      - chmod 755 grants execute while limiting writes to the owner.
+      - Inspect the current mode with ls -l /workspace/releases/deploy.sh.
+      - "chmod u+x turns the original 644 file into 744, which passes. chmod 755 also passes."
+      - "Do not use 777. A world-writable script fails the check."
     checks:
       - type: command
         name: Deployment script is executable
-        command: test -x /workspace/releases/deploy.sh
+        command: "test $((0$(stat -c %a /workspace/releases/deploy.sh) & 0111)) -ne 0"
       - type: command
         name: Deployment script is not world-writable
-        command: test "$(stat -c %a /workspace/releases/deploy.sh)" = 755
+        command: "test $((0$(stat -c %a /workspace/releases/deploy.sh) & 0002)) -eq 0"
   - id: pipeline
     title: Extract incident signals
-    description: Use a pipeline to write only ERROR lines to /workspace/errors.txt.
+    description: 'Write /workspace/errors.txt with exactly two lines from /workspace/logs/app.log: "ERROR disk" and "ERROR timeout". Leave the INFO line out.'
     hints:
-      - grep can select lines by a fixed word.
+      - grep can select lines by a fixed word, then redirect the output into errors.txt.
+      - "The file must contain exactly two lines: ERROR disk and ERROR timeout."
     checks:
-      - type: file
-        name: Error report exists
-        path: /workspace/errors.txt
-        value: ERROR disk
+      - type: command
+        name: Disk error recorded
+        command: "grep -qx 'ERROR disk' /workspace/errors.txt"
+      - type: command
+        name: Timeout error recorded
+        command: "grep -qx 'ERROR timeout' /workspace/errors.txt"
       - type: command
         name: Error report has two lines
-        command: test "$(wc -l < /workspace/errors.txt)" -eq 2
+        command: 'test -f /workspace/errors.txt && test "$(wc -l < /workspace/errors.txt)" -eq 2'
 limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
