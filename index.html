@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PlatformForge — local-first platform engineering school</title>
+    <meta
+      name="description"
+      content="Learn platform engineering with isolated Docker labs, deterministic validation, and a structured DevOps path. Run locally. Browse the curriculum here."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Space+Grotesk:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <header class="top">
+      <a class="brand" href="./">Platform<span>Forge</span></a>
+      <nav>
+        <a href="#curriculum">Curriculum</a>
+        <a href="#run-local">Run local</a>
+        <a class="nav-cta" href="https://github.com/cozyGarage/platformforge">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">LOCAL-FIRST PLATFORM ENGINEERING</p>
+        <h1>Platform<span>Forge</span></h1>
+        <p class="lede">
+          Concise lessons. Isolated Docker labs. Deterministic validation.
+          A DevOps Engineer path you run on your own machine.
+        </p>
+        <div class="cta-row">
+          <a class="button" href="https://github.com/cozyGarage/platformforge#quick-start-on-ubuntu-wsl2">Clone & run</a>
+          <a class="button ghost" href="#curriculum">Browse curriculum</a>
+        </div>
+        <p class="note">
+          Labs need Docker locally — this site is the public curriculum map.
+          Companion trainer:
+          <a href="https://cozygarage.github.io/patchlab/">PatchLab</a>.
+        </p>
+      </section>
+
+      <section class="stats" id="stats" aria-live="polite">
+        <div class="stat"><strong id="stat-labs">—</strong><span>labs on the path</span></div>
+        <div class="stat"><strong id="stat-hours">—</strong><span>hours of estimated practice</span></div>
+        <div class="stat"><strong>WSL2</strong><span>Ubuntu + Docker local runtime</span></div>
+      </section>
+
+      <section class="panel" id="run-local">
+        <p class="eyebrow">QUICK START</p>
+        <h2>Ship it on your laptop</h2>
+        <p class="support">GitHub Pages hosts the map. The school runs where your Docker daemon is.</p>
+        <pre><code>git clone https://github.com/cozyGarage/platformforge.git
+cd platformforge
+./scripts/bootstrap-ubuntu.sh
+./bin/platformforge serve</code></pre>
+        <p class="support">Then open <code>http://127.0.0.1:8080</code>.</p>
+      </section>
+
+      <section class="curriculum" id="curriculum">
+        <p class="eyebrow">DEVOPS ENGINEER PATH</p>
+        <h2>Curriculum</h2>
+        <p class="support" id="path-summary">Loading path…</p>
+        <div id="phases"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        <a href="https://github.com/cozyGarage/platformforge">platformforge</a>
+        · companion
+        <a href="https://cozygarage.github.io/patchlab/">PatchLab</a>
+      </p>
+    </footer>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
