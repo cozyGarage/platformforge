@@ -1,0 +1,36 @@
+version: 1
+id: sql-query-tuning-case-study
+title: 'Case Study: Tuning a Slow Analytical Query'
+summary: Read an execution plan, find why a query is slow, and fix it with indexes and rewrites.
+estimatedMinutes: 30
+prerequisites: []
+source: courses-notebook DS301_databases_sql 08_case_study
+quiz:
+- q: Which command in PostgreSQL actually executes the query and reports per-node runtimes?
+  options:
+  - EXPLAIN
+  - EXPLAIN ANALYZE
+  - DESCRIBE
+  - PROFILE
+  answer: 1
+- q: Which pagination strategy stays O(log n) for very deep pages?
+  options:
+  - OFFSET / LIMIT
+  - Keyset (seek) pagination using WHERE id > :last_seen
+  - DISTINCT pagination
+  - ORDER BY RAND()
+  answer: 1
+- q: 'Wrapping an indexed column in a function inside the WHERE clause (e.g., LOWER(email) = ...) typically:'
+  options:
+  - Speeds up the query
+  - Prevents use of the index on that column
+  - Forces use of a hash index
+  - Has no effect
+  answer: 1
+- q: Which is the correct logical claim about indexes?
+  options:
+  - Indexes always speed up queries
+  - Indexes accelerate reads on the indexed columns but slow down writes and consume storage
+  - Indexes have no maintenance cost
+  - Indexes must be added to every column
+  answer: 1

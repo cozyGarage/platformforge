@@ -26,6 +26,27 @@ def cells(path: Path) -> list[dict]:
     return json.loads(path.read_text())["cells"]
 
 
+def estimate_minutes(body: str) -> int:
+    code = body.count("```python") + body.count("```sql")
+    words = len(body.split())
+    return max(10, 5 * round((words / 160 + 4 * code) / 5))
+
+
+def clean_markdown(src: str) -> str:
+    """Remove notebook-sequence navigation and links to files that do not travel with a reading."""
+    lines = []
+    for line in src.split("\n"):
+        if re.match(r"^\*\*Next\*\*:\s*Notebook \d+", line):
+            continue
+        if re.match(r"^- Notebook \d+ [—-] ", line) or line.strip() == "**Connections back to this course**":
+            continue
+        lines.append(line)
+    text = "\n".join(lines)
+    text = re.sub(r"\[([^\]]+)\]\(\.{1,2}/[^)]*\)", r"\1", text)  # relative links -> plain text
+    text = text.replace("this notebook", "this lesson").replace("This notebook", "This lesson")
+    return text.strip()
+
+
 def lesson_markdown(path: Path) -> tuple[str, str]:
     title, parts = "", []
     for i, cell in enumerate(cells(path)):
@@ -37,10 +58,19 @@ def lesson_markdown(path: Path) -> tuple[str, str]:
                 continue  # book-derived summaries: not first-party, do not republish
             if src.startswith("## After This Notebook"):
                 continue  # notebook-sequence navigation; the path orders units now
+            if src.startswith("## Going Deeper") and "Find a well-regarded" in src:
+                continue  # generated filler, not course content
+            if src.startswith("## Hands-on Lab") and "](./lab_" in src:
+                continue  # points at a lab folder that is not part of this unit
+            src = clean_markdown(src)
+            if not src:
+                continue
             src = "\n".join(l for l in src.split("\n") if "Vault Insights" not in l)
             if i == 0 and src.startswith("# "):
                 heading, _, rest = src.partition("\n")
                 title = re.sub(r"^\d+:\s*", "", heading[2:].strip())
+                # drop notebook-numbering lines such as "## Notebook 05: Alerting & On-Call"
+                rest = "\n".join(l for l in rest.split("\n") if not re.match(r"^## Notebook \d+", l))
                 src = rest.strip()
                 if not src:
                     continue
@@ -53,10 +83,12 @@ def lesson_markdown(path: Path) -> tuple[str, str]:
 def questions(path: Path, wanted: set[int]) -> list[dict]:
     md = "\n".join("".join(c["source"]) for c in cells(path) if c["cell_type"] == "markdown")
     code = "\n".join("".join(c["source"]) for c in cells(path) if c["cell_type"] == "code")
-    match = re.search(r"answer_key\s*=\s*(\{.*?\})", code, re.S)
+    match = re.search(r"answer_key\s*=\s*(\{.*?\}|\[.*?\])", code, re.S)
     if not match:
         sys.exit("no answer_key found in MCQ notebook")
     key = ast.literal_eval(match.group(1))
+    if isinstance(key, list):  # some banks use a list indexed from question 1
+        key = {i + 1: letter for i, letter in enumerate(key)}
     out = []
     for m in re.finditer(r"\*\*Q(\d+)\.\*\*\s*(.*?)(?=\n\*\*Q\d+\.\*\*|\Z)", md, re.S):
         n = int(m.group(1))
@@ -64,13 +96,14 @@ def questions(path: Path, wanted: set[int]) -> list[dict]:
             continue
         body = m.group(2).strip()
         prompt, _, opts = body.partition("\n\n")
-        options = re.findall(r"^- \*\*([a-d])\)\*\*\s*(.*)$", opts, re.M)
-        letters = [letter for letter, _ in options]
+        # option styles seen: "- **a)** text", "- A) text" and "- **A.** text"
+        options = re.findall(r"^- (?:\*\*)?([a-dA-D])[.)](?:\*\*)?\s*(.*)$", opts, re.M)
+        letters = [letter.lower() for letter, _ in options]
         out.append(
             {
                 "q": prompt.strip(),
                 "options": [text.strip() for _, text in options],
-                "answer": letters.index(key[n]),
+                "answer": letters.index(str(key[n]).lower()),
             }
         )
     if len(out) != len(wanted):
@@ -84,7 +117,7 @@ def main() -> None:
     ap.add_argument("--id", required=True)
     ap.add_argument("--title")
     ap.add_argument("--summary", required=True)
-    ap.add_argument("--minutes", type=int, required=True)
+    ap.add_argument("--minutes", type=int, help="default: estimated from length and code cells")
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--source")
     ap.add_argument("--prereq", action="append", default=[])
@@ -98,7 +131,7 @@ def main() -> None:
         "id": args.id,
         "title": args.title or title,
         "summary": args.summary,
-        "estimatedMinutes": args.minutes,
+        "estimatedMinutes": args.minutes or estimate_minutes(body),
         "prerequisites": args.prereq,
     }
     if args.source:

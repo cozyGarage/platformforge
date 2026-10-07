@@ -1,0 +1,16 @@
+version: 1
+id: git-hooks-and-automation
+title: Git Hooks and Automation
+summary: Client and server hooks for linting, commit checks and automation, and their limits.
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook ENV202_git_mastery 04_git_hooks
+quiz:
+- q: Which git hook runs locally before a commit is finalized and is commonly used to lint and format
+    code?
+  options:
+  - post-commit
+  - pre-receive
+  - pre-commit
+  - update
+  answer: 2

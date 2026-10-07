@@ -29,3 +29,4 @@ jobs:
           bash ./scripts/lint.sh
           bash ./scripts/audit.sh
           python3 ./scripts/build-site.py
+          python3 ./tests/labs/verify.py

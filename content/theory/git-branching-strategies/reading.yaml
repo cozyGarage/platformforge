@@ -1,0 +1,32 @@
+version: 1
+id: git-branching-strategies
+title: Branching Strategies
+summary: GitHub Flow, Git Flow and trunk-based development, plus merge, fast-forward and fetch versus
+  pull.
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook ENV202_git_mastery 02_branching_strategies
+quiz:
+- q: What does `git fetch` do that `git pull` does not?
+  options:
+  - '`git fetch` rewrites local history'
+  - '`git fetch` downloads remote refs and objects WITHOUT merging or rebasing them into the current branch'
+  - '`git fetch` requires SSH whereas `git pull` works over HTTPS only'
+  - '`git fetch` runs hooks; `git pull` skips them'
+  answer: 1
+- q: Which scenario is a typical fast-forward merge?
+  options:
+  - The target branch has no commits that the source branch does not also have, so the branch pointer
+    is simply moved forward
+  - Both branches have divergent commits since a common ancestor
+  - The user runs `git merge --no-ff` explicitly
+  - There are merge conflicts but they are auto-resolved
+  answer: 0
+- q: Which describes trunk-based development most accurately?
+  options:
+  - All work happens on long-lived feature branches that are merged once per release
+  - Developers integrate into a single shared trunk frequently via short-lived branches, often using feature
+    flags
+  - Every developer maintains a personal fork that is never merged
+  - Each environment has its own trunk and changes flow between them
+  answer: 1

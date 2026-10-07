@@ -1,0 +1,7 @@
+version: 1
+id: k8s-split-brain-case-study
+title: 'Case Study: Split-Brain Recovery in a Leader-Elected Controller'
+summary: 'Leader election, fencing tokens and idempotency: recovering from two controllers acting at once.'
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook SYS401_kubernetes_devops 08_case_study

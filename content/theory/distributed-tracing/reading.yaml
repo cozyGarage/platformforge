@@ -1,0 +1,31 @@
+version: 1
+id: distributed-tracing
+title: Distributed Tracing
+summary: Following one request across services with traces and spans, and where tracing beats metrics
+  and logs.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SE303_observability_sre 04_distributed_tracing
+quiz:
+- q: 'OpenTelemetry is:'
+  options:
+  - A Prometheus alternative only
+  - A vendor-neutral standard for traces, metrics, and logs
+  - A Google-only tracing system
+  - A log aggregator
+  answer: 1
+- q: 'You see one slow database span dominating end-to-end latency. The observability pillar that surfaced
+    this is:'
+  options:
+  - Metrics counters
+  - Distributed tracing (spans)
+  - Unstructured logs
+  - Cron alerts
+  answer: 1
+- q: 'To trace a single user request across 5 services, you should:'
+  options:
+  - Grep each service's logs separately
+  - Propagate a correlation/trace ID and use distributed tracing
+  - Increase log verbosity to DEBUG
+  - Rely on host name only
+  answer: 1

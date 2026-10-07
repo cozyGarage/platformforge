@@ -1,0 +1,30 @@
+version: 1
+id: window-functions-in-sql
+title: Window Functions
+summary: 'Ranking, running totals and lag/lead without collapsing rows: PARTITION BY, ORDER BY and frames.'
+estimatedMinutes: 35
+prerequisites: []
+source: courses-notebook DS301_databases_sql 09_window_functions
+quiz:
+- q: What is the difference between `RANK()` and `DENSE_RANK()` on ties?
+  options:
+  - RANK leaves gaps after ties; DENSE_RANK does not
+  - DENSE_RANK leaves gaps; RANK does not
+  - They are identical
+  - Only DENSE_RANK supports PARTITION BY
+  answer: 0
+- q: Which window function returns the value from the previous row by order?
+  options:
+  - LEAD
+  - LAG
+  - NTILE
+  - ROW_NUMBER
+  answer: 1
+- q: '`SUM(amount) OVER (PARTITION BY region ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT
+    ROW)` computes:'
+  options:
+  - The grand total of amount
+  - A running total of amount per region ordered by date
+  - The maximum amount per region
+  - The average amount per region
+  answer: 1

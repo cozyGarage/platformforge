@@ -1,0 +1,125 @@
+version: 1
+id: helm-values-resolver
+title: Resolve Helm Values Like Helm
+summary: Implement values layering (defaults, -f files, --set) so the highest-precedence layer wins without mutating its inputs.
+difficulty: intermediate
+estimatedMinutes: 35
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - |
+    mkdir -p /workspace/tests
+    cat > /workspace/values.py <<'PY'
+    """Helm-style values resolution. Implement the three functions."""
+
+
+    def deep_merge(base: dict, override: dict) -> dict:
+        """Return a new dict: override wins; nested dicts merge key by key; lists are replaced."""
+        raise NotImplementedError
+
+
+    def set_flag(values: dict, expr: str) -> dict:
+        """Return a new dict with a `--set a.b=value` applied. 3 -> int, true/false -> bool, else str."""
+        raise NotImplementedError
+
+
+    def resolve(defaults: dict, *files: dict, sets: tuple = ()) -> dict:
+        """defaults < each -f file (left to right) < each --set (left to right)."""
+        raise NotImplementedError
+    PY
+    cat > /workspace/tests/test_values.py <<'PY'
+    import copy
+    import unittest
+
+    from values import deep_merge, resolve, set_flag
+
+
+    class Merge(unittest.TestCase):
+        def test_nested_maps_merge_key_by_key(self):
+            base = {"image": {"repo": "api", "tag": "1"}, "replicas": 2}
+            self.assertEqual(
+                deep_merge(base, {"image": {"tag": "2"}}),
+                {"image": {"repo": "api", "tag": "2"}, "replicas": 2},
+            )
+
+        def test_inputs_are_not_mutated(self):
+            base = {"a": {"b": 1}}
+            override = {"a": {"c": 2}}
+            before = copy.deepcopy((base, override))
+            deep_merge(base, override)
+            self.assertEqual((base, override), before)
+
+        def test_lists_are_replaced_not_merged(self):
+            self.assertEqual(deep_merge({"hosts": ["a", "b"]}, {"hosts": ["c"]}), {"hosts": ["c"]})
+
+
+    class SetFlag(unittest.TestCase):
+        def test_dotted_keys_build_nested_maps(self):
+            self.assertEqual(set_flag({}, "image.tag=v2"), {"image": {"tag": "v2"}})
+
+        def test_scalar_types_are_parsed(self):
+            out = set_flag(set_flag({}, "replicas=3"), "ingress.enabled=true")
+            self.assertEqual(out, {"replicas": 3, "ingress": {"enabled": True}})
+
+        def test_set_keeps_sibling_keys(self):
+            self.assertEqual(set_flag({"image": {"repo": "api"}}, "image.tag=v2"), {"image": {"repo": "api", "tag": "v2"}})
+
+
+    class Precedence(unittest.TestCase):
+        def test_set_beats_files_beats_defaults(self):
+            defaults = {"image": {"tag": "default"}, "replicas": 1}
+            staging = {"image": {"tag": "staging"}, "replicas": 2}
+            prod = {"replicas": 5}
+            out = resolve(defaults, staging, prod, sets=("image.tag=cli",))
+            self.assertEqual(out, {"image": {"tag": "cli"}, "replicas": 5})
+
+        def test_later_files_win(self):
+            self.assertEqual(resolve({"x": 1}, {"x": 2}, {"x": 3}), {"x": 3})
+    PY
+tasks:
+  - id: merge
+    title: Merge layers without side effects
+    description: In /workspace/values.py implement deep_merge so nested maps merge key by key, lists are replaced, and neither input is modified.
+    hints:
+      - 'Copy first: result = copy.deepcopy(base), then walk override.'
+      - 'Recurse only when both sides are dicts; otherwise the override value replaces the base value.'
+      - 'Run one test at a time: cd /workspace && python -m unittest tests.test_values.Merge'
+    checks:
+      - type: command
+        name: Nested maps merge key by key
+        command: cd /workspace && python -m unittest tests.test_values.Merge.test_nested_maps_merge_key_by_key 2>&1
+      - type: command
+        name: Inputs are not mutated
+        command: cd /workspace && python -m unittest tests.test_values.Merge.test_inputs_are_not_mutated 2>&1
+      - type: command
+        name: Lists are replaced, not merged
+        command: cd /workspace && python -m unittest tests.test_values.Merge.test_lists_are_replaced_not_merged 2>&1
+  - id: set-flag
+    title: Parse --set expressions
+    description: Implement set_flag so a dotted key creates nested maps, keeps sibling keys, and scalars become int or bool when they look like one.
+    hints:
+      - 'key, _, raw = expr.partition("=") then key.split(".")'
+      - 'Build the nested override dict and reuse deep_merge.'
+    checks:
+      - type: command
+        name: Dotted keys build nested maps
+        command: cd /workspace && python -m unittest tests.test_values.SetFlag.test_dotted_keys_build_nested_maps 2>&1
+      - type: command
+        name: Scalar types are parsed
+        command: cd /workspace && python -m unittest tests.test_values.SetFlag.test_scalar_types_are_parsed 2>&1
+      - type: command
+        name: Sibling keys survive a --set
+        command: cd /workspace && python -m unittest tests.test_values.SetFlag.test_set_keeps_sibling_keys 2>&1
+  - id: precedence
+    title: Apply the precedence order
+    description: Implement resolve so defaults are overridden by each -f file left to right, and finally by every --set.
+    hints:
+      - 'Fold the layers into one value: start from defaults, merge each file, then apply each set.'
+    checks:
+      - type: command
+        name: --set beats -f files beats defaults
+        command: cd /workspace && python -m unittest tests.test_values.Precedence.test_set_beats_files_beats_defaults 2>&1
+      - type: command
+        name: Later -f files win
+        command: cd /workspace && python -m unittest tests.test_values.Precedence.test_later_files_win 2>&1
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

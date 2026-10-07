@@ -1,0 +1,51 @@
+version: 1
+id: git-rebasing-and-history
+title: Rebasing and Rewriting History Safely
+summary: Rebase, squash, amend, reset and revert, the golden rule of rebasing, and recovering lost commits.
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook ENV202_git_mastery 03_rebasing_and_history
+quiz:
+- q: What is the difference between `git reset --soft HEAD~1` and `git reset --hard HEAD~1`?
+  options:
+  - '`--soft` moves HEAD only; `--hard` moves HEAD and discards working-tree changes'
+  - '`--soft` deletes the commit from disk while `--hard` keeps it'
+  - They are aliases
+  - '`--soft` requires force-push; `--hard` does not'
+  answer: 0
+- q: Which command best recovers a commit that is no longer reachable from any branch but is still in
+    the local repo?
+  options:
+  - Use `git reflog` to find the SHA, then `git checkout` or `git reset` to it
+  - git fsck --lost-found and then git restore
+  - Clone the repo from origin again
+  - git gc --aggressive --restore
+  answer: 0
+- q: What is the 'golden rule' of `git rebase`?
+  options:
+  - Always rebase before pushing for the first time
+  - Never rebase commits that have already been pushed to a shared branch
+  - Only rebase onto detached HEAD
+  - Never rebase if the working tree is clean
+  answer: 1
+- q: Which command is the safest way to undo a commit that has already been pushed to a shared branch?
+  options:
+  - git reset --hard HEAD~1 followed by force push
+  - git commit --amend then push
+  - git revert <commit-sha>
+  - git filter-repo --invert-paths
+  answer: 2
+- q: In an interactive rebase (`git rebase -i HEAD~3`), what does the `squash` action do?
+  options:
+  - Discards the commit entirely
+  - Combines the commit with the previous one, allowing you to edit the combined message
+  - Cherry-picks the commit onto another branch
+  - Marks the commit as a merge commit
+  answer: 1
+- q: Why is `git commit --amend` unsafe to use after pushing to a shared branch?
+  options:
+  - It permanently deletes the staging area
+  - It rewrites the last commit's SHA, which diverges from the version teammates already have
+  - It triggers a force-push automatically
+  - It only works in detached HEAD
+  answer: 1

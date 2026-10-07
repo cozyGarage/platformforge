@@ -1,0 +1,31 @@
+version: 1
+id: alerting-and-oncall
+title: Alerting and On-Call
+summary: Alert fatigue, symptom versus cause alerts, burn-rate alerting, runbooks and incident severity.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SE303_observability_sre 05_alerting_and_oncall
+quiz:
+- q: 'You want to alert on ''we will burn the monthly error budget within an hour at the current rate''.
+    Best alerting strategy:'
+  options:
+  - Threshold on raw 5xx count
+  - Multi-window burn-rate alert on SLO error budget
+  - CPU alert at 90%
+  - Manual log inspection
+  answer: 1
+- q: 'An on-call engineer is being paged dozens of times a day for non-actionable issues. The primary
+    issue is:'
+  options:
+  - Too few alerts
+  - Alert fatigue caused by unactionable alerts
+  - Insufficient metrics
+  - Too many post-mortems
+  answer: 1
+- q: Why is alerting on 'CPU > 90%' often a bad SLO-based alert?
+  options:
+  - It does not directly reflect user-visible reliability and can fire even when users are unaffected
+  - Because CPUs cannot reach 90%
+  - Because Prometheus cannot measure CPU
+  - Because it violates RFC 7807
+  answer: 0

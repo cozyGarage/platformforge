@@ -1,0 +1,22 @@
+version: 1
+id: gitops-with-argocd
+title: GitOps with Argo CD
+summary: Desired state in Git, the reconcile loop, sync policies, prune and ApplicationSet promotion.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SYS401_kubernetes_devops 06_gitops_argocd
+quiz:
+- q: In ArgoCD, what does `OutOfSync` indicate?
+  options:
+  - The cluster is unreachable
+  - Actual cluster state differs from the desired state in the Git repository at the configured path/revision
+  - etcd is partitioned
+  - The ArgoCD controller itself is down
+  answer: 1
+- q: Which ArgoCD setting causes resources removed from Git to also be deleted from the cluster on sync?
+  options:
+  - '`selfHeal: true`'
+  - '`prune: true`'
+  - '`automated: false`'
+  - '`syncWaves: 0`'
+  answer: 1

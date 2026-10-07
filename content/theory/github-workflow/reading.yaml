@@ -1,0 +1,7 @@
+version: 1
+id: github-workflow
+title: GitHub Workflow and Pull Requests
+summary: 'Fork, branch, review and merge: the pull-request workflow and branch protection.'
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook ENV202_git_mastery 05_github_workflow

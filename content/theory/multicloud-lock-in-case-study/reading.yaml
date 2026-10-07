@@ -1,0 +1,7 @@
+version: 1
+id: multicloud-lock-in-case-study
+title: 'Case Study: A SaaS Leaves Single-Cloud Lock-In'
+summary: Plan identity federation, data portability and a staged cutover away from a single provider.
+estimatedMinutes: 40
+prerequisites: []
+source: courses-notebook CLD302_multi_cloud_architecture 08_case_study

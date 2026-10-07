@@ -1,0 +1,23 @@
+version: 1
+id: multicloud-migration-patterns
+title: Migration Patterns
+summary: Rehost, replatform and refactor, and why the strangler fig beats a big-bang migration.
+estimatedMinutes: 15
+prerequisites: []
+source: courses-notebook CLD302_multi_cloud_architecture 07_migration_patterns
+quiz:
+- q: Which migration strategy means containerizing an app and swapping the DB without changing the app's
+    design?
+  options:
+  - Rehost (lift-and-shift)
+  - Replatform
+  - Rearchitect (microservices rewrite)
+  - Retire
+  answer: 1
+- q: 'The Strangler Fig pattern is preferred over Big Bang migration because:'
+  options:
+  - It is the fastest possible approach
+  - It incrementally replaces functionality while running old and new in parallel
+  - It requires no testing
+  - It works only for stateless apps
+  answer: 1

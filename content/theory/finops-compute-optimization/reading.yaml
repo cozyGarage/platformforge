@@ -1,0 +1,43 @@
+version: 1
+id: finops-compute-optimization
+title: Compute Cost Optimization
+summary: Rightsizing, spot, savings plans and commitment coverage, in the order that avoids waste.
+estimatedMinutes: 15
+prerequisites: []
+source: courses-notebook CLD303_finops_cloud_cost 03_compute_optimization
+quiz:
+- q: Which pricing model offers the deepest discount (70-90%) but can be reclaimed with ~2 minutes notice?
+  options:
+  - On-Demand
+  - 1-year Standard RI
+  - Compute Savings Plan
+  - Spot Instances
+  answer: 3
+- q: 'The recommended baseline for commitment coverage is approximately:'
+  options:
+  - 100% of peak usage
+  - p10 of hourly usage (the trough)
+  - Average daily usage
+  - Whatever fits the budget
+  answer: 1
+- q: 'An RI/SP utilization of 90% means:'
+  options:
+  - 90% of your bill is committed
+  - 90% of the purchased committed capacity is actually consumed
+  - You should buy 10% more RIs
+  - Spot Instances are 90% available
+  answer: 1
+- q: 'A FinOps team finds CPU < 5% on average for 14 days on an EC2 instance. The recommended action is:'
+  options:
+  - Buy a 3-year RI for it
+  - Migrate it to a larger instance
+  - Terminate the instance - it is idle
+  - Add more replicas
+  answer: 2
+- q: 'The correct sequence of cost optimization before commitment is:'
+  options:
+  - Buy RIs first, then rightsize
+  - Rightsize first, then commit to RIs/SPs
+  - Buy Spot first, then commit
+  - Commit and rightsize simultaneously without measurement
+  answer: 1

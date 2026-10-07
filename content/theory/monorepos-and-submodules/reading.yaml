@@ -1,0 +1,7 @@
+version: 1
+id: monorepos-and-submodules
+title: Monorepos and Submodules
+summary: Trade-offs between monorepos, polyrepos and submodules, and the tooling each needs.
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook ENV202_git_mastery 06_monorepos_and_submodules

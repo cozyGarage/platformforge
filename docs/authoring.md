@@ -78,3 +78,11 @@ quiz:                              # optional self-check; answer is the zero-bas
 - The quiz key is served to the browser: readings are self-study, not assessment. "Mark as read" records completion.
 - Convert a notebook with `scripts/nb2reading.py` (markdown cells kept, code cells fenced, outputs dropped, `## Vault Insights` and `## After This Notebook` cells skipped; `--mcq` lifts selected questions from an MCQ notebook). Review the result: it is a starting point, not a finished lesson.
 - `go test ./internal/content` checks that every reading loads, its quiz is valid, its id is unique against labs, and every path reference resolves.
+
+## Exercise labs (code-it-yourself)
+
+An exercise lab seeds a starter module with `NotImplementedError` stubs and a visible test file, then grades with one `command` check per behaviour (name each check after the failure mode it catches). They live under `content/exercises/` on `python:3.12-alpine`, no network.
+
+- Write the starter and tests in `setup` with a heredoc (each setup entry runs as `sh -c`).
+- Keep a reference solution under `tests/labs/solutions/<lab-id>/` (same filenames as the starter). `python3 tests/labs/verify.py [lab-id ...]` starts each lab on the real engine, asserts every check fails on the starter, copies the solution in, and asserts every check passes. CI runs it.
+- Avoid `: ` inside an unquoted YAML description; it breaks the manifest.

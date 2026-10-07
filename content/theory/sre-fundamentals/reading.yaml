@@ -1,0 +1,44 @@
+version: 1
+id: sre-fundamentals
+title: 'SRE Fundamentals: SLIs, SLOs and Error Budgets'
+summary: How an SLI becomes an SLO, what an error budget is, and why exhausting it changes how a team
+  ships.
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook SE303_observability_sre 01_sre_fundamentals
+quiz:
+- q: 'An SLO of 99.9% corresponds to a monthly error budget of approximately:'
+  options:
+  - 8.7 hours
+  - 43 minutes
+  - 5 minutes
+  - 26 minutes
+  answer: 1
+- q: 'An SLI is best described as:'
+  options:
+  - A contract with consequences
+  - A quantitative measurement of service behaviour
+  - A target value
+  - An alert threshold
+  answer: 1
+- q: 'An SLA is best described as:'
+  options:
+  - An internal target
+  - A measurement only
+  - A contract with consequences if breached
+  - A logging convention
+  answer: 2
+- q: 'A service has uptime of 99.5% for the month. If the SLO target is 99.9%, the error budget has:'
+  options:
+  - Plenty of room
+  - Been exceeded - reliability work should be prioritised
+  - Reset to zero
+  - Become irrelevant
+  answer: 1
+- q: Why do SREs aim to throttle feature work when the error budget is exhausted?
+  options:
+  - Because exhausting the budget signals reliability is below target and new risk should be paused
+  - Because launches are illegal during outages
+  - Because metrics stop working
+  - Because product managers prefer it
+  answer: 0

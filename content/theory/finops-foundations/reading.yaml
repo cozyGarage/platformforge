@@ -1,0 +1,23 @@
+version: 1
+id: finops-foundations
+title: FinOps Foundations
+summary: The inform, optimise, operate lifecycle and the cultural rules that make cloud cost an engineering
+  concern.
+estimatedMinutes: 15
+prerequisites: []
+source: courses-notebook CLD303_finops_cloud_cost 01_finops_foundations
+quiz:
+- q: The FinOps lifecycle cycles through which three phases?
+  options:
+  - Plan, Build, Deploy
+  - Inform, Optimize, Operate
+  - Detect, Respond, Recover
+  - Buy, Sell, Trade
+  answer: 1
+- q: 'The FinOps golden rule emphasizes:'
+  options:
+  - Finance owns all cost decisions
+  - Engineers who build it pay for (and own) it
+  - Cost is reviewed only quarterly
+  - Tags are optional
+  answer: 1

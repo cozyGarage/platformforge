@@ -1,0 +1,15 @@
+version: 1
+id: sql-joins-and-subqueries
+title: Joins and Subqueries
+summary: Inner, outer and cross joins, correlated subqueries and when each is the right tool.
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook DS301_databases_sql 03_joins_subqueries
+quiz:
+- q: Which JOIN returns only rows with a matching key in both tables?
+  options:
+  - LEFT JOIN
+  - INNER JOIN
+  - FULL OUTER JOIN
+  - CROSS JOIN
+  answer: 1
