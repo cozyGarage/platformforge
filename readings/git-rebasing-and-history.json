@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "id": "git-rebasing-and-history",
+  "title": "Rebasing and Rewriting History Safely",
+  "summary": "Rebase, squash, amend, reset and revert, the golden rule of rebasing, and recovering lost commits.",
+  "estimatedMinutes": 25,
+  "prerequisites": [],
+  "source": "courses-notebook ENV202_git_mastery 03_rebasing_and_history",
+  "quiz": [
+    {
+      "prompt": "What is the difference between `git reset --soft HEAD~1` and `git reset --hard HEAD~1`?",
+      "options": [
+        "`--soft` moves HEAD only; `--hard` moves HEAD and discards working-tree changes",
+        "`--soft` deletes the commit from disk while `--hard` keeps it",
+        "They are aliases",
+        "`--soft` requires force-push; `--hard` does not"
+      ],
+      "answer": 0
+    },
+    {
+      "prompt": "Which command best recovers a commit that is no longer reachable from any branch but is still in the local repo?",
+      "options": [
+        "Use `git reflog` to find the SHA, then `git checkout` or `git reset` to it",
+        "git fsck --lost-found and then git restore",
+        "Clone the repo from origin again",
+        "git gc --aggressive --restore"
+      ],
+      "answer": 0
+    },
+    {
+      "prompt": "What is the 'golden rule' of `git rebase`?",
+      "options": [
+        "Always rebase before pushing for the first time",
+        "Never rebase commits that have already been pushed to a shared branch",
+        "Only rebase onto detached HEAD",
+        "Never rebase if the working tree is clean"
+      ],
+      "answer": 1
+    },
+    {
+      "prompt": "Which command is the safest way to undo a commit that has already been pushed to a shared branch?",
+      "options": [
+        "git reset --hard HEAD~1 followed by force push",
+        "git commit --amend then push",
+        "git revert <commit-sha>",
+        "git filter-repo --invert-paths"
+      ],
+      "answer": 2
+    },
+    {
+      "prompt": "In an interactive rebase (`git rebase -i HEAD~3`), what does the `squash` action do?",
+      "options": [
+        "Discards the commit entirely",
+        "Combines the commit with the previous one, allowing you to edit the combined message",
+        "Cherry-picks the commit onto another branch",
+        "Marks the commit as a merge commit"
+      ],
+      "answer": 1
+    },
+    {
+      "prompt": "Why is `git commit --amend` unsafe to use after pushing to a shared branch?",
+      "options": [
+        "It permanently deletes the staging area",
+        "It rewrites the last commit's SHA, which diverges from the version teammates already have",
+        "It triggers a force-push automatically",
+        "It only works in detached HEAD"
+      ],
+      "answer": 1
+    }
+  ],
+  "lesson": "## 3.1  Rebase vs Merge\n\n```\n# Merge: preserves history, adds merge commit\nA\u2500\u2500B\u2500\u2500C\u2500\u2500D (main)\n         \u2191 merge commit\n   E\u2500\u2500F\u2500\u2500G (feature)\n\n# Rebase: clean linear history\nA\u2500\u2500B\u2500\u2500C\u2500\u2500E'\u2500\u2500F'\u2500\u2500G' (feature rebased onto main)\n```\n\n## 3.2  Interactive Rebase\n\n```bash\ngit rebase -i HEAD~5    # rework last 5 commits\n\n# pick   \u2192 keep commit\n# reword \u2192 change message\n# edit   \u2192 amend commit\n# squash \u2192 merge into previous\n# fixup  \u2192 squash, discard message\n# drop   \u2192 remove commit\n```\n\n## 3.3  Common History Operations\n\n```bash\n# Amend last commit\ngit commit --amend\n\n# Squash last 3 commits\ngit rebase -i HEAD~3  # mark 2nd and 3rd as 'squash'\n\n# Fix commit message\ngit rebase -i HEAD~1  # mark as 'reword'\n\n# Cherry-pick a specific commit\ngit cherry-pick <sha>\n\n# Reset (CAREFUL)\ngit reset --soft HEAD~1   # undo commit, keep staged\ngit reset --mixed HEAD~1  # undo commit, keep working dir\ngit reset --hard HEAD~1   # undo commit AND changes\n\n# Recover lost commits\ngit reflog                # shows all HEAD movements\ngit checkout <sha>        # restore to any point\n```\n\n```python\nimport subprocess\n\ndef git(cmd):\n    r = subprocess.run(f'git {cmd}', shell=True, capture_output=True, text=True)\n    return r.stdout.strip()\n\nprint('=== Commit Graph ===')\nprint(git('log --oneline --graph -10'))\nprint()\nprint('=== Reflog (last 5 entries) ===')\nprint(git('reflog --oneline -5'))\n```\n\n## Rebase and Interactive Rebase\n\n```bash\n# Rebase feature onto latest main\ngit switch feature/auth\ngit rebase main          # replay feature commits on top of main\n\n# Interactive rebase: clean up commits before PR\ngit rebase -i HEAD~4    # edit last 4 commits\n# In editor:\n# pick a1b2c3d First commit\n# squash b2c3d4e WIP: fix typo     \u2190 squash into previous\n# reword c3d4e5f Add validation    \u2190 reword message\n# drop d4e5f6a debug logging       \u2190 remove this commit\n\n# Fixup commit: add a fix to an earlier commit\ngit add .\ngit commit --fixup=HEAD~2     # create fixup commit\ngit rebase -i --autosquash HEAD~4  # auto-squash fixups\n```\n\n```python\nrebase_workflow = '''\nRebase vs Merge comparison:\n\nMerge (preserves history):\n  A---B---C  (feature)\n         \\\n  D---E---F---G  (main after merge)\n  + Clear history of when features were merged\n  - Noisy history with merge commits\n\nRebase (linear history):\n  D---E---A\\'---B\\'---C\\'  (rebased feature on main)\n  + Clean, linear history\n  + Easy to bisect bugs\n  - Rewrites commits (never rebase shared branches!)\n\nGolden rule: NEVER rebase branches that others have pulled from.\n             Only rebase local branches or feature branches before merging.\n\nInteractive rebase use cases:\n  1. Squash \"WIP\" commits before PR\n  2. Reorder commits for logical grouping\n  3. Edit commit messages\n  4. Split a large commit into smaller ones\n  5. Remove accidental debug commits\n'''\nprint(rebase_workflow)\n```\n\n```python\n# Verification helpers \u2014 exercise checker\n\ndef assert_equal(got, want, label=\"\"):\n    status = \"\u2713\" if got == want else f\"\u2717 got={got!r} want={want!r}\"\n    print(f\"  {label or 'test'}: {status}\")\n\ndef assert_approx(got, want, tol=1e-6, label=\"\"):\n    diff = abs(got - want)\n    status = \"\u2713\" if diff < tol else f\"\u2717 diff={diff:.2e}\"\n    print(f\"  {label or 'test'}: {status}\")\n\ndef run_tests(fn, cases):\n    \"\"\"cases: list of (args_tuple, expected)\"\"\"\n    passed = sum(1 for args, want in cases\n                 if (result := fn(*args) if isinstance(args, tuple) else fn(args)) == want\n                 or (print(f\"  FAIL {fn.__name__}{args}: got {result!r}, want {want!r}\"), False))\n    print(f\"{fn.__name__}: {passed}/{len(cases)} passed {'\u2713' if passed==len(cases) else '\u2717'}\")\n\n# \u2500\u2500\u2500 Example: test your implementations below \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\ndef flatten(nested):\n    \"\"\"Flatten arbitrarily nested lists.\"\"\"\n    result = []\n    for item in nested:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\nrun_tests(flatten, [\n    (([1,[2,[3,[4]]],5],),  [1,2,3,4,5]),\n    (([],),                  []),\n    (([[1],[2],[3]],),        [1,2,3]),\n])\n\ndef chunk(lst, size):\n    \"\"\"Split list into chunks of given size.\"\"\"\n    return [lst[i:i+size] for i in range(0, len(lst), size)]\n\nrun_tests(chunk, [\n    (([1,2,3,4,5], 2),  [[1,2],[3,4],[5]]),\n    (([1,2,3], 3),       [[1,2,3]]),\n    (([], 2),            []),\n])\n```\n\n```python\n# Advanced: Git object model \u2014 blob, tree, commit simulation\nimport hashlib, json\nfrom dataclasses import dataclass, field\nfrom typing import Optional\n\ndef sha1(content: str) -> str:\n    return hashlib.sha1(content.encode()).hexdigest()[:8]\n\n@dataclass\nclass GitObject:\n    kind:    str   # blob | tree | commit\n    content: str\n    hash:    str = field(init=False)\n    def __post_init__(self):\n        self.hash = sha1(f\"{self.kind}:{self.content}\")\n\nclass GitRepo:\n    def __init__(self):\n        self.objects: dict[str, GitObject] = {}\n        self.refs:    dict[str, str] = {\"HEAD\": None}\n        self.index:   dict[str, str] = {}   # filename \u2192 blob hash\n\n    def hash_object(self, kind: str, content: str) -> str:\n        obj = GitObject(kind=kind, content=content)\n        self.objects[obj.hash] = obj\n        return obj.hash\n\n    def add(self, filename: str, content: str) -> str:\n        blob_hash = self.hash_object(\"blob\", content)\n        self.index[filename] = blob_hash\n        print(f\"  staged {filename} \u2192 blob {blob_hash}\")\n        return blob_hash\n\n    def commit(self, message: str, author: str = \"dev\") -> str:\n        tree_content = json.dumps(dict(sorted(self.index.items())))\n        tree_hash    = self.hash_object(\"tree\", tree_content)\n        parent       = self.refs.get(\"HEAD\")\n        commit_data  = json.dumps({\"tree\": tree_hash, \"parent\": parent,\n                                   \"author\": author, \"message\": message})\n        commit_hash  = self.hash_object(\"commit\", commit_data)\n        self.refs[\"HEAD\"] = commit_hash\n        print(f\"  commit {commit_hash}  '{message}'  tree={tree_hash}\")\n        return commit_hash\n\n    def log(self):\n        cur = self.refs.get(\"HEAD\")\n        while cur:\n            obj = self.objects.get(cur)\n            if not obj: break\n            data = json.loads(obj.content)\n            print(f'  commit {cur}  \"{data['message']}\"  tree={data['tree']}')\n            cur  = data.get(\"parent\")\n\nrepo = GitRepo()\nprint(\"=== git add ===\")\nrepo.add(\"README.md\",  \"# My Project\")\nrepo.add(\"main.py\",    \"print('hello')\")\nprint(\"=== git commit ===\")\nrepo.commit(\"Initial commit\")\n\nrepo.add(\"main.py\", \"print('hello world')\")   # modify file\nrepo.commit(\"Update main.py\")\n\nprint(\"=== git log ===\")\nrepo.log()\nprint(f\"=== Objects stored: {len(repo.objects)} ===\")\nfor h, obj in list(repo.objects.items())[:6]:\n    print(f\"  {h}  {obj.kind}\")\n```\n\n## Git Quick Reference\n\n```bash\n# Daily workflow\ngit status -s                     # compact status\ngit diff --staged                 # review before commit\ngit commit -m \"type: description\" # conventional commit\ngit push -u origin feature/name   # first push\n\n# Branching\ngit switch -c feature/name        # create + switch\ngit switch main && git pull        # update main\ngit rebase main                    # rebase feature onto main\ngit merge --no-ff feature/name     # merge with history\n\n# Undoing things (safe)\ngit restore <file>                 # discard working tree changes\ngit restore --staged <file>        # unstage\ngit revert HEAD                    # new commit that undoes last\n\n# History inspection\ngit log --oneline --graph --all    # visual branch graph\ngit log -p --follow -- <file>      # file history with diffs\ngit blame -L 10,20 <file>          # who changed lines 10-20\ngit bisect start                   # binary search for bug commit\n\n# Stash\ngit stash push -m \"WIP: feature\"\ngit stash list\ngit stash pop                      # restore latest\n\n# Remote\ngit remote -v\ngit fetch --prune                  # remove stale remote branches\ngit pull --rebase origin main      # rebase instead of merge pull\n```\n\n**Commit types (Conventional Commits):**\n`feat` \u00b7 `fix` \u00b7 `refactor` \u00b7 `docs` \u00b7 `test` \u00b7 `chore` \u00b7 `perf` \u00b7 `ci`\n\n## Failure Modes\n\n- **Rebasing pushed commits**: rewrites SHA \u2014 anyone who pulled the old commits will have diverged history; use `git push --force-with-lease` (not `--force`) if you must\n- **Losing commits during rebase**: use `git reflog` to find lost commits \u2014 they're still in the object database for 90 days\n\n## Exercises\n1. Squash 5 WIP commits into 1 meaningful commit using interactive rebase\n2. Split a commit that changed 3 unrelated files: `git rebase -i HEAD~1` \u2192 `edit` \u2192 `git reset HEAD^` \u2192 stage and commit separately\n3. Use `git bisect` to find which commit introduced a bug: `git bisect start`, `git bisect good v1.0`, `git bisect bad HEAD`\n\n## Key Takeaways\n\n- **`git rebase -i HEAD~N`**: interactive rebase lets you squash, reorder, edit, or drop the last N commits before opening a PR \u2014 the standard way to clean up WIP history.\n- **`squash` vs `fixup`**: `squash` merges commits and lets you edit the combined message; `fixup` silently discards the squashed commit's message \u2014 use fixup for typo fixes.\n- **Never rebase public branches**: rebase rewrites SHA hashes \u2014 anyone who pulled the old commits will have diverged history requiring a force push.\n- **`git push --force-with-lease`**: safer than `--force` \u2014 fails if someone else has pushed since your last fetch, preventing accidental overwrites of others' work.\n- **`git reflog` recovery**: squashed or reset commits remain in the object database for 90 days \u2014 `git reflog` shows every HEAD position, enabling recovery with `git checkout <hash>`.\n\n## \ud83e\udde0 Quick Quiz\n\n**Q1.** Interactive rebase (`git rebase -i`) allows:\n- A) Merging branches interactively\n- B) **Reordering, squashing, editing, and dropping commits** \u2713\n- C) Resolving merge conflicts visually\n- D) Staging individual lines\n\n**Q2.** `git rebase` should not be used on:\n- A) Local feature branches\n- B) **Public/shared branches \u2014 it rewrites history that others may have based work on** \u2713\n- C) Experimental branches\n- D) Branches with a single commit\n\n**Q3.** `git reflog` is useful for:\n- A) Viewing the remote repository log\n- B) **Recovering lost commits after a reset or rebase** \u2713\n- C) Listing all branches\n- D) Showing file change history\n\n<details><summary>Answers</summary>1-B, 2-B, 3-B</details>\n"
+}

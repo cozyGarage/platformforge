@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "id": "sre-fundamentals",
+  "title": "SRE Fundamentals: SLIs, SLOs and Error Budgets",
+  "summary": "How an SLI becomes an SLO, what an error budget is, and why exhausting it changes how a team ships.",
+  "estimatedMinutes": 25,
+  "prerequisites": [],
+  "source": "courses-notebook SE303_observability_sre 01_sre_fundamentals",
+  "quiz": [
+    {
+      "prompt": "An SLO of 99.9% corresponds to a monthly error budget of approximately:",
+      "options": [
+        "8.7 hours",
+        "43 minutes",
+        "5 minutes",
+        "26 minutes"
+      ],
+      "answer": 1
+    },
+    {
+      "prompt": "An SLI is best described as:",
+      "options": [
+        "A contract with consequences",
+        "A quantitative measurement of service behaviour",
+        "A target value",
+        "An alert threshold"
+      ],
+      "answer": 1
+    },
+    {
+      "prompt": "An SLA is best described as:",
+      "options": [
+        "An internal target",
+        "A measurement only",
+        "A contract with consequences if breached",
+        "A logging convention"
+      ],
+      "answer": 2
+    },
+    {
+      "prompt": "A service has uptime of 99.5% for the month. If the SLO target is 99.9%, the error budget has:",
+      "options": [
+        "Plenty of room",
+        "Been exceeded - reliability work should be prioritised",
+        "Reset to zero",
+        "Become irrelevant"
+      ],
+      "answer": 1
+    },
+    {
+      "prompt": "Why do SREs aim to throttle feature work when the error budget is exhausted?",
+      "options": [
+        "Because exhausting the budget signals reliability is below target and new risk should be paused",
+        "Because launches are illegal during outages",
+        "Because metrics stop working",
+        "Because product managers prefer it"
+      ],
+      "answer": 0
+    }
+  ],
+  "lesson": "Core vocabulary: **SLI \u2192 SLO \u2192 SLA \u2192 Error Budget \u2192 Toil**\n\n## 1. SLI \u2014 Service Level Indicator\n\nAn SLI is a **quantitative measure** of some aspect of the service level being provided.\n\nCommon SLI categories:\n- **Availability** \u2014 fraction of time the service is usable\n- **Latency** \u2014 proportion of requests served within a threshold\n- **Throughput** \u2014 rate of successful requests per second\n- **Error rate** \u2014 fraction of requests that return errors\n- **Freshness** \u2014 how recently data was updated (for data pipelines)\n\nFormula (request-based SLI):\n```\nSLI = good_events / total_events\n```\n\n```python\nfrom dataclasses import dataclass, field\nfrom typing import List\n\n\n@dataclass\nclass SLIWindow:\n    \"\"\"Tracks good/bad events over a rolling window.\"\"\"\n    name: str\n    good_events: int = 0\n    total_events: int = 0\n\n    def record(self, *, good: bool) -> None:\n        self.total_events += 1\n        if good:\n            self.good_events += 1\n\n    @property\n    def value(self) -> float:\n        if self.total_events == 0:\n            return 1.0\n        return self.good_events / self.total_events\n\n    @property\n    def percentage(self) -> float:\n        return self.value * 100\n\n\n# Simulate a latency SLI (good = served within 200 ms)\nimport random\nrandom.seed(42)\n\nlatency_sli = SLIWindow(name=\"p99_latency_under_200ms\")\nfor _ in range(10_000):\n    latency_ms = random.gauss(mu=120, sigma=50)\n    latency_sli.record(good=latency_ms < 200)\n\nprint(f\"SLI '{latency_sli.name}': {latency_sli.percentage:.3f}%\")\nprint(f\"  Good events : {latency_sli.good_events}\")\nprint(f\"  Total events: {latency_sli.total_events}\")\n```\n\n## 2. SLO \u2014 Service Level Objective\n\nAn SLO is a **target value or range** for an SLI over a specified window.\n\n```\nSLO = SLI \u2265 target  over  rolling_window\n```\n\nExample: *\"99.9% of requests must complete within 200 ms over any 30-day window\"*\n\nSLOs are **internal** commitments \u2014 they should be stricter than SLAs to give you a safety margin.\n\n```python\n@dataclass\nclass SLO:\n    name: str\n    sli: SLIWindow\n    target: float          # e.g. 0.999 for 99.9%\n    window_days: int = 30\n\n    @property\n    def is_met(self) -> bool:\n        return self.sli.value >= self.target\n\n    @property\n    def error_budget_remaining(self) -> float:\n        \"\"\"Fraction of allowable bad events remaining.\"\"\"\n        allowed_error_rate = 1.0 - self.target\n        actual_error_rate  = 1.0 - self.sli.value\n        if allowed_error_rate == 0:\n            return 0.0\n        consumed = actual_error_rate / allowed_error_rate\n        return max(0.0, 1.0 - consumed)\n\n    def report(self) -> None:\n        status = \"MET\" if self.is_met else \"BREACHED\"\n        print(f\"SLO  : {self.name}\")\n        print(f\"Target: {self.target*100:.2f}%  |  Actual: {self.sli.percentage:.3f}%\")\n        print(f\"Status: {status}\")\n        print(f\"Error budget remaining: {self.error_budget_remaining*100:.1f}%\")\n\n\nslo = SLO(\n    name=\"api_latency_slo\",\n    sli=latency_sli,\n    target=0.999,\n    window_days=30,\n)\nslo.report()\n```\n\n## 3. SLA \u2014 Service Level Agreement\n\nAn SLA is a **contractual promise** to customers, usually with financial penalties for breach.\n\n| | SLI | SLO | SLA |\n|--|-----|-----|-----|\n| What | Measurement | Target | Contract |\n| Who sets it | Engineering | Engineering | Business + Legal |\n| Consequence of breach | Data point | Alert, freeze features | Credits, penalties |\n| Typical value | 99.95% | 99.9% | 99.5% |\n\n**Best practice**: SLO should be tighter than SLA by at least one 9 (e.g., SLA=99.5%, SLO=99.9%).\n\n## 4. Error Budgets\n\nThe **error budget** is the amount of unreliability you are allowed before breaching your SLO.\n\n```\nerror_budget = (1 - SLO_target) \u00d7 window_duration\n```\n\nFor a 99.9% monthly SLO:\n- 30 days \u00d7 24 hours \u00d7 60 minutes = 43,200 minutes\n- Error budget = 0.1% \u00d7 43,200 = **43.2 minutes** of allowed downtime per month\n\nWhen budget is full \u2192 ship features aggressively.  \nWhen budget is exhausted \u2192 freeze releases, focus on reliability.\n\n```python\ndef error_budget_minutes(slo_target: float, window_days: int = 30) -> float:\n    total_minutes = window_days * 24 * 60\n    return (1.0 - slo_target) * total_minutes\n\n\nnines_table = [\n    (\"99%\",    0.99),\n    (\"99.5%\",  0.995),\n    (\"99.9%\",  0.999),\n    (\"99.95%\", 0.9995),\n    (\"99.99%\", 0.9999),\n]\n\nprint(f\"{'SLO':<10} {'Monthly budget (min)':>22} {'Daily budget (min)':>20}\")\nprint(\"-\" * 55)\nfor label, target in nines_table:\n    monthly = error_budget_minutes(target, 30)\n    daily   = error_budget_minutes(target, 1)\n    print(f\"{label:<10} {monthly:>22.1f} {daily:>20.2f}\")\n```\n\n## 5. Toil\n\n**Toil** is work that is:\n- Manual\n- Repetitive\n- Automatable\n- Tactical (no enduring value)\n- Scales with service growth\n\nGoogle's SRE book suggests spending **<50% of time on toil**. Anything more erodes the team's ability to improve the system.\n\nExamples of toil: manually restarting services, rotating credentials by hand, copying data between systems, answering tickets that could be self-served.\n\n```python\n# Toil tracker: classify work items\nfrom dataclasses import dataclass\nfrom typing import List\n\n\n@dataclass\nclass WorkItem:\n    description: str\n    hours: float\n    is_toil: bool\n\n\ndef toil_percentage(items: List[WorkItem]) -> float:\n    total = sum(w.hours for w in items)\n    toil  = sum(w.hours for w in items if w.is_toil)\n    return (toil / total * 100) if total > 0 else 0.0\n\n\nsprint_work = [\n    WorkItem(\"Design new rate-limiting feature\",  8.0, is_toil=False),\n    WorkItem(\"Manually restart crashed pods\",      2.0, is_toil=True),\n    WorkItem(\"Write postmortem for DB incident\",   3.0, is_toil=False),\n    WorkItem(\"Rotate API keys for 3 services\",     1.5, is_toil=True),\n    WorkItem(\"Answer oncall tickets\",              4.0, is_toil=True),\n    WorkItem(\"Implement SLO dashboard automation\", 6.0, is_toil=False),\n]\n\npct = toil_percentage(sprint_work)\nprint(f\"Toil percentage this sprint: {pct:.1f}%\")\nif pct > 50:\n    print(\"WARNING: toil exceeds 50% \u2014 prioritise automation!\")\nelse:\n    print(\"Toil is within acceptable range.\")\n```\n\n## 6. SLO Calculator \u2014 putting it all together\n\n```python\nclass SLOCalculator:\n    \"\"\"Full SLO calculator: tracks events, computes budget burn rate.\"\"\"\n\n    def __init__(self, name: str, target: float, window_days: int = 30):\n        self.name = name\n        self.target = target\n        self.window_days = window_days\n        self._good = 0\n        self._total = 0\n\n    def record_event(self, good: bool) -> None:\n        self._total += 1\n        if good:\n            self._good += 1\n\n    @property\n    def sli(self) -> float:\n        return self._good / self._total if self._total else 1.0\n\n    @property\n    def total_budget_events(self) -> int:\n        \"\"\"Allowed bad events given current total volume.\"\"\"\n        return int(self._total * (1 - self.target))\n\n    @property\n    def bad_events(self) -> int:\n        return self._total - self._good\n\n    @property\n    def budget_consumed_pct(self) -> float:\n        if self.total_budget_events == 0:\n            return 100.0\n        return min(100.0, self.bad_events / self.total_budget_events * 100)\n\n    def summary(self) -> None:\n        print(f\"\\n{'='*50}\")\n        print(f\"SLO Calculator: {self.name}\")\n        print(f\"  Target SLO   : {self.target*100:.3f}%\")\n        print(f\"  Current SLI  : {self.sli*100:.3f}%\")\n        print(f\"  SLO {'MET' if self.sli >= self.target else 'BREACHED':8}\")\n        print(f\"  Bad events   : {self.bad_events} / {self.total_budget_events} allowed\")\n        print(f\"  Budget used  : {self.budget_consumed_pct:.1f}%\")\n\n\n# Simulate 30 days of traffic\ncalc = SLOCalculator(\"checkout_service\", target=0.999)\nrandom.seed(7)\nfor _ in range(500_000):\n    calc.record_event(good=random.random() < 0.9991)  # slightly above target\n\ncalc.summary()\n```\n\n## Key Takeaways\n\n- **SLI** measures the thing; **SLO** sets the target; **SLA** is the external promise\n- Error budgets translate abstract reliability targets into actionable spending decisions\n- Toil must be kept below 50% \u2014 SRE teams exist to *reduce* operational work, not to absorb it indefinitely\n- Always set SLO tighter than SLA to maintain a safety buffer\n\n## \ud83e\udde0 Quick Quiz\n\n**Q1.** The four Golden Signals (Google SRE) are:\n- A) CPU, Memory, Disk, Network\n- B) **Latency, Traffic, Errors, Saturation** \u2713\n- C) Availability, Reliability, Scalability, Maintainability\n- D) P50, P95, P99, P999\n\n**Q2.** An SLO (Service Level Objective):\n- A) Is a legal commitment to customers\n- B) **Is a target for a measurable user-facing metric (e.g. 99.9% availability)** \u2713\n- C) Equals the SLA\n- D) Measures internal system metrics only\n\n**Q3.** The error budget is consumed when:\n- A) Development adds new features\n- B) **The service falls below its SLO target** \u2713\n- C) Deployments are made\n- D) Incidents are created\n\n<details><summary>Answers</summary>1-B, 2-B, 3-B</details>\n"
+}
