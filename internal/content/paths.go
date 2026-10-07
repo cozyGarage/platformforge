@@ -17,6 +17,7 @@ type PathModule struct {
 	ID         string      `json:"id" yaml:"id"`
 	Title      string      `json:"title" yaml:"title"`
 	Summary    string      `json:"summary,omitempty" yaml:"summary,omitempty"`
+	Readings   []string    `json:"readings,omitempty" yaml:"readings,omitempty"`
 	Labs       []string    `json:"labs" yaml:"labs"`
 	ComingSoon []string    `json:"comingSoon,omitempty" yaml:"comingSoon,omitempty"`
 	Source     string      `json:"source,omitempty" yaml:"source,omitempty"`

@@ -180,6 +180,8 @@ phases:
       - id: learn-helm
         title: Learn Helm
         summary: Chart skeletons, values overrides, and digest-friendly env promotion.
+        readings:
+          - helm-charts-and-releases
         labs:
           - helm-chart-basics
           - helm-values-overrides

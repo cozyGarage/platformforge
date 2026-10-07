@@ -1,4 +1,4 @@
-# Authoring PlatformForge labs
+# Authoring PlatformForge labs and readings
 
 Each lab is a directory containing `lab.yaml` and `lesson.md`. Validate authored content with:
 
@@ -37,3 +37,28 @@ Runtime UX (do not re-implement in each lab):
 - `prerequisites` are enforced on lab start; path modules may also declare `unlock.completedFromModule` + `unlock.count` for sandbox gates
 
 Adapted material belongs only in `content/90days`. Include the source URL, original author, modification notes, an `attribution` manifest field, and CC BY-NC-SA 4.0 licensing.
+
+## Readings (theory units)
+
+A reading is a lesson with no lab: a directory under `content/` holding `reading.yaml` and `lesson.md`.
+
+```yaml
+version: 1
+id: helm-charts-and-releases      # lowercase-hyphen; must not collide with any lab id (they share one progress table)
+title: Helm Chart Structure and Release Management
+summary: One or two sentences, at least 10 characters.
+estimatedMinutes: 30
+prerequisites: []
+source: where it was adapted from (optional)
+quiz:                              # optional self-check; answer is the zero-based index
+  - q: In Helm value precedence (lowest to highest), which order is correct?
+    options: ["`--set` < `-f override.yaml` < `values.yaml`", "`values.yaml` < `-f override.yaml` < `--set`"]
+    answer: 1
+    explain: optional
+```
+
+- List a reading in a path module with `readings: [id]` (rendered before the module's labs).
+- `lesson.md` supports GitHub-style Markdown and `mermaid` fenced diagrams, rendered in the browser; the library loads only on pages that contain one.
+- The quiz key is served to the browser: readings are self-study, not assessment. "Mark as read" records completion.
+- Convert a notebook with `scripts/nb2reading.py` (markdown cells kept, code cells fenced, outputs dropped, `## Vault Insights` and `## After This Notebook` cells skipped; `--mcq` lifts selected questions from an MCQ notebook). Review the result: it is a starting point, not a finished lesson.
+- `go test ./internal/content` checks that every reading loads, its quiz is valid, its id is unique against labs, and every path reference resolves.

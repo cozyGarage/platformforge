@@ -65,3 +65,13 @@ main { max-width: 1440px; margin: auto; padding: clamp(1.5rem, 4vw, 4rem); }
 .lab-list li.soon { color: #6d7f9d; font-style: italic; }
 .lab-list li.done a { color: #57e3c1; }
 @media (max-width: 850px) { .lesson { grid-template-columns: 1fr; }.lesson aside { max-height: none; }.terminal { height: 330px; } }
+
+.section-title { margin: 2rem 0 1rem; font-size: 1.2rem; color: #94a4c3; }
+.reading { max-width: 820px; margin: 0 auto; }.reading h1 { font-size: 2.4rem; letter-spacing: -.04em; }
+.reading article { color: #a7b5d0; line-height: 1.7; }.reading article code { color: #57e3c1; }
+.reading article pre { background: #0b1222; border: 1px solid #25314a; border-radius: 8px; padding: 1rem; overflow: auto; }.reading article pre code { color: #dce7ff; }
+.reading article table { border-collapse: collapse; width: 100%; }.reading article th, .reading article td { border: 1px solid #25314a; padding: .5rem .7rem; text-align: left; }
+.diagram { margin: 1.2rem 0; overflow: auto; }.diagram svg { max-width: 100%; height: auto; }
+.quiz { border-top: 1px solid #26334d; margin-top: 2rem; padding-top: 1rem; }.question { margin: 1.2rem 0; color: #a7b5d0; }
+.option { display: flex; gap: .6rem; align-items: flex-start; padding: .45rem .6rem; border-radius: 6px; cursor: pointer; }.option p { margin: 0; }
+.option.right { background: #12332c; }.option.wrong { background: #3a1c27; }

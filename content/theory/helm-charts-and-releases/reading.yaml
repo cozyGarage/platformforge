@@ -1,0 +1,23 @@
+version: 1
+id: helm-charts-and-releases
+title: Helm Chart Structure and Release Management
+summary: How a Helm chart, its values layers and a release's revision history fit together, with runnable
+  simulators of value resolution and hooks.
+estimatedMinutes: 30
+prerequisites: []
+source: courses-notebook SYS401 05_helm_charts
+quiz:
+- q: In Helm value precedence (lowest to highest), which order is correct?
+  options:
+  - '`--set` < `-f override.yaml` < `values.yaml`'
+  - '`values.yaml` < `-f override.yaml` < `--set`'
+  - '`-f override.yaml` < `values.yaml` < `--set`'
+  - '`values.yaml` < `--set` < `-f override.yaml`'
+  answer: 1
+- q: What does `helm rollback ml-api 2` actually create in the release history?
+  options:
+  - It rewrites revision 2 in place
+  - It creates a new forward revision whose manifests are taken from revision 2 - history stays append-only
+  - It removes all revisions after 2
+  - It deletes the entire release and re-creates it from revision 2
+  answer: 1
