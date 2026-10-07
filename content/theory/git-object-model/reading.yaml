@@ -1,0 +1,37 @@
+version: 1
+id: git-object-model
+title: The Git Object Model
+summary: Blobs, trees, commits and tags; what a branch really is; and how the index relates to the working
+  tree.
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook ENV202_git_mastery 01_git_object_model
+quiz:
+- q: Which four object types make up Git's content-addressable object database?
+  options:
+  - blob, tree, commit, tag
+  - file, folder, snapshot, branch
+  - index, stash, ref, pack
+  - object, ref, pack, hook
+  answer: 0
+- q: Which statement most accurately describes a Git branch?
+  options:
+  - A directory containing a copy of every tracked file
+  - A movable pointer (ref) to a single commit SHA
+  - A separate database with its own object store
+  - An immutable snapshot like a tag
+  answer: 1
+- q: In a default Git workflow, what does the staging area (index) represent?
+  options:
+  - The set of changes that will be included in the next commit
+  - The set of files ignored by .gitignore
+  - The reflog of HEAD
+  - The remote tracking branches
+  answer: 0
+- q: What does a commit object contain (its payload)?
+  options:
+  - A reference to a tree, parent commit reference(s), author/committer info, and a message
+  - A list of file diffs against the previous commit
+  - A copy of the working directory
+  - Only an SHA and a message
+  answer: 0

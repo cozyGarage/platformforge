@@ -1,0 +1,7 @@
+version: 1
+id: sql-funnel-analysis
+title: Funnel Analysis
+summary: Measure step-to-step conversion and find the drop-off in an ordered event funnel.
+estimatedMinutes: 30
+prerequisites: []
+source: courses-notebook DS301_databases_sql 11_funnel_analysis

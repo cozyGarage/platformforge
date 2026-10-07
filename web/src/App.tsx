@@ -7,6 +7,8 @@ import DOMPurify from 'dompurify'
 
 type Check = { taskId?: string; name: string; type: string; passed: boolean; message: string }
 type Task = { id: string; title: string; description: string; hints: string[]; checks: unknown[] }
+type Question = { prompt: string; options: string[]; answer: number; explain?: string }
+type Reading = { id: string; title: string; summary: string; estimatedMinutes: number; prerequisites: string[]; source?: string; quiz?: Question[]; lesson?: string }
 type Lab = { id: string; title: string; summary: string; difficulty: string; estimatedMinutes: number; prerequisites: string[]; tasks: Task[]; lesson?: string }
 type Score = { stars: number; correctness: number; speed: number; cleanliness: number; durationSeconds: number; failedValidations: number; hintsRevealed: number }
 type TaskProgress = { taskId: string; failedValidations: number; ghostHints: number }
@@ -14,7 +16,7 @@ type Validation = { status: string; passed: number; checks: Check[]; taskProgres
 type Progress = { labId: string; status: string; attempts: number; updatedAt: string; score?: Score }
 type Session = { running: boolean; container?: string }
 type UnlockGate = { completedFromModule?: string; count?: number }
-type PathModule = { id: string; title: string; summary?: string; labs: string[]; comingSoon?: string[]; source?: string; unlock?: UnlockGate }
+type PathModule = { id: string; title: string; summary?: string; readings?: string[]; labs: string[]; comingSoon?: string[]; source?: string; unlock?: UnlockGate }
 type PathPhase = { id: string; title: string; summary?: string; modules: PathModule[] }
 type LearningPath = { id: string; title: string; summary: string; source?: string; phases: PathPhase[] }
 
@@ -75,6 +77,38 @@ function tipGlossaryFor(lab?: Lab) {
   return [...byCode.entries()].map(([code, text]) => ({ code, text }))
 }
 
+function renderInline(source: string) {
+  return { __html: DOMPurify.sanitize(marked.parseInline(source || '') as string) }
+}
+
+function renderMarkdown(source: string) {
+  return { __html: DOMPurify.sanitize(marked.parse(source || '') as string) }
+}
+
+// Mermaid is large, so load it only when a lesson actually contains a diagram. Blocks are
+// re-queried from the live DOM on every pass: React may replace the article's nodes while
+// the import and render are awaited.
+async function renderDiagrams(root: HTMLElement) {
+  const next = () => root.querySelector<HTMLElement>('pre > code.language-mermaid')
+  if (!next()) return
+  const { default: mermaid } = await import('mermaid')
+  mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'dark' })
+  for (let index = 0, code = next(); code; index++, code = next()) {
+    const pre = code.parentElement
+    try {
+      const { svg } = await mermaid.render(`diagram-${Date.now()}-${index}`, code.textContent || '')
+      const live = pre?.isConnected ? pre : root.querySelector('pre > code.language-mermaid')?.parentElement
+      const box = document.createElement('div')
+      box.className = 'diagram'
+      box.innerHTML = svg
+      live?.replaceWith(box)
+    } catch (err) {
+      console.error('diagram render failed; leaving source visible', err)
+      code.classList.replace('language-mermaid', 'language-mermaid-failed')
+    }
+  }
+}
+
 function useLearningPathOrder() {
   const [pathLabs, setPathLabs] = useState<string[]>([])
   const [path, setPath] = useState<LearningPath>()
@@ -112,23 +146,25 @@ function useContinueLab(
 
 function useLabsAndProgress() {
   const [labs, setLabs] = useState<Lab[]>([])
+  const [readings, setReadings] = useState<Reading[]>([])
   const [progress, setProgress] = useState<Progress[]>([])
   const [error, setError] = useState('')
   useEffect(() => {
-    Promise.all([request<Lab[]>('/api/labs'), request<Progress[]>('/api/progress')])
-      .then(([labsData, progressData]) => { setLabs(labsData); setProgress(progressData) })
+    Promise.all([request<Lab[]>('/api/labs'), request<Progress[]>('/api/progress'), request<Reading[]>('/api/readings').catch(() => [] as Reading[])])
+      .then(([labsData, progressData, readingData]) => { setLabs(labsData); setProgress(progressData); setReadings(readingData) })
       .catch(e => setError(e.message))
   }, [])
   const labMap = useMemo(() => Object.fromEntries(labs.map(l => [l.id, l])), [labs])
+  const readingMap = useMemo(() => Object.fromEntries(readings.map(r => [r.id, r])), [readings])
   const statusFor = (labId: string) => progress.find(p => p.labId === labId)?.status
   const scoreFor = (labId: string) => progress.find(p => p.labId === labId)?.score
   const missingPrereqs = (lab?: Lab) => (lab?.prerequisites || []).filter(id => statusFor(id) !== 'completed')
   const isLocked = (lab?: Lab) => missingPrereqs(lab).length > 0
-  return { labs, progress, error, labMap, statusFor, scoreFor, missingPrereqs, isLocked }
+  return { labs, readings, readingMap, progress, error, labMap, statusFor, scoreFor, missingPrereqs, isLocked }
 }
 
 function Catalog() {
-  const { labs, error, statusFor, scoreFor, isLocked, missingPrereqs, labMap } = useLabsAndProgress()
+  const { labs, readings, error, statusFor, scoreFor, isLocked, missingPrereqs, labMap } = useLabsAndProgress()
   const { continueLabId, continueLab } = useContinueLab(statusFor, isLocked, labMap)
   return <>
     <section className="hero">
@@ -138,6 +174,15 @@ function Catalog() {
       {continueLabId && <p className="continue-cta"><Link to={`/labs/${continueLabId}`}>Continue → {continueLab?.title || continueLabId}</Link></p>}
     </section>
     {error && <p className="error">{error}</p>}
+    {readings.length > 0 && <>
+      <h2 className="section-title">Readings</h2>
+      <section className="grid">{readings.map(reading => <Link className="card" to={`/readings/${reading.id}`} key={reading.id}>
+        <div className="card-top"><span className="number">TXT</span><span className="badge">reading</span></div>
+        <h2>{reading.title}</h2><p>{reading.summary}</p>
+        <footer><span>{reading.estimatedMinutes} min {statusFor(reading.id) === 'completed' && <span className="done">✓ read</span>}</span><span>Open reading →</span></footer>
+      </Link>)}</section>
+      <h2 className="section-title">Labs</h2>
+    </>}
     <section className="grid">{labs.map((lab, index) => {
       const locked = isLocked(lab)
       const body = <>
@@ -166,7 +211,7 @@ function moduleUnlocked(module: PathModule, path: LearningPath, statusFor: (id: 
 }
 
 function LearningPathView() {
-  const { labMap, statusFor, scoreFor, error, isLocked, missingPrereqs } = useLabsAndProgress()
+  const { labMap, readingMap, statusFor, scoreFor, error, isLocked, missingPrereqs } = useLabsAndProgress()
   const [path, setPath] = useState<LearningPath>()
   const [loadError, setLoadError] = useState('')
   const { continueLabId, continueLab } = useContinueLab(statusFor, isLocked, labMap)
@@ -174,11 +219,13 @@ function LearningPathView() {
     request<LearningPath[]>('/api/paths').then(paths => setPath(paths[0])).catch(e => setLoadError(e.message))
   }, [])
   const pathLabs = useMemo(() => path?.phases.flatMap(phase => phase.modules.flatMap(module => module.labs || [])) || [], [path])
-  const completedCount = pathLabs.filter(labId => statusFor(labId) === 'completed').length
-  const remainingMinutes = pathLabs
-    .filter(labId => statusFor(labId) !== 'completed')
-    .reduce((sum, labId) => sum + (labMap[labId]?.estimatedMinutes || 0), 0)
-  const pathComplete = completedCount > 0 && completedCount === pathLabs.length
+  const pathReadings = useMemo(() => path?.phases.flatMap(phase => phase.modules.flatMap(module => module.readings || [])) || [], [path])
+  const pathItems = [...pathReadings, ...pathLabs]
+  const completedCount = pathItems.filter(id => statusFor(id) === 'completed').length
+  const remainingMinutes = pathItems
+    .filter(id => statusFor(id) !== 'completed')
+    .reduce((sum, id) => sum + (labMap[id]?.estimatedMinutes || readingMap[id]?.estimatedMinutes || 0), 0)
+  const pathComplete = completedCount > 0 && completedCount === pathItems.length
   if (loadError) return <p className="error">{loadError}</p>
   if (!path) return <p className="loading">Loading learning path…</p>
   return <>
@@ -186,18 +233,18 @@ function LearningPathView() {
       <p className="eyebrow">DEVOPS ENGINEER PATH</p>
       <h1>{path.title}</h1>
       <p>{path.summary}</p>
-      <p className="meta">Progress: {completedCount}/{pathLabs.length} labs completed · ~{formatMinutes(remainingMinutes)} remaining</p>
+      <p className="meta">Progress: {completedCount}/{pathItems.length} items completed · ~{formatMinutes(remainingMinutes)} remaining</p>
       {continueLabId && <p className="continue-cta"><Link to={`/labs/${continueLabId}`}>Continue → {continueLab?.title || continueLabId}</Link></p>}
       {!continueLabId && pathComplete && <p className="continue-cta done">Path complete — review stars on the dashboard.</p>}
       {path.source && <p className="meta">{path.source}</p>}
     </section>
     {error && <p className="error">{error}</p>}
     {path.phases.map(phase => {
-      const phaseLabs = phase.modules.flatMap(module => module.labs || [])
-      const phaseDone = phaseLabs.filter(labId => statusFor(labId) === 'completed').length
+      const phaseLabs = phase.modules.flatMap(module => [...(module.readings || []), ...(module.labs || [])])
+      const phaseDone = phaseLabs.filter(id => statusFor(id) === 'completed').length
       const phaseRemaining = phaseLabs
-        .filter(labId => statusFor(labId) !== 'completed')
-        .reduce((sum, labId) => sum + (labMap[labId]?.estimatedMinutes || 0), 0)
+        .filter(id => statusFor(id) !== 'completed')
+        .reduce((sum, id) => sum + (labMap[id]?.estimatedMinutes || readingMap[id]?.estimatedMinutes || 0), 0)
       return <section className="path-phase" key={phase.id}>
         <div className="phase-head">
           <h2>{phase.title}</h2>
@@ -214,6 +261,14 @@ function LearningPathView() {
             {module.summary && <p>{module.summary}</p>}
             {!unlocked && module.unlock && <p className="meta">Sandbox locked — complete {module.unlock.count} labs in {module.unlock.completedFromModule} first.</p>}
             <ul className="lab-list">
+              {(module.readings || []).map(readingId => {
+                const reading = readingMap[readingId]
+                const done = statusFor(readingId) === 'completed'
+                return <li key={readingId} className={done ? 'done' : ''}>
+                  <Link to={`/readings/${readingId}`}>{reading?.title || readingId} <em className="lock-note">(reading)</em></Link>
+                  <span>{reading?.estimatedMinutes || '?'} min {done && '✓ read'}</span>
+                </li>
+              })}
               {module.labs.map(labId => {
                 const lab = labMap[labId]
                 const done = statusFor(labId) === 'completed'
@@ -382,17 +437,70 @@ function Lesson() {
   </div>
 }
 
+function Quiz({ questions }: { questions: Question[] }) {
+  const [picked, setPicked] = useState<Record<number, number>>({})
+  const [checked, setChecked] = useState(false)
+  const score = questions.filter((q, i) => picked[i] === q.answer).length
+  return <section className="quiz"><h2>Check yourself</h2>
+    {questions.map((q, i) => <div className="question" key={i}>
+      <p><strong>{i + 1}.</strong> <span dangerouslySetInnerHTML={renderInline(q.prompt)} /></p>
+      {q.options.map((option, j) => {
+        const state = checked ? (j === q.answer ? 'right' : picked[i] === j ? 'wrong' : '') : ''
+        return <label className={`option ${state}`} key={j}>
+          <input type="radio" name={`q${i}`} checked={picked[i] === j} disabled={checked} onChange={() => setPicked(p => ({ ...p, [i]: j }))} />
+          <span dangerouslySetInnerHTML={renderInline(option)} />
+        </label>
+      })}
+      {checked && q.explain && <p className="meta">{q.explain}</p>}
+    </div>)}
+    {!checked
+      ? <button disabled={Object.keys(picked).length < questions.length} onClick={() => setChecked(true)}>Check answers</button>
+      : <p className={score === questions.length ? 'success' : 'error'}>{score}/{questions.length} correct <button className="link-button" onClick={() => { setPicked({}); setChecked(false) }}>Try again</button></p>}
+  </section>
+}
+
+function ReadingView() {
+  const { id = '' } = useParams()
+  const { statusFor } = useLabsAndProgress()
+  const [reading, setReading] = useState<Reading>()
+  const [error, setError] = useState('')
+  const [done, setDone] = useState(false)
+  const body = useRef<HTMLElement>(null)
+  const lessonHTML = useMemo(() => renderMarkdown(reading?.lesson || ''), [reading?.lesson])
+  useEffect(() => {
+    setReading(undefined); setError('')
+    request<Reading>(`/api/readings/${id}`).then(setReading).catch(e => setError(e.message))
+  }, [id])
+  useEffect(() => { setDone(statusFor(id) === 'completed') }, [id, statusFor(id)])
+  useEffect(() => { if (reading && body.current) void renderDiagrams(body.current) }, [reading])
+  const complete = async () => {
+    try { await request(`/api/readings/${id}/complete`, { method: 'POST' }); setDone(true) } catch (e) { setError((e as Error).message) }
+  }
+  if (!reading) return <p className="loading">{error || 'Loading reading…'}</p>
+  return <div className="reading">
+    <Link to="/path">← Learning path</Link>
+    <p className="eyebrow">READING · {reading.estimatedMinutes} MIN</p>
+    <h1>{reading.title}</h1>
+    {reading.source && <p className="meta">Adapted from {reading.source}</p>}
+    <article ref={body} dangerouslySetInnerHTML={lessonHTML} />
+    {reading.quiz && reading.quiz.length > 0 && <Quiz questions={reading.quiz} />}
+    {error && <p className="error">{error}</p>}
+    <p>{done ? <span className="success">✓ Marked as read</span> : <button onClick={complete}>Mark as read</button>}</p>
+  </div>
+}
+
 function Dashboard() {
-  const { labs, progress } = useLabsAndProgress()
-  const titleFor = (labId: string) => labs.find(l => l.id === labId)?.title || labId
+  const { labs, readingMap, progress } = useLabsAndProgress()
+  const titleFor = (labId: string) => labs.find(l => l.id === labId)?.title || readingMap[labId]?.title || labId
+  const hrefFor = (labId: string) => (readingMap[labId] ? `/readings/${labId}` : `/labs/${labId}`)
   const completed = progress.filter(p => p.status === 'completed').length
   const totalStars = progress.reduce((sum, p) => sum + (p.score?.stars || 0), 0)
   return <section><p className="eyebrow">YOUR PROGRESS</p><h1>Skills dashboard</h1>
     <div className="stat-row">
-      <div className="stat"><strong>{completed}</strong><span>labs completed</span></div>
+      <div className="stat"><strong>{completed}</strong><span>labs and readings completed</span></div>
       <div className="stat"><strong>{totalStars}</strong><span>stars earned</span></div>
     </div>
-    <div className="progress-list">{progress.map(p => <div key={p.labId}><Link to={`/labs/${p.labId}`}><strong>{titleFor(p.labId)}</strong></Link><span>{p.status.replace('_', ' ')} · {p.attempts} attempt{p.attempts === 1 ? '' : 's'}{p.score ? ` · ${starsLabel(p.score.stars)}` : ''}</span></div>)}</div>
+    <div className="progress-list">{progress.map(p => <div key={p.labId}><Link to={hrefFor(p.labId)}><strong>{titleFor(p.labId)}</strong></Link><span>{p.status.replace('_', ' ')} · {p.attempts} attempt{p.attempts === 1 ? '' : 's'}{p.score ? ` · ${starsLabel(p.score.stars)}` : ''}</span></div>)}</div>
   </section>
 }
 
@@ -400,6 +508,6 @@ export function App() {
   return <div className="shell"><header><Link className="brand" to="/">Platform<span>Forge</span></Link><nav>
     <NavLink to="/path">Learning Path</NavLink><NavLink to="/">Catalog</NavLink><NavLink to="/dashboard">Progress</NavLink>
   </nav></header>
-    <main><Routes><Route path="/" element={<Catalog />} /><Route path="/path" element={<LearningPathView />} /><Route path="/labs/:id" element={<Lesson />} /><Route path="/dashboard" element={<Dashboard />} /></Routes></main>
+    <main><Routes><Route path="/" element={<Catalog />} /><Route path="/path" element={<LearningPathView />} /><Route path="/labs/:id" element={<Lesson />} /><Route path="/readings/:id" element={<ReadingView />} /><Route path="/dashboard" element={<Dashboard />} /></Routes></main>
   </div>
 }

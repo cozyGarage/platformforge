@@ -1,0 +1,15 @@
+version: 1
+id: chaos-engineering
+title: Chaos Engineering
+summary: 'Steady-state hypotheses, blast-radius control and game days: breaking things on purpose, safely.'
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SE303_observability_sre 07_chaos_engineering
+quiz:
+- q: 'The ''steady-state hypothesis'' is associated with:'
+  options:
+  - Capacity planning
+  - Chaos engineering
+  - Pair programming
+  - Sharding
+  answer: 1

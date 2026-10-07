@@ -1,0 +1,38 @@
+version: 1
+id: k8s-autoscaling-hpa-vpa
+title: 'Autoscaling: HPA and VPA'
+summary: The HPA control loop, stabilisation windows, multi-metric scaling and what the VPA recommends.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SYS401_kubernetes_devops 03_hpa_vpa_scaling
+quiz:
+- q: Given a Horizontal Pod Autoscaler with `desiredReplicas = ceil(currentReplicas * (currentMetric /
+    desiredMetric))`, what happens when current CPU usage is roughly equal to the target?
+  options:
+  - Replicas double
+  - Replicas are unchanged (within the tolerance band)
+  - Replicas scale to maxReplicas
+  - Replicas drop to minReplicas
+  answer: 1
+- q: If an HPA is configured with multiple metrics, how is the final desired replica count determined?
+  options:
+  - The minimum of the per-metric desired counts
+  - The maximum of the per-metric desired counts
+  - The arithmetic mean of the per-metric desired counts
+  - Only the first listed metric is used
+  answer: 1
+- q: Why is memory-based autoscaling considered more problematic than CPU-based autoscaling?
+  options:
+  - Memory is harder to measure than CPU on Linux
+  - Memory usage does not naturally fall when load drops the way CPU does, because allocated resident
+    memory is not released quickly, making scale-down decisions unreliable
+  - HPA does not support memory metrics at all
+  - Memory metrics violate Kubernetes RBAC
+  answer: 1
+- q: Which command shows the current state and recent events of a Horizontal Pod Autoscaler?
+  options:
+  - '`kubectl get nodes -o yaml`'
+  - '`kubectl describe hpa api-hpa -n prod`'
+  - '`kubectl rollout status deploy/api`'
+  - '`kubectl auth can-i list hpa`'
+  answer: 1

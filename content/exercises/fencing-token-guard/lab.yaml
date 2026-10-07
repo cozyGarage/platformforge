@@ -1,0 +1,121 @@
+version: 1
+id: fencing-token-guard
+title: Fence a Stale Leader
+summary: Build a lease store that issues increasing fencing tokens and a storage guard that rejects writes from a leader that lost its lease.
+difficulty: advanced
+estimatedMinutes: 35
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - |
+    mkdir -p /workspace/tests
+    cat > /workspace/fencing.py <<'PY'
+    """Fencing tokens: stop a paused ex-leader from overwriting its successor's work."""
+
+
+    class StaleTokenError(Exception):
+        """A write arrived with a token older than one the storage has already seen."""
+
+
+    class LeaseStore:
+        def acquire(self, owner: str) -> int:
+            """Grant the lease to owner and return a fencing token that is higher than every earlier one."""
+            raise NotImplementedError
+
+
+    class FencedStorage:
+        def write(self, key: str, value, token: int, request_id: str | None = None) -> bool:
+            """Apply the write and return True. Raise StaleTokenError if token is lower than the highest seen.
+            A repeated request_id is a retry: ignore it and return False."""
+            raise NotImplementedError
+
+        def read(self, key: str):
+            raise NotImplementedError
+    PY
+    cat > /workspace/tests/test_fencing.py <<'PY'
+    import unittest
+
+    from fencing import FencedStorage, LeaseStore, StaleTokenError
+
+
+    class Tokens(unittest.TestCase):
+        def test_tokens_strictly_increase(self):
+            lease = LeaseStore()
+            self.assertLess(lease.acquire("a"), lease.acquire("b"))
+
+        def test_reacquiring_still_increases(self):
+            lease = LeaseStore()
+            first = lease.acquire("a")
+            self.assertGreater(lease.acquire("a"), first)
+
+
+    class Guard(unittest.TestCase):
+        def setUp(self):
+            self.lease = LeaseStore()
+            self.store = FencedStorage()
+            self.old = self.lease.acquire("old-leader")
+            self.new = self.lease.acquire("new-leader")
+
+        def test_current_leader_can_write_repeatedly(self):
+            self.assertTrue(self.store.write("k", 1, self.new))
+            self.assertTrue(self.store.write("k", 2, self.new))
+            self.assertEqual(self.store.read("k"), 2)
+
+        def test_stale_leader_is_rejected_after_successor_writes(self):
+            self.store.write("k", "new", self.new)
+            with self.assertRaises(StaleTokenError):
+                self.store.write("k", "old", self.old)
+
+        def test_rejected_write_changes_nothing(self):
+            self.store.write("k", "new", self.new)
+            try:
+                self.store.write("k", "old", self.old)
+            except StaleTokenError:
+                pass
+            self.assertEqual(self.store.read("k"), "new")
+
+        def test_old_leader_may_write_until_a_newer_token_is_seen(self):
+            self.assertTrue(self.store.write("k", "old", self.old))
+
+        def test_retry_with_same_request_id_is_ignored(self):
+            self.assertTrue(self.store.write("k", 1, self.new, request_id="r1"))
+            self.assertFalse(self.store.write("k", 999, self.new, request_id="r1"))
+            self.assertEqual(self.store.read("k"), 1)
+    PY
+tasks:
+  - id: tokens
+    title: Issue fencing tokens
+    description: In /workspace/fencing.py make LeaseStore.acquire return a token that is higher than every token issued before, even to the same owner.
+    hints:
+      - 'A monotonic counter on the store is enough; the lease holder is just metadata.'
+    checks:
+      - type: command
+        name: Tokens strictly increase
+        command: cd /workspace && python -m unittest tests.test_fencing.Tokens.test_tokens_strictly_increase 2>&1
+      - type: command
+        name: Re-acquiring still increases the token
+        command: cd /workspace && python -m unittest tests.test_fencing.Tokens.test_reacquiring_still_increases 2>&1
+  - id: guard
+    title: Reject stale writers
+    description: Implement FencedStorage. Remember the highest token seen; raise StaleTokenError for anything lower; leave data untouched on rejection; treat a repeated request_id as an ignored retry.
+    hints:
+      - 'The check belongs in the storage, not in the leader: a paused leader cannot know it was replaced.'
+      - 'Update the highest-seen token only after the write is accepted.'
+      - 'Keep a set of request ids already applied.'
+    checks:
+      - type: command
+        name: Current leader can write repeatedly
+        command: cd /workspace && python -m unittest tests.test_fencing.Guard.test_current_leader_can_write_repeatedly 2>&1
+      - type: command
+        name: Stale leader is rejected after its successor writes
+        command: cd /workspace && python -m unittest tests.test_fencing.Guard.test_stale_leader_is_rejected_after_successor_writes 2>&1
+      - type: command
+        name: A rejected write changes nothing
+        command: cd /workspace && python -m unittest tests.test_fencing.Guard.test_rejected_write_changes_nothing 2>&1
+      - type: command
+        name: Old leader is only fenced once a newer token has been seen
+        command: cd /workspace && python -m unittest tests.test_fencing.Guard.test_old_leader_may_write_until_a_newer_token_is_seen 2>&1
+      - type: command
+        name: A retried request id is ignored
+        command: cd /workspace && python -m unittest tests.test_fencing.Guard.test_retry_with_same_request_id_is_ignored 2>&1
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

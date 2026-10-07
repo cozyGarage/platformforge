@@ -48,7 +48,7 @@ flowchart TB
 | CLI / server | `cmd/platformforge` | Doctor, serve, lab lifecycle commands |
 | Lab engine | `internal/lab` | Start/stop/validate/reset isolated lab containers |
 | API layer | `internal/api` | REST + WebSocket endpoints for UI and terminal |
-| Content packs | `content/` | Course manifests, lessons, lab definitions |
+| Content packs | `content/` | Course manifests, lessons, lab definitions, and theory readings (`reading.yaml`) |
 | Web frontend | `web/` | Lesson browser, lab status, embedded terminal |
 | Progress | `internal/progress` | Local completion state (no cloud dependency) |
 

@@ -74,6 +74,9 @@ type Catalog struct{ root string }
 
 func NewCatalog(root string) *Catalog { return &Catalog{root: root} }
 
+// Root is the content directory this catalog reads.
+func (c *Catalog) Root() string { return c.root }
+
 func (c *Catalog) List() ([]Manifest, error) {
 	var labs []Manifest
 	err := filepath.Walk(c.root, func(path string, info os.FileInfo, err error) error {

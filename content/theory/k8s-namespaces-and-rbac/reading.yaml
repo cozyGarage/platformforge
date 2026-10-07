@@ -1,0 +1,24 @@
+version: 1
+id: k8s-namespaces-and-rbac
+title: Namespaces, RBAC and Resource Quotas
+summary: Isolation with namespaces, least-privilege Roles and bindings, ResourceQuota and LimitRange.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SYS401_kubernetes_devops 04_namespaces_rbac
+quiz:
+- q: In Kubernetes RBAC, what happens if no Role or ClusterRoleBinding grants a verb on a resource for
+    a user?
+  options:
+  - Access is allowed by default
+  - Access is denied - Kubernetes RBAC is allow-only, with no explicit deny rules
+  - An explicit Deny rule is required to block access
+  - Access depends on the namespace label
+  answer: 1
+- q: 'A pod spec sets `limits.cpu: 500m` but no `requests.cpu`. What does Kubernetes do?'
+  options:
+  - Rejects the pod spec at admission
+  - Sets `requests.cpu` equal to `limits.cpu` (500m), which can cause inefficient scheduling and prevents
+    bursting into unused capacity
+  - Schedules the pod with `requests.cpu = 0`
+  - Treats the limit as advisory and ignores it
+  answer: 1

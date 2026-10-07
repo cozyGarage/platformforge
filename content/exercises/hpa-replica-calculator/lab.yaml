@@ -1,0 +1,111 @@
+version: 1
+id: hpa-replica-calculator
+title: Predict What the HPA Will Do
+summary: Implement the Horizontal Pod Autoscaler replica formula with tolerance and clamping, plus scale-down stabilisation.
+difficulty: intermediate
+estimatedMinutes: 30
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - |
+    mkdir -p /workspace/tests
+    cat > /workspace/hpa.py <<'PY'
+    """Horizontal Pod Autoscaler maths. Implement both functions."""
+
+
+    def desired_replicas(current: int, metric: float, target: float,
+                         minimum: int = 1, maximum: int = 100, tolerance: float = 0.1) -> int:
+        """ceil(current * metric / target), unchanged inside the tolerance band, clamped to [minimum, maximum]."""
+        raise NotImplementedError
+
+
+    def stabilized(current: int, recommendations: list) -> int:
+        """recommendations holds the recent desired counts, newest last.
+        Scale up immediately; scale down only to the highest recent recommendation (never above current)."""
+        raise NotImplementedError
+    PY
+    cat > /workspace/tests/test_hpa.py <<'PY'
+    import unittest
+
+    from hpa import desired_replicas, stabilized
+
+
+    class Desired(unittest.TestCase):
+        def test_on_target_is_unchanged(self):
+            self.assertEqual(desired_replicas(4, 50, 50), 4)
+
+        def test_inside_tolerance_is_unchanged(self):
+            self.assertEqual(desired_replicas(4, 54, 50), 4)  # ratio 1.08
+
+        def test_doubling_load_doubles_replicas(self):
+            self.assertEqual(desired_replicas(4, 100, 50), 8)
+
+        def test_result_is_rounded_up(self):
+            self.assertEqual(desired_replicas(3, 75, 50), 5)  # 4.5 -> 5
+
+        def test_clamped_to_maximum(self):
+            self.assertEqual(desired_replicas(4, 400, 50, maximum=10), 10)
+
+        def test_clamped_to_minimum(self):
+            self.assertEqual(desired_replicas(4, 5, 50, minimum=2), 2)
+
+
+    class Stabilized(unittest.TestCase):
+        def test_scale_up_is_immediate(self):
+            self.assertEqual(stabilized(10, [4, 8, 12]), 12)
+
+        def test_scale_down_waits_for_the_window_high(self):
+            self.assertEqual(stabilized(10, [4, 8, 5]), 8)
+
+        def test_a_recent_high_prevents_scale_down(self):
+            self.assertEqual(stabilized(10, [10, 10, 3]), 10)
+
+        def test_never_scales_above_current_when_shrinking(self):
+            self.assertEqual(stabilized(6, [9, 4]), 6)
+    PY
+tasks:
+  - id: formula
+    title: The replica formula
+    description: Implement desired_replicas in /workspace/hpa.py. Inside the tolerance band (|metric/target - 1| <= tolerance) keep the current count; otherwise use ceil(current * metric / target) and clamp to [minimum, maximum].
+    hints:
+      - 'import math; ratio = metric / target'
+      - 'Check the tolerance band before computing, then clamp with max(minimum, min(maximum, value)).'
+    checks:
+      - type: command
+        name: On target keeps the replica count
+        command: cd /workspace && python -m unittest tests.test_hpa.Desired.test_on_target_is_unchanged 2>&1
+      - type: command
+        name: Small drift inside the tolerance band is ignored
+        command: cd /workspace && python -m unittest tests.test_hpa.Desired.test_inside_tolerance_is_unchanged 2>&1
+      - type: command
+        name: Doubling the load doubles the replicas
+        command: cd /workspace && python -m unittest tests.test_hpa.Desired.test_doubling_load_doubles_replicas 2>&1
+      - type: command
+        name: Fractional results round up
+        command: cd /workspace && python -m unittest tests.test_hpa.Desired.test_result_is_rounded_up 2>&1
+      - type: command
+        name: Result is clamped to maxReplicas
+        command: cd /workspace && python -m unittest tests.test_hpa.Desired.test_clamped_to_maximum 2>&1
+      - type: command
+        name: Result is clamped to minReplicas
+        command: cd /workspace && python -m unittest tests.test_hpa.Desired.test_clamped_to_minimum 2>&1
+  - id: stabilization
+    title: Scale-down stabilisation
+    description: Implement stabilized so a brief dip in load cannot shrink the deployment, so scale up at once and scale down only to the highest recommendation in the window.
+    hints:
+      - 'latest = recommendations[-1]; if latest > current, return latest.'
+      - 'Otherwise return min(current, max(recommendations)).'
+    checks:
+      - type: command
+        name: Scale-up is immediate
+        command: cd /workspace && python -m unittest tests.test_hpa.Stabilized.test_scale_up_is_immediate 2>&1
+      - type: command
+        name: Scale-down waits for the window high
+        command: cd /workspace && python -m unittest tests.test_hpa.Stabilized.test_scale_down_waits_for_the_window_high 2>&1
+      - type: command
+        name: A recent high prevents scale-down
+        command: cd /workspace && python -m unittest tests.test_hpa.Stabilized.test_a_recent_high_prevents_scale_down 2>&1
+      - type: command
+        name: Shrinking never overshoots the current count
+        command: cd /workspace && python -m unittest tests.test_hpa.Stabilized.test_never_scales_above_current_when_shrinking 2>&1
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

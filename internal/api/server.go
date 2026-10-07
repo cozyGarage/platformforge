@@ -20,10 +20,11 @@ import (
 )
 
 type server struct {
-	catalog *content.Catalog
-	paths   *content.PathCatalog
-	engine  *lab.Engine
-	store   *progress.Store
+	catalog  *content.Catalog
+	readings *content.ReadingCatalog
+	paths    *content.PathCatalog
+	engine   *lab.Engine
+	store    *progress.Store
 }
 
 type terminalControl struct {
@@ -33,7 +34,7 @@ type terminalControl struct {
 }
 
 func Serve(ctx context.Context, addr, _ string, catalog *content.Catalog, paths *content.PathCatalog, engine *lab.Engine, store *progress.Store) error {
-	s := &server{catalog: catalog, paths: paths, engine: engine, store: store}
+	s := &server{catalog: catalog, readings: content.NewReadingCatalog(catalog.Root()), paths: paths, engine: engine, store: store}
 	r, err := s.routes()
 	if err != nil {
 		return err
@@ -58,7 +59,7 @@ func Serve(ctx context.Context, addr, _ string, catalog *content.Catalog, paths 
 }
 
 func NewHandler(catalog *content.Catalog, paths *content.PathCatalog, engine *lab.Engine, store *progress.Store) (http.Handler, error) {
-	s := &server{catalog: catalog, paths: paths, engine: engine, store: store}
+	s := &server{catalog: catalog, readings: content.NewReadingCatalog(catalog.Root()), paths: paths, engine: engine, store: store}
 	return s.routes()
 }
 
@@ -75,6 +76,9 @@ func (s *server) routes() (*mux.Router, error) {
 	api.HandleFunc("/labs/{id}/reset", s.reset).Methods(http.MethodPost)
 	api.HandleFunc("/labs/{id}/stop", s.stop).Methods(http.MethodPost)
 	api.HandleFunc("/labs/{id}/terminal", s.terminal)
+	api.HandleFunc("/readings", s.readingList).Methods(http.MethodGet)
+	api.HandleFunc("/readings/{id}", s.readingDetail).Methods(http.MethodGet)
+	api.HandleFunc("/readings/{id}/complete", s.readingComplete).Methods(http.MethodPost)
 	api.HandleFunc("/progress", s.progress).Methods(http.MethodGet)
 	api.HandleFunc("/progress/{id}", s.progressDetail).Methods(http.MethodGet)
 	api.HandleFunc("/paths", s.pathList).Methods(http.MethodGet)
@@ -137,6 +141,39 @@ func (s *server) labDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respond(w, 200, v)
+}
+
+func (s *server) readingList(w http.ResponseWriter, _ *http.Request) {
+	v, err := s.readings.List()
+	if err != nil {
+		fail(w, 500, err)
+		return
+	}
+	respond(w, 200, v)
+}
+
+func (s *server) readingDetail(w http.ResponseWriter, r *http.Request) {
+	v, err := s.readings.Get(mux.Vars(r)["id"])
+	if err != nil {
+		fail(w, 404, err)
+		return
+	}
+	respond(w, 200, v)
+}
+
+// readingComplete records that a reading was finished. The reading must exist, so the
+// progress table cannot be filled with arbitrary ids.
+func (s *server) readingComplete(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	if _, err := s.readings.Get(id); err != nil {
+		fail(w, 404, err)
+		return
+	}
+	if err := s.store.MarkCompleted(id); err != nil {
+		fail(w, 500, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s *server) status(w http.ResponseWriter, r *http.Request) {

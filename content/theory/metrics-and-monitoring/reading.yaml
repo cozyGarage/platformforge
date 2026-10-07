@@ -1,0 +1,44 @@
+version: 1
+id: metrics-and-monitoring
+title: Metrics and Monitoring
+summary: The four golden signals, Prometheus metric types, and the PromQL patterns for rates and latency
+  percentiles.
+estimatedMinutes: 30
+prerequisites: []
+source: courses-notebook SE303_observability_sre 02_metrics_and_monitoring
+quiz:
+- q: Which is NOT one of the Four Golden Signals?
+  options:
+  - Latency
+  - Traffic
+  - Errors
+  - Code coverage
+  answer: 3
+- q: 'A metric that only increases over time (until reset) is a:'
+  options:
+  - Gauge
+  - Counter
+  - Histogram
+  - Summary
+  answer: 1
+- q: Which Prometheus metric type stores bucketed distributions suitable for `histogram_quantile`?
+  options:
+  - Counter
+  - Gauge
+  - Histogram
+  - Untyped
+  answer: 2
+- q: Which PromQL computes 95th-percentile request latency over 5 minutes?
+  options:
+  - rate(http_request_duration_seconds[5m])
+  - histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+  - sum(http_request_duration_seconds)
+  - avg(http_request_duration_seconds)
+  answer: 1
+- q: Which is a counter-style metric?
+  options:
+  - Current memory usage
+  - Active TCP connections
+  - Total HTTP requests served
+  - CPU temperature
+  answer: 2

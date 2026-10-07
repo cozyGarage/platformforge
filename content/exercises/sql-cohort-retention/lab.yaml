@@ -1,0 +1,97 @@
+version: 1
+id: sql-cohort-retention
+title: Cohort Retention in SQL
+summary: Write one SQLite query that groups users by first-activity month and reports how many are still active in each later month.
+difficulty: advanced
+estimatedMinutes: 35
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - |
+    mkdir -p /workspace/tests
+    python - <<'PY'
+    import sqlite3
+    conn = sqlite3.connect("/workspace/events.db")
+    conn.execute("CREATE TABLE events (user_id INTEGER, event_date TEXT)")
+    rows = [
+        (1, "2024-01-05"), (1, "2024-02-10"), (1, "2024-02-11"), (1, "2024-03-02"),
+        (2, "2024-01-20"), (2, "2024-01-25"), (2, "2024-02-14"),
+        (3, "2024-01-28"),
+        (4, "2024-02-03"), (4, "2024-03-09"),
+        (5, "2024-02-17"),
+        (6, "2024-03-11"),
+    ]
+    conn.executemany("INSERT INTO events VALUES (?, ?)", rows)
+    conn.commit()
+    PY
+    printf '%s\n' '-- Replace this with one SELECT. Output columns, in order:' \
+      '--   cohort_month  TEXT     first-activity month, YYYY-MM' \
+      '--   months_since  INTEGER  0 for the cohort month itself' \
+      '--   users         INTEGER  distinct users from that cohort active in that month' \
+      '--   retention     REAL     users / cohort size, rounded to 2 decimals' \
+      '-- Order by cohort_month, months_since. Table: events(user_id, event_date).' \
+      'SELECT 1;' > /workspace/retention.sql
+    cat > /workspace/tests/test_retention.py <<'PY'
+    import sqlite3
+    import unittest
+
+    EXPECTED = [
+        ("2024-01", 0, 3, 1.0),
+        ("2024-01", 1, 2, 0.67),
+        ("2024-01", 2, 1, 0.33),
+        ("2024-02", 0, 2, 1.0),
+        ("2024-02", 1, 1, 0.5),
+        ("2024-03", 0, 1, 1.0),
+    ]
+
+
+    def run():
+        sql = open("/workspace/retention.sql").read()
+        conn = sqlite3.connect("/workspace/events.db")
+        return conn.execute(sql).fetchall()
+
+
+    class Retention(unittest.TestCase):
+        def test_query_returns_four_columns(self):
+            rows = run()
+            self.assertTrue(rows, "the query returned no rows")
+            self.assertEqual(len(rows[0]), 4, "expected cohort_month, months_since, users, retention")
+
+        def test_month_zero_is_the_whole_cohort(self):
+            zero = [r for r in run() if r[1] == 0]
+            self.assertEqual([(r[0], r[2], r[3]) for r in zero], [("2024-01", 3, 1.0), ("2024-02", 2, 1.0), ("2024-03", 1, 1.0)])
+
+        def test_users_are_counted_once_per_month(self):
+            # users 1 and 2 have several events in one month; they must still count once
+            jan_feb = [r for r in run() if r[0] == "2024-01" and r[1] == 1]
+            self.assertEqual(jan_feb[0][2], 2)
+
+        def test_full_result_matches(self):
+            rows = run()
+            self.assertEqual([(a, b, c) for a, b, c, _ in rows], [(a, b, c) for a, b, c, _ in EXPECTED])
+            for got, want in zip(rows, EXPECTED):
+                self.assertAlmostEqual(got[3], want[3], places=2)
+    PY
+tasks:
+  - id: cohorts
+    title: Write the retention query
+    description: Edit /workspace/retention.sql so it returns cohort_month, months_since, users and retention, ordered by cohort_month then months_since. A user's cohort is the month of their first event; count each user once per month.
+    hints:
+      - 'Two CTEs: first month per user (MIN(event_date)), then distinct (user, activity month) pairs.'
+      - 'months_since = (year difference * 12) + month difference; strftime("%Y", ...) and strftime("%m", ...) return text, so CAST to INTEGER.'
+      - 'retention = users divided by the cohort size; ROUND(1.0 * users / size, 2) avoids integer division.'
+      - 'Check as you go: cd /workspace && python -c "import sqlite3;print(sqlite3.connect(''events.db'').execute(open(''retention.sql'').read()).fetchall())"'
+    checks:
+      - type: command
+        name: Query returns the four required columns
+        command: cd /workspace && python -m unittest tests.test_retention.Retention.test_query_returns_four_columns 2>&1
+      - type: command
+        name: Month 0 is the whole cohort
+        command: cd /workspace && python -m unittest tests.test_retention.Retention.test_month_zero_is_the_whole_cohort 2>&1
+      - type: command
+        name: Users are counted once per month
+        command: cd /workspace && python -m unittest tests.test_retention.Retention.test_users_are_counted_once_per_month 2>&1
+      - type: command
+        name: Full result matches the expected retention table
+        command: cd /workspace && python -m unittest tests.test_retention.Retention.test_full_result_matches 2>&1
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

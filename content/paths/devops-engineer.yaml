@@ -57,6 +57,13 @@ phases:
         title: Learn Git
         summary: History recovery, branching, remotes, and safe collaboration.
         source: "Boot.dev — Learn Git"
+        readings:
+          - git-object-model
+          - git-branching-strategies
+          - git-rebasing-and-history
+          - git-hooks-and-automation
+          - github-workflow
+          - monorepos-and-submodules
         labs:
           - git-recovery
           - git-branching
@@ -108,6 +115,13 @@ phases:
         title: Learn Python & SQL
         summary: Python HTTP services, packaging, SQLite fundamentals, and advanced query/async drills.
         source: "Boot.dev — Learn Python / Learn SQL"
+        readings:
+          - sql-joins-and-subqueries
+          - window-functions-in-sql
+          - sql-cohort-analysis
+          - sql-funnel-analysis
+          - sql-time-series
+          - sql-query-tuning-case-study
         labs:
           - python-health-server
           - python-json-api
@@ -117,6 +131,7 @@ phases:
           - sql-joins-basics
           - sql-indexes-explain
           - sql-window-functions
+          - sql-cohort-retention
   - id: kubernetes
     title: Phase 3 — Kubernetes
     summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls, admission policy, and Gateway API.
@@ -125,12 +140,18 @@ phases:
         title: Learn Kubernetes
         summary: Deployments, Services, ConfigMaps, scaling, and namespaces with kubectl.
         source: "Boot.dev — Learn Kubernetes"
+        readings:
+          - k8s-autoscaling-hpa-vpa
+          - k8s-namespaces-and-rbac
+          - k8s-split-brain-case-study
         labs:
           - kubernetes-deploy
           - kubernetes-service
           - kubernetes-configmap
           - kubernetes-scaling
           - kubernetes-namespaces
+          - hpa-replica-calculator
+          - fencing-token-guard
       - id: cka-prep
         title: CKA-Style Scenarios
         summary: NetworkPolicy, RBAC, troubleshooting, Ingress, storage, backup/restore, and etcd runbooks.
@@ -170,6 +191,8 @@ phases:
       - id: learn-gitops
         title: Learn GitOps
         summary: Declarative desired state, drift reconcile loops, Kustomize overlays, fleet planning, sync waves, and multi-cluster apply.
+        readings:
+          - gitops-with-argocd
         labs:
           - gitops-manifest-sync
           - gitops-kustomize-overlay
@@ -179,9 +202,12 @@ phases:
       - id: learn-helm
         title: Learn Helm
         summary: Chart skeletons, values overrides, and digest-friendly env promotion.
+        readings:
+          - helm-charts-and-releases
         labs:
           - helm-chart-basics
           - helm-values-overrides
+          - helm-values-resolver
       - id: learn-secrets-ops
         title: Secrets Operations
         summary: External Secrets Operator planning and credential rotation runbooks.
@@ -192,6 +218,10 @@ phases:
         title: Logging & Observability
         summary: Structured logs, metrics, alerts, tracing, SLI rules, OTel collector planning and live runtime, and correlation runbooks.
         source: "Boot.dev — Learn Logging and Observability"
+        readings:
+          - metrics-and-monitoring
+          - structured-logging
+          - distributed-tracing
         labs:
           - observability-structured-logs
           - observability-metrics-alerts
@@ -203,6 +233,12 @@ phases:
       - id: learn-sre
         title: Reliability & On-Call
         summary: SLOs, error budgets, burn-rate alerts, chaos experiments, game days, and shift handoffs.
+        readings:
+          - sre-fundamentals
+          - alerting-and-oncall
+          - incident-management
+          - chaos-engineering
+          - slo-alerting-case-study
         labs:
           - slo-definition-basics
           - error-budget-policy
@@ -210,6 +246,7 @@ phases:
           - chaos-experiment-basics
           - gameday-budget-freeze
           - oncall-handoff-basics
+          - burn-rate-pager
       - id: capstone
         title: Capstone Projects
         summary: Multi-skill incidents spanning reliability, compliance, and platform design.
@@ -268,6 +305,13 @@ phases:
       - id: aws-local
         title: AWS Local Simulations
         summary: IAM, S3, and VPC design drills without a cloud account.
+        readings:
+          - finops-foundations
+          - finops-compute-optimization
+          - finops-waste-case-study
+          - multicloud-identity
+          - multicloud-migration-patterns
+          - multicloud-lock-in-case-study
         labs:
           - aws-iam-basics
           - aws-s3-basics

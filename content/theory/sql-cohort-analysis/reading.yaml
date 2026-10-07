@@ -1,0 +1,7 @@
+version: 1
+id: sql-cohort-analysis
+title: 'Cohort Analysis: Retention, Churn and LTV'
+summary: Group users by first activity and measure retention and lifetime value over time in plain SQL.
+estimatedMinutes: 25
+prerequisites: []
+source: courses-notebook DS301_databases_sql 10_cohort_analysis

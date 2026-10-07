@@ -1,0 +1,29 @@
+version: 1
+id: multicloud-identity
+title: Identity and Access Across Clouds
+summary: Centralised identity, workload identity federation and how IAM evaluation differs between providers.
+estimatedMinutes: 15
+prerequisites: []
+source: courses-notebook CLD302_multi_cloud_architecture 03_identity_and_access
+quiz:
+- q: In IAM policy evaluation across the major clouds, which statement is correct?
+  options:
+  - Explicit ALLOW always overrides explicit DENY
+  - Default is ALLOW unless explicitly denied
+  - Explicit DENY wins over any ALLOW; default is implicit DENY
+  - Conditions can override an explicit DENY
+  answer: 2
+- q: 'Workload Identity Federation primarily eliminates the need for:'
+  options:
+  - TLS certificates
+  - Long-lived API keys stored in CI/CD
+  - Cloud accounts entirely
+  - Multi-factor authentication for humans
+  answer: 1
+- q: Which is the recommended approach to centralized identity in a multi-cloud estate?
+  options:
+  - One IAM user per cloud per employee with long-lived passwords
+  - One central IdP (Entra/Okta) federated into each cloud's STS via OIDC/SAML
+  - Share root credentials across teams
+  - Disable identity federation
+  answer: 1

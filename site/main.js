@@ -15,10 +15,11 @@ function el(tag, className, text) {
 
 function renderPhase(phase) {
   const labs = phase.modules.flatMap((module) => module.labs || [])
-  const minutes = labs.reduce((sum, lab) => sum + (lab.estimatedMinutes || 0), 0)
+  const readings = phase.modules.flatMap((module) => module.readings || [])
+  const minutes = [...labs, ...readings].reduce((sum, item) => sum + (item.estimatedMinutes || 0), 0)
   const section = el('section', 'phase')
   const head = el('div', 'phase-head')
-  head.append(el('h3', null, phase.title), el('span', 'phase-meta', `${labs.length} labs · ${formatMinutes(minutes)}`))
+  head.append(el('h3', null, phase.title), el('span', 'phase-meta', `${labs.length} labs${readings.length ? ` · ${readings.length} readings` : ''} · ${formatMinutes(minutes)}`))
   section.append(head)
   if (phase.summary) section.append(el('p', 'support', phase.summary))
 
@@ -30,6 +31,16 @@ function renderPhase(phase) {
       card.append(el('p', 'support', `Unlocks after ${module.unlock.count} labs in ${module.unlock.completedFromModule}.`))
     }
     const list = el('ul', 'lab-list')
+    for (const reading of module.readings || []) {
+      const item = el('li')
+      const left = el('div')
+      const link = el('a', null, reading.title)
+      link.href = `./reading.html?id=${encodeURIComponent(reading.id)}`
+      left.append(el('strong'), el('span', null, reading.summary), el('span', 'badge', 'reading'))
+      left.firstChild.append(link)
+      item.append(left, el('em', null, `${reading.estimatedMinutes} min`))
+      list.append(item)
+    }
     for (const lab of module.labs || []) {
       const item = el('li')
       const left = el('div')

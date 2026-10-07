@@ -1,0 +1,7 @@
+version: 1
+id: slo-alerting-case-study
+title: 'Case Study: SLO Alerting with Error-Budget Burn Rate'
+summary: Design and test a multi-window burn-rate alerting system for an SLO from first principles.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SE303_observability_sre 08_case_study

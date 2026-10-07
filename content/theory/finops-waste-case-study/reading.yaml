@@ -1,0 +1,7 @@
+version: 1
+id: finops-waste-case-study
+title: 'Case Study: A SaaS Company Discovers 40% Cloud Waste'
+summary: Find, quantify and remove waste in a real-shaped bill, and report the savings.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook CLD303_finops_cloud_cost 08_case_study

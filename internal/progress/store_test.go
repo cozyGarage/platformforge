@@ -82,3 +82,18 @@ func TestGhostHintsAndScores(t *testing.T) {
 		t.Fatalf("count=%d err=%v", count, err)
 	}
 }
+
+func TestListIsEmptySliceNotNil(t *testing.T) {
+	store, err := Open(filepath.Join(t.TempDir(), "progress.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	got, err := store.List()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got == nil {
+		t.Fatal("List must return an empty slice so the API encodes [] not null")
+	}
+}

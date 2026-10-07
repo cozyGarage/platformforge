@@ -1,0 +1,23 @@
+version: 1
+id: structured-logging
+title: Structured Logging
+summary: Why production logs should be structured, how severities and correlation ids work, and what to
+  log.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SE303_observability_sre 03_structured_logging
+quiz:
+- q: Which is the correct ascending order of standard log severities?
+  options:
+  - DEBUG < INFO < WARNING < ERROR < CRITICAL
+  - INFO < DEBUG < WARNING < ERROR < CRITICAL
+  - DEBUG < INFO < ERROR < WARNING < CRITICAL
+  - WARNING < DEBUG < INFO < ERROR < CRITICAL
+  answer: 0
+- q: Why is structured (JSON) logging preferred over plain string logs in production?
+  options:
+  - It can be parsed, filtered, and aggregated reliably across many services
+  - It is shorter on disk
+  - It bypasses log levels
+  - It removes the need for traces
+  answer: 0

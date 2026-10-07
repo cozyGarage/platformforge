@@ -1,0 +1,139 @@
+version: 1
+id: burn-rate-pager
+title: Page on Error-Budget Burn Rate
+summary: Implement budget and burn-rate maths and a two-window paging rule that ignores blips and recovered incidents.
+difficulty: intermediate
+estimatedMinutes: 30
+image: python:3.12-alpine
+shell: /bin/sh
+setup:
+  - |
+    mkdir -p /workspace/tests
+    cat > /workspace/slo.py <<'PY'
+    """SLO maths for burn-rate alerting. Implement the four functions."""
+
+
+    def budget_minutes(slo: float, days: int = 30) -> float:
+        """Minutes of full outage the SLO allows over the period."""
+        raise NotImplementedError
+
+
+    def burn_rate(errors: int, total: int, slo: float) -> float:
+        """How many times faster than 'exactly on budget' the budget is being spent. No traffic -> 0.0."""
+        raise NotImplementedError
+
+
+    def should_page(long_window: tuple, short_window: tuple, slo: float, threshold: float = 14.4) -> bool:
+        """Each window is (errors, total). Page only if BOTH windows burn at or above the threshold."""
+        raise NotImplementedError
+
+
+    def hours_to_exhaustion(rate: float, days: int = 30) -> float:
+        """Hours until a full budget is gone at this burn rate. A rate of 0 never exhausts it (inf)."""
+        raise NotImplementedError
+    PY
+    cat > /workspace/tests/test_slo.py <<'PY'
+    import math
+    import unittest
+
+    from slo import budget_minutes, burn_rate, hours_to_exhaustion, should_page
+
+
+    class Budget(unittest.TestCase):
+        def test_three_nines_is_43_minutes(self):
+            self.assertAlmostEqual(budget_minutes(0.999), 43.2, places=6)
+
+        def test_budget_scales_with_the_period(self):
+            self.assertAlmostEqual(budget_minutes(0.99, days=7), 100.8, places=6)
+
+        def test_burn_rate_is_relative_to_the_budget(self):
+            self.assertAlmostEqual(burn_rate(14, 1000, 0.999), 14.0, places=6)
+            self.assertAlmostEqual(burn_rate(1, 1000, 0.999), 1.0, places=6)
+
+        def test_no_traffic_is_zero_burn(self):
+            self.assertEqual(burn_rate(0, 0, 0.999), 0.0)
+
+
+    class Paging(unittest.TestCase):
+        def test_pages_when_both_windows_burn_fast(self):
+            self.assertTrue(should_page((150, 10000), (20, 1000), 0.999))
+
+        def test_recovered_incident_does_not_page(self):
+            # long window still hot, short window already back to normal
+            self.assertFalse(should_page((150, 10000), (1, 1000), 0.999))
+
+        def test_brief_blip_does_not_page(self):
+            # short window spikes, long window shows it is tiny relative to the budget
+            self.assertFalse(should_page((20, 10000), (30, 1000), 0.999))
+
+        def test_quiet_service_does_not_page(self):
+            self.assertFalse(should_page((0, 0), (0, 0), 0.999))
+
+
+    class Exhaustion(unittest.TestCase):
+        def test_fast_burn_exhausts_in_two_days(self):
+            self.assertAlmostEqual(hours_to_exhaustion(14.4), 50.0, places=6)
+
+        def test_exactly_on_budget_lasts_the_period(self):
+            self.assertAlmostEqual(hours_to_exhaustion(1.0), 720.0, places=6)
+
+        def test_zero_burn_never_exhausts(self):
+            self.assertTrue(math.isinf(hours_to_exhaustion(0)))
+    PY
+tasks:
+  - id: maths
+    title: Budget and burn rate
+    description: In /workspace/slo.py implement budget_minutes and burn_rate. The budget is the allowed error fraction (1 - SLO) of the period; burn rate is the observed error ratio divided by that fraction.
+    hints:
+      - 'budget_minutes = (1 - slo) * days * 24 * 60'
+      - 'burn_rate = (errors / total) / (1 - slo), and guard total == 0 first'
+      - 'Float noise is expected; the tests use assertAlmostEqual.'
+    checks:
+      - type: command
+        name: Three nines allows 43.2 minutes a month
+        command: cd /workspace && python -m unittest tests.test_slo.Budget.test_three_nines_is_43_minutes 2>&1
+      - type: command
+        name: Budget scales with the period
+        command: cd /workspace && python -m unittest tests.test_slo.Budget.test_budget_scales_with_the_period 2>&1
+      - type: command
+        name: Burn rate is relative to the budget
+        command: cd /workspace && python -m unittest tests.test_slo.Budget.test_burn_rate_is_relative_to_the_budget 2>&1
+      - type: command
+        name: No traffic is zero burn, not a division error
+        command: cd /workspace && python -m unittest tests.test_slo.Budget.test_no_traffic_is_zero_burn 2>&1
+  - id: paging
+    title: Page on two windows
+    description: Implement should_page. A long window proves the burn is significant and a short window proves it is still happening; page only when both are at or above the threshold.
+    hints:
+      - 'Compute burn_rate for each window and compare with >=.'
+      - 'The recovered-incident case is why the short window exists.'
+    checks:
+      - type: command
+        name: Pages when both windows burn fast
+        command: cd /workspace && python -m unittest tests.test_slo.Paging.test_pages_when_both_windows_burn_fast 2>&1
+      - type: command
+        name: Recovered incident does not page
+        command: cd /workspace && python -m unittest tests.test_slo.Paging.test_recovered_incident_does_not_page 2>&1
+      - type: command
+        name: Brief blip does not page
+        command: cd /workspace && python -m unittest tests.test_slo.Paging.test_brief_blip_does_not_page 2>&1
+      - type: command
+        name: Quiet service does not page
+        command: cd /workspace && python -m unittest tests.test_slo.Paging.test_quiet_service_does_not_page 2>&1
+  - id: exhaustion
+    title: Time to exhaustion
+    description: Implement hours_to_exhaustion so an alert can say how long until the budget is gone.
+    hints:
+      - 'A full budget lasts days * 24 hours at rate 1, so divide by the rate.'
+      - 'Return float("inf") for a rate of 0.'
+    checks:
+      - type: command
+        name: A 14.4x burn exhausts the budget in 50 hours
+        command: cd /workspace && python -m unittest tests.test_slo.Exhaustion.test_fast_burn_exhausts_in_two_days 2>&1
+      - type: command
+        name: Rate 1 lasts the whole period
+        command: cd /workspace && python -m unittest tests.test_slo.Exhaustion.test_exactly_on_budget_lasts_the_period 2>&1
+      - type: command
+        name: Zero burn never exhausts
+        command: cd /workspace && python -m unittest tests.test_slo.Exhaustion.test_zero_burn_never_exhausts 2>&1
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

@@ -1,0 +1,15 @@
+version: 1
+id: incident-management
+title: Incident Management and Blameless Postmortems
+summary: Roles and timeline of an incident, and how a blameless postmortem turns it into durable fixes.
+estimatedMinutes: 20
+prerequisites: []
+source: courses-notebook SE303_observability_sre 06_incident_management
+quiz:
+- q: 'A ''blameless post-mortem'' focuses on:'
+  options:
+  - Finding the responsible engineer
+  - Systemic causes and action items, not individual fault
+  - Avoiding documentation
+  - Cost recovery
+  answer: 1

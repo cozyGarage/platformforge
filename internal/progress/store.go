@@ -231,7 +231,7 @@ func (s *Store) List() ([]Progress, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []Progress
+	out := []Progress{} // never nil: the API serialises nil as JSON null and the UI iterates it
 	for rows.Next() {
 		var p Progress
 		var completed sql.NullTime

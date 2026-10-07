@@ -1,0 +1,7 @@
+version: 1
+id: sql-time-series
+title: Time-Based Analysis in SQL
+summary: Date bucketing, moving averages and period-over-period comparisons.
+estimatedMinutes: 40
+prerequisites: []
+source: courses-notebook DS301_databases_sql 12_time_series_sql
