@@ -2,23 +2,25 @@
 
 > **Attribution:** Scenario adapted from [90DaysOfDevOps](https://github.com/MichaelCade/90DaysOfDevOps) Linux fundamentals (Michael Cade, CC BY-NC-SA 4.0). Rewritten as an interactive PlatformForge exercise.
 
-Platform engineering starts in the terminal. Before containers and clusters, you need confidence with paths, files, and simple pipelines.
+You are onboarding to a platform team. A ticket is waiting in `/workspace/inbox/TICKET.md`. The shell starts in `/workspace`. The `logs/` directory is not there yet — creating it is part of the exercise.
 
-## Scenario
+## What you are practicing
 
-You are onboarding to a platform team. A runbook expects a notes file and a backup copy under `/workspace/logs/`.
+1. **Navigation.** `pwd` prints the current directory. `ls` lists it. `ls inbox` lists a subdirectory without leaving `/workspace`. A path that starts with `/` is absolute and ignores your current directory. `notes.txt` and `./notes.txt` are relative to wherever you are.
+2. **Creating a file with redirection.** `>` sends command output into a file and creates the file if needed. Write `/workspace/notes.txt` so it contains the word `platformforge`.
+3. **A new directory and a copy.** `mkdir /workspace/logs` creates the backup directory. `cp` places the same note at `/workspace/logs/notes.bak`.
 
-## Tasks
+## Done when
 
-Work from `/workspace`:
+- `/workspace/notes.txt` contains `platformforge`
+- `/workspace/logs` exists because you created it
+- `/workspace/logs/notes.bak` contains `platformforge`
 
-1. Create `notes.txt` containing the word `platformforge`
-2. Ensure the `logs/` directory exists
-3. Copy `notes.txt` to `logs/notes.bak`
+The validator checks those files, not the exact commands. `printf`, `echo`, and copying a file you already wrote are all fine.
 
 ## Why this matters
 
-Release automation, incident response, and debugging all happen through shells. Muscle memory with basic file operations saves time when systems are down.
+Release automation and incident response both happen in a shell. Paths, redirection, and copies are the moves underneath later labs on permissions and log pipelines.
 
 ## Source
 

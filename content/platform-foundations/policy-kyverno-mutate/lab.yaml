@@ -1,0 +1,75 @@
+version: 1
+id: policy-kyverno-mutate
+title: Apply Kyverno Mutate Policies
+summary: Author and apply a Kyverno mutate ClusterPolicy that injects cost-center labels, then prove mutation on a test Pod.
+difficulty: intermediate
+estimatedMinutes: 35
+prerequisites: [policy-kyverno-basics]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+  addons: [kyverno]
+setup:
+  - "mkdir -p /workspace/policy /workspace/docs"
+  - "printf 'Ticket: every payments Pod must get label cost-center=payments via mutate.\\nApply ClusterPolicy, then create a test Pod and prove the label.\\n' > /workspace/policy/TICKET.md"
+  - "kubectl wait --for=condition=established crd/clusterpolicies.kyverno.io --timeout=120s"
+  - "kubectl create ns payments >/dev/null"
+tasks:
+  - id: mutate-policy
+    title: Apply a mutate ClusterPolicy
+    description: 'Create /workspace/policy/mutate-cost-center.yaml with kind: ClusterPolicy, metadata.name mutate-cost-center, a mutate rule that sets metadata.labels.cost-center to payments (for Pods in namespace payments or cluster-wide). Apply it with kubectl.'
+    hints:
+      - 'Tip code KYN_MUTATE: use spec.rules[].mutate.patchStrategicMerge or mutate.targets for labels.'
+      - 'Include cost-center: payments in the mutate patch.'
+      - 'kubectl apply -f /workspace/policy/mutate-cost-center.yaml'
+    checks:
+      - type: file
+        name: ClusterPolicy kind
+        path: /workspace/policy/mutate-cost-center.yaml
+        value: "kind: ClusterPolicy"
+      - type: file
+        name: Policy named
+        path: /workspace/policy/mutate-cost-center.yaml
+        value: mutate-cost-center
+      - type: command
+        name: Mentions mutate
+        command: "grep -Eqi 'mutate' /workspace/policy/mutate-cost-center.yaml"
+      - type: file
+        name: Sets cost-center
+        path: /workspace/policy/mutate-cost-center.yaml
+        value: cost-center
+      - type: file
+        name: Value payments
+        path: /workspace/policy/mutate-cost-center.yaml
+        value: payments
+      - type: kubernetes
+        name: Policy applied
+        command: kubectl get clusterpolicy mutate-cost-center
+  - id: prove-mutation
+    title: Prove the label is injected
+    description: 'Create a Pod named mutate-demo in namespace payments using image nginx:1.27-alpine without the cost-center label. After create, show that the live Pod has label cost-center=payments. Write /workspace/docs/MUTATE.md with headings Policy and Proof. Write /workspace/policy/STATUS.txt containing MUTATE_OK.'
+    hints:
+      - 'Tip code KYN_PROVE: kubectl -n payments get pod mutate-demo --show-labels'
+      - 'If the label is missing, check policy match namespace and restart/recreate the Pod.'
+      - 'STATUS.txt should include MUTATE_OK.'
+    checks:
+      - type: kubernetes
+        name: Demo pod exists
+        command: kubectl -n payments get pod mutate-demo
+      - type: kubernetes
+        name: cost-center label present
+        command: "kubectl -n payments get pod mutate-demo -o jsonpath='{.metadata.labels.cost-center}' | grep -q payments"
+      - type: file
+        name: Policy heading
+        path: /workspace/docs/MUTATE.md
+        value: Policy
+      - type: file
+        name: Proof heading
+        path: /workspace/docs/MUTATE.md
+        value: Proof
+      - type: file
+        name: Mutate status ok
+        path: /workspace/policy/STATUS.txt
+        value: MUTATE_OK
+limits: {cpus: "1.0", memory: 768m, pids: 256, timeout: 3600, network: true}

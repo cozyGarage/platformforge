@@ -1,25 +1,45 @@
 version: 1
 id: kubernetes-etcd-snapshot
 title: Practice etcd Snapshot Runbooks
-summary: Author a control-plane backup runbook and produce a verifiable snapshot artifact for disaster recovery drills.
+summary: Inspect a real control-plane etcd snapshot from k3d, author the restore runbook, and keep an application-consistent companion backup.
 difficulty: advanced
-estimatedMinutes: 35
+estimatedMinutes: 40
 prerequisites: [kubernetes-backup-restore]
 image: alpine/k8s:1.31.4
 shell: /bin/bash
 runtime:
   type: k3d
+  addons: [etcd-snapshot]
 setup:
-  - "mkdir -p /workspace/backup/etcd /workspace/docs"
+  - "mkdir -p /workspace/backup/etcd /workspace/docs /workspace/bin"
   - "kubectl create namespace payments >/dev/null"
   - "kubectl -n payments create configmap cluster-meta --from-literal=cluster=payments-prod --from-literal=region=eu-west-1"
+  - "curl -fsSL https://github.com/etcd-io/etcd/releases/download/v3.5.16/etcd-v3.5.16-linux-amd64.tar.gz | tar -xz -C /tmp && cp /tmp/etcd-v3.5.16-linux-amd64/etcdctl /workspace/bin/etcdctl && chmod +x /workspace/bin/etcdctl"
+  - "export PATH=/workspace/bin:$PATH"
 tasks:
+  - id: inspect-live-snapshot
+    title: Inspect the live etcd snapshot
+    description: 'A real snapshot from this cluster control plane is mounted at /workspace/backup/etcd/snapshot.db. Using /workspace/bin/etcdctl, run snapshot status and write the output to /workspace/backup/etcd/SNAPSHOT_STATUS.txt. The file must mention hash or revision or snapshot_bytes.'
+    hints:
+      - 'Tip code ETCD_STATUS: ETCDCTL_API=3 /workspace/bin/etcdctl snapshot status /workspace/backup/etcd/snapshot.db'
+      - 'Redirect stdout to SNAPSHOT_STATUS.txt'
+      - 'Host also left snapshot-status.host.txt as a reference.'
+    checks:
+      - type: command
+        name: Live snapshot present
+        command: test -s /workspace/backup/etcd/snapshot.db
+      - type: file
+        name: Status file present
+        path: /workspace/backup/etcd/SNAPSHOT_STATUS.txt
+      - type: command
+        name: Status has etcd fields
+        command: "grep -Eqi 'hash|revision|snapshot_bytes|total key' /workspace/backup/etcd/SNAPSHOT_STATUS.txt"
   - id: snapshot-runbook
-    title: Snapshot and document recovery
-    description: 'Export cluster-meta ConfigMap to /workspace/backup/etcd/snapshot-manifests.yaml as the application-consistent companion backup. Create /workspace/backup/etcd/SNAPSHOT.sha256 containing a sha256 of that file. Write /workspace/docs/etcd-runbook.md with headings Snapshot, Restore, and Validation that mention etcdctl snapshot save, etcdctl snapshot restore, and testing restores.'
+    title: Companion backup and recovery runbook
+    description: 'Export cluster-meta ConfigMap to /workspace/backup/etcd/snapshot-manifests.yaml. Create /workspace/backup/etcd/SNAPSHOT.sha256 with a sha256 of snapshot.db (the live artifact). Write /workspace/docs/etcd-runbook.md with headings Snapshot, Restore, and Validation that mention etcdctl snapshot save, etcdctl snapshot restore, and testing restores.'
     hints:
       - kubectl get configmap cluster-meta -n payments -o yaml > backup/etcd/snapshot-manifests.yaml
-      - 'sha256sum file | awk ''{print $1}'' > SNAPSHOT.sha256'
+      - 'sha256sum /workspace/backup/etcd/snapshot.db | awk ''{print $1}'' > SNAPSHOT.sha256'
       - Runbook must mention etcdctl snapshot save and restore.
     checks:
       - type: file
@@ -30,8 +50,8 @@ tasks:
         name: Checksum file present
         command: test -s /workspace/backup/etcd/SNAPSHOT.sha256
       - type: command
-        name: Checksum matches snapshot
-        command: "test \"$(sha256sum /workspace/backup/etcd/snapshot-manifests.yaml | awk '{print $1}')\" = \"$(tr -d '[:space:]' < /workspace/backup/etcd/SNAPSHOT.sha256)\""
+        name: Checksum matches live snapshot
+        command: "test \"$(sha256sum /workspace/backup/etcd/snapshot.db | awk '{print $1}')\" = \"$(tr -d '[:space:]' < /workspace/backup/etcd/SNAPSHOT.sha256)\""
       - type: file
         name: Snapshot section
         path: /workspace/docs/etcd-runbook.md

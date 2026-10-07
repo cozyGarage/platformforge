@@ -1,0 +1,71 @@
+version: 1
+id: observability-otel-runtime
+title: Run an OpenTelemetry Collector on k3d
+summary: Verify Jaeger and the OTel Collector on a live cluster, fix the collector pipeline to export traces, and prove the stack is Ready.
+difficulty: intermediate
+estimatedMinutes: 40
+prerequisites: [observability-otel-collector-plan, kubernetes-deploy]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+  addons: [otel]
+setup:
+  - "mkdir -p /workspace/otel /workspace/docs"
+  - "printf 'Ticket: payments needs a live OTel path into Jaeger.\\nCollector+Jaeger are installed in namespace observability.\\nFix the collector ConfigMap pipeline if needed and prove Ready.\\n' > /workspace/otel/TICKET.md"
+  - "kubectl -n observability get cm otel-collector-config -o yaml > /workspace/otel/collector-config.yaml"
+tasks:
+  - id: stack-ready
+    title: Prove Jaeger and collector are Ready
+    description: 'Confirm deploy/jaeger and deploy/otel-collector in namespace observability are Available. Write /workspace/otel/STACK.txt mentioning jaeger and otel-collector.'
+    hints:
+      - 'Tip code OTEL_READY: kubectl -n observability get deploy'
+      - 'kubectl wait --for=condition=available deploy/jaeger deploy/otel-collector -n observability --timeout=120s'
+    checks:
+      - type: kubernetes
+        name: Jaeger deployment available
+        command: kubectl -n observability wait --for=condition=available deploy/jaeger --timeout=60s
+      - type: kubernetes
+        name: Collector deployment available
+        command: kubectl -n observability wait --for=condition=available deploy/otel-collector --timeout=60s
+      - type: file
+        name: Stack note mentions jaeger
+        path: /workspace/otel/STACK.txt
+        value: jaeger
+      - type: file
+        name: Stack note mentions collector
+        path: /workspace/otel/STACK.txt
+        value: otel-collector
+  - id: pipeline-export
+    title: Ensure traces export to Jaeger
+    description: 'Edit /workspace/otel/collector-config.yaml so the ConfigMap data includes an exporter toward jaeger (otlp/jaeger or endpoint mentioning jaeger) and a traces pipeline listing that exporter. Apply it with kubectl apply -f /workspace/otel/collector-config.yaml and rollout restart deploy/otel-collector. Write /workspace/docs/OTEL_RUNTIME.md with headings Collector and Jaeger. Write /workspace/otel/STATUS.txt containing OTEL_RUNTIME_OK.'
+    hints:
+      - 'Tip code OTEL_EXPORT_LIVE: exporters.otlp/jaeger.endpoint should point at jaeger.observability.svc'
+      - 'kubectl -n observability rollout restart deploy/otel-collector'
+      - 'STATUS.txt should include OTEL_RUNTIME_OK.'
+    checks:
+      - type: command
+        name: Config mentions jaeger exporter
+        command: "grep -Eqi 'jaeger' /workspace/otel/collector-config.yaml"
+      - type: command
+        name: Config has traces pipeline
+        command: "grep -Eqi 'traces:' /workspace/otel/collector-config.yaml"
+      - type: kubernetes
+        name: ConfigMap applied in cluster
+        command: "kubectl -n observability get cm otel-collector-config -o yaml | grep -Eqi 'jaeger'"
+      - type: kubernetes
+        name: Collector still available after apply
+        command: kubectl -n observability wait --for=condition=available deploy/otel-collector --timeout=120s
+      - type: file
+        name: Collector heading
+        path: /workspace/docs/OTEL_RUNTIME.md
+        value: Collector
+      - type: file
+        name: Jaeger heading
+        path: /workspace/docs/OTEL_RUNTIME.md
+        value: Jaeger
+      - type: file
+        name: Runtime status ok
+        path: /workspace/otel/STATUS.txt
+        value: OTEL_RUNTIME_OK
+limits: {cpus: "1.5", memory: 1024m, pids: 256, timeout: 3600, network: true}

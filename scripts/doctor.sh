@@ -38,8 +38,8 @@ check_cmd git
 check_cmd sqlite3
 check_cmd make
 
-if command -v k3d >/dev/null 2>&1; then ok "k3d found: $(k3d version 2>/dev/null | head -1 || echo present)"; else note "k3d missing (required for kubernetes-deploy lab)"; fi
-if command -v kubectl >/dev/null 2>&1; then ok "kubectl found: $(kubectl version --client 2>/dev/null | head -1 || echo present)"; else note "kubectl missing (required for kubernetes-deploy lab)"; fi
+if command -v k3d >/dev/null 2>&1; then ok "k3d found: $(k3d version 2>/dev/null | head -1 || echo present)"; else note "k3d missing (required for kubernetes / Phase C addon labs)"; fi
+if command -v kubectl >/dev/null 2>&1; then ok "kubectl found: $(kubectl version --client 2>/dev/null | head -1 || echo present)"; else note "kubectl missing (required for k3d addons: kyverno/gateway)"; fi
 
 if docker info >/dev/null 2>&1; then
   ok "Docker daemon reachable"

@@ -1,0 +1,73 @@
+version: 1
+id: gitops-fleet-apply
+title: Apply Workloads Across Two k3d Clusters
+summary: Use east/west kube contexts from a multi-cluster k3d lab to apply the same payments Deployment to both clusters and prove both are Ready.
+difficulty: advanced
+estimatedMinutes: 45
+prerequisites: [gitops-fleet-multi-cluster, gitops-sync-waves-plan, kubernetes-deploy]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+  addons: [multi-cluster]
+setup:
+  - "mkdir -p /workspace/fleet /workspace/docs"
+  - "printf 'Ticket: roll payments-web to east and west clusters.\\nContexts: east (default) and west. Apply the same Deployment to both.\\n' > /workspace/fleet/TICKET.md"
+  - "printf 'apiVersion: apps/v1\\nkind: Deployment\\nmetadata:\\n  name: payments-web\\n  labels:\\n    app: payments-web\\nspec:\\n  replicas: 1\\n  selector:\\n    matchLabels:\\n      app: payments-web\\n  template:\\n    metadata:\\n      labels:\\n        app: payments-web\\n    spec:\\n      containers:\\n        - name: web\\n          image: nginx:1.27-alpine\\n          ports:\\n            - containerPort: 80\\n' > /workspace/fleet/payments-web.yaml"
+  - "kubectl config get-contexts"
+tasks:
+  - id: apply-east-west
+    title: Apply to east and west
+    description: 'Using kubectl --context east and --context west, apply /workspace/fleet/payments-web.yaml to both clusters. Wait until deploy/payments-web is Available in each context. Write /workspace/fleet/CONTEXTS.txt listing east and west.'
+    hints:
+      - 'Tip code FLEET_CTX: kubectl --context east apply -f /workspace/fleet/payments-web.yaml'
+      - 'Repeat with --context west'
+      - 'kubectl --context east wait --for=condition=available deploy/payments-web --timeout=120s'
+    checks:
+      - type: file
+        name: Contexts file lists east
+        path: /workspace/fleet/CONTEXTS.txt
+        value: east
+      - type: file
+        name: Contexts file lists west
+        path: /workspace/fleet/CONTEXTS.txt
+        value: west
+      - type: kubernetes
+        name: East deployment available
+        command: kubectl --context east wait --for=condition=available deploy/payments-web --timeout=120s
+      - type: kubernetes
+        name: West deployment available
+        command: kubectl --context west wait --for=condition=available deploy/payments-web --timeout=120s
+  - id: fleet-notes
+    title: Document the fleet apply
+    description: 'Write /workspace/docs/FLEET_APPLY.md with headings East, West, and Waves. East/West must mention payments-web. Waves must mention canary or wave or health. Write /workspace/fleet/STATUS.txt containing FLEET_APPLY_OK.'
+    hints:
+      - 'Tip code FLEET_APPLY: same desired state, two contexts, wave/canary discipline still applies.'
+      - 'STATUS.txt should include FLEET_APPLY_OK.'
+    checks:
+      - type: file
+        name: East heading
+        path: /workspace/docs/FLEET_APPLY.md
+        value: East
+      - type: file
+        name: West heading
+        path: /workspace/docs/FLEET_APPLY.md
+        value: West
+      - type: file
+        name: Waves heading
+        path: /workspace/docs/FLEET_APPLY.md
+        value: Waves
+      - type: command
+        name: East mentions app
+        command: "grep -A3 '^#* *East' /workspace/docs/FLEET_APPLY.md | grep -Eqi 'payments-web'"
+      - type: command
+        name: West mentions app
+        command: "grep -A3 '^#* *West' /workspace/docs/FLEET_APPLY.md | grep -Eqi 'payments-web'"
+      - type: command
+        name: Waves mention rollout
+        command: "grep -A3 '^#* *Waves' /workspace/docs/FLEET_APPLY.md | grep -Eqi 'canary|wave|health'"
+      - type: file
+        name: Fleet apply status ok
+        path: /workspace/fleet/STATUS.txt
+        value: FLEET_APPLY_OK
+limits: {cpus: "1.5", memory: 1024m, pids: 256, timeout: 3600, network: true}

@@ -40,8 +40,16 @@ type Task struct {
 	Checks      []Check  `json:"checks" yaml:"checks"`
 }
 
+type HostBuild struct {
+	Dockerfile string `json:"dockerfile" yaml:"dockerfile"`
+	Context    string `json:"context" yaml:"context"`
+	Image      string `json:"image" yaml:"image"`
+}
+
 type Runtime struct {
-	Type string `json:"type" yaml:"type"`
+	Type      string     `json:"type" yaml:"type"`
+	Addons    []string   `json:"addons,omitempty" yaml:"addons,omitempty"`
+	HostBuild *HostBuild `json:"hostBuild,omitempty" yaml:"hostBuild,omitempty"`
 }
 
 type Manifest struct {

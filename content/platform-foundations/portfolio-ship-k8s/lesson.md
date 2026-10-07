@@ -1,10 +1,18 @@
-# Portfolio — ship to Kubernetes
+# Portfolio — Build, Push, and Ship to Kubernetes
 
-The demo story is incomplete until the service runs behind a Service and Ingress. This lab uses `nginx:1.27-alpine` as a stand-in image so the release path works without a private registry.
+The demo story is incomplete until **your** image is in a registry and running behind a Service and Ingress. PlatformForge creates a k3d registry and performs the host-side `docker build` / `docker push` (learners never get a Docker socket).
 
-## Tasks
+## Why it matters
 
-1. `/workspace/k8s/deployment.yaml` — Deployment `payments`, `app=payments`, 2 replicas
-2. `/workspace/k8s/service.yaml` — ClusterIP Service `payments` port 80
-3. `/workspace/k8s/ingress.yaml` — host `payments.local` → Service `payments:80`
-4. Apply all manifests and wait for Ready pods
+Shipping `nginx` as a stand-in skips the hard part. Digests and registry refs are what FinTech platforms actually promote.
+
+## Ticket focus
+
+1. Finish `/workspace/app/Dockerfile` (pinned, non-root)
+2. Validate → host builds/pushes → `/workspace/IMAGE`
+3. Deploy Deployment/Service/Ingress using that image
+
+## Tip codes
+
+- `REG_DOCKERFILE` — pin golang:1.22-alpine; never latest
+- `REG_IMAGE` — deploy `$(cat /workspace/IMAGE)`, not nginx

@@ -1,0 +1,75 @@
+version: 1
+id: gateway-api-dataplane
+title: Program a Gateway API Data Plane
+summary: Use Envoy Gateway on k3d to apply a GatewayClass-backed Gateway and HTTPRoute, then verify the Gateway is Programmed.
+difficulty: advanced
+estimatedMinutes: 45
+prerequisites: [gateway-api-http-route]
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+  addons: [gateway-controller]
+setup:
+  - "mkdir -p /workspace/gateway /workspace/docs"
+  - "printf 'Ticket: program api.payments.example through Envoy Gateway.\\nUse GatewayClass eg (or the installed controller class), apply Gateway+HTTPRoute, prove Programmed.\\n' > /workspace/gateway/TICKET.md"
+  - "kubectl create deploy payments-api --image=nginx:1.27-alpine --port=80 >/dev/null"
+  - "kubectl expose deploy payments-api --port=80 --target-port=80 >/dev/null"
+  - "kubectl wait --for=condition=established crd/gateways.gateway.networking.k8s.io --timeout=120s"
+tasks:
+  - id: gateway-programmed
+    title: Apply Gateway and prove Programmed
+    description: 'Discover the installed GatewayClass (kubectl get gatewayclass). Create /workspace/gateway/gateway.yaml with kind: Gateway, metadata.name payments-gw, gatewayClassName matching an installed class (often eg), and an HTTP listener on port 80 for hostname api.payments.example. Apply it. Wait until the Gateway shows Programmed=True (or Accepted=True if Programmed is unavailable).'
+    hints:
+      - 'Tip code GW_CLASS_LIVE: kubectl get gatewayclass — use a real controller class, not example.com.'
+      - 'Tip code GW_PROGRAMMED: kubectl wait --for=condition=Programmed gateway/payments-gw --timeout=180s'
+    checks:
+      - type: file
+        name: Gateway manifest
+        path: /workspace/gateway/gateway.yaml
+        value: "kind: Gateway"
+      - type: file
+        name: Gateway named
+        path: /workspace/gateway/gateway.yaml
+        value: payments-gw
+      - type: file
+        name: Hostname configured
+        path: /workspace/gateway/gateway.yaml
+        value: api.payments.example
+      - type: kubernetes
+        name: Gateway applied
+        command: kubectl get gateway payments-gw
+      - type: kubernetes
+        name: Gateway programmed or accepted
+        command: "kubectl wait --for=condition=Programmed gateway/payments-gw --timeout=180s 2>/dev/null || kubectl wait --for=condition=Accepted gateway/payments-gw --timeout=180s"
+  - id: route-attached
+    title: Attach HTTPRoute
+    description: 'Create /workspace/gateway/httproute.yaml with kind: HTTPRoute, metadata.name payments-api-dp, parentRefs to payments-gw, hostnames api.payments.example, backendRef Service payments-api port 80. Apply it. Write /workspace/docs/DATAPLANE.md with headings GatewayClass and Programmed. Write /workspace/gateway/STATUS.txt containing DATAPLANE_OK.'
+    hints:
+      - 'Tip code GW_ROUTE_LIVE: parentRefs.name must be payments-gw.'
+      - 'STATUS.txt should include DATAPLANE_OK.'
+    checks:
+      - type: file
+        name: HTTPRoute kind
+        path: /workspace/gateway/httproute.yaml
+        value: "kind: HTTPRoute"
+      - type: file
+        name: Parent gateway
+        path: /workspace/gateway/httproute.yaml
+        value: payments-gw
+      - type: kubernetes
+        name: HTTPRoute applied
+        command: kubectl get httproute payments-api-dp
+      - type: file
+        name: GatewayClass heading
+        path: /workspace/docs/DATAPLANE.md
+        value: GatewayClass
+      - type: file
+        name: Programmed heading
+        path: /workspace/docs/DATAPLANE.md
+        value: Programmed
+      - type: file
+        name: Dataplane status ok
+        path: /workspace/gateway/STATUS.txt
+        value: DATAPLANE_OK
+limits: {cpus: "1.5", memory: 1024m, pids: 256, timeout: 3600, network: true}

@@ -1,23 +1,29 @@
 version: 1
 id: gateway-api-http-route
-title: Plan a Gateway API HTTPRoute
-summary: Sketch GatewayClass, Gateway, and HTTPRoute objects that expose payments-api on api.payments.example.
+title: Apply a Gateway API HTTPRoute
+summary: Apply GatewayClass, Gateway, and HTTPRoute objects on a live k3d cluster that expose payments-api on api.payments.example.
 difficulty: intermediate
-estimatedMinutes: 30
+estimatedMinutes: 40
 prerequisites: [kubernetes-ingress, kubernetes-service]
-image: alpine:3.21
-shell: /bin/sh
+image: alpine/k8s:1.31.4
+shell: /bin/bash
+runtime:
+  type: k3d
+  addons: [gateway]
 setup:
   - "mkdir -p /workspace/gateway /workspace/docs"
-  - "printf 'Ticket: migrate api.payments.example from Ingress to Gateway API.\\nNeed GatewayClass, Gateway listener, and HTTPRoute to Service payments-api:80.\\n' > /workspace/gateway/TICKET.md"
+  - "printf 'Ticket: migrate api.payments.example from Ingress to Gateway API.\\nNeed GatewayClass, Gateway listener, and HTTPRoute to Service payments-api:80.\\nGateway API CRDs are already installed — apply your manifests.\\n' > /workspace/gateway/TICKET.md"
+  - "kubectl create deploy payments-api --image=nginx:1.27-alpine --port=80 >/dev/null"
+  - "kubectl expose deploy payments-api --port=80 --target-port=80 >/dev/null"
+  - "kubectl wait --for=condition=established crd/gateways.gateway.networking.k8s.io --timeout=120s"
 tasks:
   - id: gateway-objects
-    title: Sketch GatewayClass and Gateway
-    description: 'Create /workspace/gateway/gatewayclass.yaml with kind: GatewayClass and metadata.name payments-gatewayclass (controllerName can be example.com/payments-gateway). Create /workspace/gateway/gateway.yaml with kind: Gateway, metadata.name payments-gateway, gatewayClassName payments-gatewayclass, and a listener hostname or port mentioning 443 or 80 plus hostname api.payments.example.'
+    title: Apply GatewayClass and Gateway
+    description: 'Create /workspace/gateway/gatewayclass.yaml with kind: GatewayClass and metadata.name payments-gatewayclass (controllerName can be example.com/payments-gateway). Create /workspace/gateway/gateway.yaml with kind: Gateway, metadata.name payments-gateway, gatewayClassName payments-gatewayclass, and a listener for hostname api.payments.example on port 80 (HTTP). Apply both with kubectl.'
     hints:
       - 'Tip code GW_CLASS: GatewayClass selects the controller implementation.'
       - 'Tip code GW_LISTENER: Gateway listeners declare hostname/port/protocol.'
-      - 'Include api.payments.example on the Gateway listener.'
+      - 'kubectl apply -f /workspace/gateway/gatewayclass.yaml -f /workspace/gateway/gateway.yaml'
     checks:
       - type: file
         name: GatewayClass present
@@ -39,9 +45,15 @@ tasks:
         name: Listener hostname set
         path: /workspace/gateway/gateway.yaml
         value: api.payments.example
+      - type: kubernetes
+        name: GatewayClass applied
+        command: kubectl get gatewayclass payments-gatewayclass
+      - type: kubernetes
+        name: Gateway applied
+        command: kubectl get gateway payments-gateway
   - id: httproute
     title: Route to payments-api
-    description: 'Create /workspace/gateway/httproute.yaml with kind: HTTPRoute, metadata.name payments-api-route, parentRefs to payments-gateway, hostnames including api.payments.example, and a backendRef to Service payments-api port 80. Write /workspace/docs/MIGRATION.md mentioning Ingress and Gateway API. Write /workspace/gateway/STATUS.txt containing GATEWAY_OK.'
+    description: 'Create /workspace/gateway/httproute.yaml with kind: HTTPRoute, metadata.name payments-api-route, parentRefs to payments-gateway, hostnames including api.payments.example, and a backendRef to Service payments-api port 80. Apply it. Write /workspace/docs/MIGRATION.md mentioning Ingress and Gateway API. Write /workspace/gateway/STATUS.txt containing GATEWAY_OK.'
     hints:
       - 'Tip code HTTP_ROUTE: HTTPRoute attaches to a Gateway via parentRefs and targets Services via backendRefs.'
       - 'Tip code MIGRATE_INGRESS: document how Gateway API replaces classic Ingress hosts.'
@@ -70,6 +82,9 @@ tasks:
       - type: command
         name: Backend port 80
         command: "grep -Eq 'port:[[:space:]]*80' /workspace/gateway/httproute.yaml"
+      - type: kubernetes
+        name: HTTPRoute applied
+        command: kubectl get httproute payments-api-route
       - type: command
         name: Migration mentions both APIs
         command: "grep -qi 'Ingress' /workspace/docs/MIGRATION.md && grep -Eqi 'Gateway API|HTTPRoute' /workspace/docs/MIGRATION.md"
@@ -77,4 +92,4 @@ tasks:
         name: Gateway status ok
         path: /workspace/gateway/STATUS.txt
         value: GATEWAY_OK
-limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}
+limits: {cpus: "1.0", memory: 512m, pids: 256, timeout: 3600, network: true}

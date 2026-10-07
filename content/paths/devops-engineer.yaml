@@ -119,7 +119,7 @@ phases:
           - sql-window-functions
   - id: kubernetes
     title: Phase 3 — Kubernetes
-    summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls, admission policy, and Gateway API planning.
+    summary: Deploy reliable workloads on live k3d clusters, then practice CKA-style controls, admission policy, and Gateway API.
     modules:
       - id: learn-kubernetes
         title: Learn Kubernetes
@@ -142,24 +142,20 @@ phases:
           - kubernetes-storage
           - kubernetes-backup-restore
           - kubernetes-etcd-snapshot
-        comingSoon:
-          - Live etcdctl against control-plane (runtime)
       - id: learn-policy
         title: Policy as Code
-        summary: Kyverno baselines and OPA/Gatekeeper constraints for labels, digests, and cost centers.
+        summary: Kyverno validate/mutate baselines and OPA/Gatekeeper constraints for labels, digests, and cost centers.
         labs:
           - policy-kyverno-basics
+          - policy-kyverno-mutate
           - policy-opa-constraints
-        comingSoon:
-          - Live Kyverno apply on k3d (runtime)
       - id: learn-gateway
         title: Gateway API
-        summary: Replace Ingress with Gateway/HTTPRoute sketches and weighted canary splits.
+        summary: Gateway/HTTPRoute objects, canary splits, and a live Envoy Gateway data plane.
         labs:
           - gateway-api-http-route
           - gateway-canary-split
-        comingSoon:
-          - Live Gateway API apply on k3d (runtime)
+          - gateway-api-dataplane
   - id: delivery
     title: Phase 4 — Delivery & Reliability
     summary: CI/CD pipelines, GitOps, Helm, secrets ops, observability, SLOs, and incident response.
@@ -173,10 +169,13 @@ phases:
           - cicd-security-scan
       - id: learn-gitops
         title: Learn GitOps
-        summary: Declarative desired state, drift reconcile loops, and Kustomize overlay promotion.
+        summary: Declarative desired state, drift reconcile loops, Kustomize overlays, fleet planning, sync waves, and multi-cluster apply.
         labs:
           - gitops-manifest-sync
           - gitops-kustomize-overlay
+          - gitops-fleet-multi-cluster
+          - gitops-sync-waves-plan
+          - gitops-fleet-apply
       - id: learn-helm
         title: Learn Helm
         summary: Chart skeletons, values overrides, and digest-friendly env promotion.
@@ -193,11 +192,16 @@ phases:
           - secrets-rotation-runbook
       - id: learn-observability
         title: Logging & Observability
-        summary: Structured logs, metrics, alerts, and on-call debugging.
+        summary: Structured logs, metrics, alerts, tracing, SLI rules, OTel collector planning and live runtime, and correlation runbooks.
         source: "Boot.dev — Learn Logging and Observability"
         labs:
           - observability-structured-logs
           - observability-metrics-alerts
+          - observability-tracing-plan
+          - observability-sli-recording-rules
+          - observability-otel-collector-plan
+          - observability-correlation-plan
+          - observability-otel-runtime
       - id: learn-sre
         title: Reliability & On-Call
         summary: SLOs, error budgets, burn-rate alerts, chaos experiments, game days, and shift handoffs.
@@ -233,8 +237,6 @@ phases:
           - portfolio-containerize
           - portfolio-ship-k8s
           - portfolio-showcase
-        comingSoon:
-          - Portfolio registry build/push (runtime)
   - id: platform-engineering
     title: Phase 5 — Platform Engineering
     summary: Platform product skills, data, compliance, bare-metal, and local AWS mental models from the FinTech architect roadmap.

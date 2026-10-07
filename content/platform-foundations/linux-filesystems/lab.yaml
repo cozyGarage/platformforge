@@ -15,10 +15,11 @@ setup:
 tasks:
   - id: disk-audit
     title: Audit workspace usage
-    description: Create /workspace/disk-audit.txt listing the total size of /workspace/data in human-readable form using du, and list files larger than 1M under /workspace/data in /workspace/large-files.txt.
+    description: 'Save du -sh /workspace/data to /workspace/disk-audit.txt. Write /workspace/large-files.txt with every regular file under /workspace/data larger than 1 MiB: cache/temp.bin and archive/backup.bin. Leave readme.txt out. Alpine find rejects -size +1M; use -size +1024k.'
     hints:
-      - du -sh summarizes directory size.
-      - find supports -size +1M.
+      - "du -sh /workspace/data prints a size in megabytes and the directory path. Redirect that line into disk-audit.txt."
+      - "BusyBox find rejects +1M with invalid number. Use find /workspace/data -type f -size +1024k"
+      - "+1024k means larger than 1024 KiB. temp.bin and backup.bin match; readme.txt does not."
     checks:
       - type: file
         name: Disk audit exists
@@ -26,8 +27,16 @@ tasks:
       - type: command
         name: Audit mentions data directory
         command: grep -q data /workspace/disk-audit.txt
-      - type: file
-        name: Large files list exists
-        path: /workspace/large-files.txt
-        value: temp.bin
+      - type: command
+        name: Audit includes a size
+        command: grep -Eq '[0-9]' /workspace/disk-audit.txt
+      - type: command
+        name: Temp file listed
+        command: grep -q temp.bin /workspace/large-files.txt
+      - type: command
+        name: Backup file listed
+        command: grep -q backup.bin /workspace/large-files.txt
+      - type: command
+        name: Small file excluded
+        command: test -f /workspace/large-files.txt && ! grep -q readme.txt /workspace/large-files.txt
 limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

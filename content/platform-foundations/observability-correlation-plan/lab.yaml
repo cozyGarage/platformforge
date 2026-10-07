@@ -1,0 +1,76 @@
+version: 1
+id: observability-correlation-plan
+title: Plan Logs-Metrics-Traces Correlation
+summary: Define how payments on-call jumps from an alert to a trace and matching logs using shared identifiers and exemplars.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [observability-otel-collector-plan, observability-structured-logs]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/correlate /workspace/docs"
+  - "printf 'Ticket: on-call must jump alert → trace → logs for payments-api.\\nNeed shared ids, exemplars, and a lookup runbook.\\n' > /workspace/correlate/TICKET.md"
+  - "printf 'service: payments-api\\nlog_field: trace_id\\n' > /workspace/correlate/correlate.env"
+tasks:
+  - id: id-contract
+    title: Define the shared identity contract
+    description: 'Create /workspace/correlate/ids.txt with exactly five non-empty lines covering: (1) trace_id in logs, (2) span_id optional note, (3) service or service.name label, (4) exemplar or exemplar link from metrics to traces, (5) one anti-pattern (no raw PII in span attributes or high-cardinality user ids). Include the words trace_id and exemplar.'
+    hints:
+      - 'Tip code CORRELATE_IDS: same trace_id in logs and traces; metrics use exemplars where possible.'
+      - 'Exactly five non-empty lines; pull trace_id from correlate.env.'
+      - 'Call out a high-cardinality or PII anti-pattern.'
+    checks:
+      - type: file
+        name: Ids file present
+        path: /workspace/correlate/ids.txt
+        value: trace_id
+      - type: file
+        name: Mentions exemplar
+        path: /workspace/correlate/ids.txt
+        value: exemplar
+      - type: command
+        name: Mentions span id
+        command: "grep -Eqi 'span_id|span id' /workspace/correlate/ids.txt"
+      - type: command
+        name: Mentions service label
+        command: "grep -Eqi 'service' /workspace/correlate/ids.txt"
+      - type: command
+        name: Mentions anti-pattern
+        command: "grep -Eqi 'pii|cardinality|user.id|userid|email|pan' /workspace/correlate/ids.txt"
+      - type: command
+        name: Exactly five non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/correlate/ids.txt) -eq 5 ]"
+  - id: lookup-runbook
+    title: Write the on-call lookup runbook
+    description: 'Write /workspace/docs/CORRELATE.md with headings Alert, Trace, and Logs. Alert must mention burn or error rate or page. Trace must mention trace_id or Tempo or Jaeger. Logs must mention trace_id or filter or grep. Write /workspace/correlate/STATUS.txt containing CORRELATE_OK.'
+    hints:
+      - 'Tip code ALERT_TO_TRACE: page → recording-rule labels → exemplar/trace_id → filtered logs.'
+      - 'STATUS.txt should include CORRELATE_OK.'
+      - 'Keep the three headings in order: Alert, Trace, Logs.'
+    checks:
+      - type: file
+        name: Alert heading present
+        path: /workspace/docs/CORRELATE.md
+        value: Alert
+      - type: file
+        name: Trace heading present
+        path: /workspace/docs/CORRELATE.md
+        value: Trace
+      - type: file
+        name: Logs heading present
+        path: /workspace/docs/CORRELATE.md
+        value: Logs
+      - type: command
+        name: Alert mentions signal
+        command: "grep -A3 '^#* *Alert' /workspace/docs/CORRELATE.md | grep -Eqi 'burn|error rate|page|SLO'"
+      - type: command
+        name: Trace mentions lookup
+        command: "grep -A3 '^#* *Trace' /workspace/docs/CORRELATE.md | grep -Eqi 'trace_id|Tempo|Jaeger'"
+      - type: command
+        name: Logs mention filter
+        command: "grep -A3 '^#* *Logs' /workspace/docs/CORRELATE.md | grep -Eqi 'trace_id|filter|grep'"
+      - type: file
+        name: Correlate status ok
+        path: /workspace/correlate/STATUS.txt
+        value: CORRELATE_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

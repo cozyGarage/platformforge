@@ -1,0 +1,78 @@
+version: 1
+id: observability-otel-collector-plan
+title: Plan an OpenTelemetry Collector Pipeline
+summary: Sketch receivers, processors, and exporters so payments traces and metrics land in Tempo/Prometheus-style backends before runtime wiring.
+difficulty: intermediate
+estimatedMinutes: 25
+prerequisites: [observability-tracing-plan, observability-sli-recording-rules]
+image: alpine:3.21
+shell: /bin/sh
+setup:
+  - "mkdir -p /workspace/otel /workspace/docs"
+  - "printf 'Ticket: wire an OTel Collector for payments-api.\\nNeed receivers → processors → exporters for traces and metrics.\\n' > /workspace/otel/TICKET.md"
+  - "printf 'traces_backend: tempo\\nmetrics_backend: prometheus\\n' > /workspace/otel/backends.env"
+tasks:
+  - id: pipeline-sketch
+    title: Sketch the collector pipeline
+    description: 'Create /workspace/otel/pipeline.txt with exactly six non-empty lines covering: (1) OTLP receiver, (2) a processor (batch or memory_limiter or attributes or filter), (3) traces exporter toward tempo, (4) metrics exporter toward prometheus or prometheusremotewrite, (5) a service pipelines note linking traces, (6) a service pipelines note linking metrics. Include the words otlp and pipeline.'
+    hints:
+      - 'Tip code OTEL_PIPELINE: receivers → processors → exporters, wired in service.pipelines.'
+      - 'Exactly six non-empty lines; pull tempo/prometheus from backends.env.'
+      - 'Name an OTLP receiver and at least one processor.'
+    checks:
+      - type: file
+        name: Pipeline sketch present
+        path: /workspace/otel/pipeline.txt
+        value: otlp
+      - type: file
+        name: Mentions pipeline
+        path: /workspace/otel/pipeline.txt
+        value: pipeline
+      - type: file
+        name: Tempo exporter mentioned
+        path: /workspace/otel/pipeline.txt
+        value: tempo
+      - type: file
+        name: Prometheus exporter mentioned
+        path: /workspace/otel/pipeline.txt
+        value: prometheus
+      - type: command
+        name: Processor named
+        command: "grep -Eqi 'batch|memory_limiter|attributes|filter|tail_sampling' /workspace/otel/pipeline.txt"
+      - type: command
+        name: Exactly six non-empty lines
+        command: "[ $(grep -cve '^[[:space:]]*$' /workspace/otel/pipeline.txt) -eq 6 ]"
+  - id: collector-notes
+    title: Document collector ops notes
+    description: 'Write /workspace/docs/OTEL.md with headings Receivers, Processors, and Exporters. Receivers must mention OTLP or grpc or http. Processors must mention batch or sample or filter. Exporters must mention tempo or prometheus. Write /workspace/otel/STATUS.txt containing OTEL_OK.'
+    hints:
+      - 'Tip code OTEL_RECV: prefer OTLP (gRPC/HTTP) as the single ingest contract.'
+      - 'Tip code OTEL_EXPORT: traces to Tempo (or Jaeger), metrics to Prometheus remote-write/exporter.'
+      - 'STATUS.txt should include OTEL_OK.'
+    checks:
+      - type: file
+        name: Receivers heading present
+        path: /workspace/docs/OTEL.md
+        value: Receivers
+      - type: file
+        name: Processors heading present
+        path: /workspace/docs/OTEL.md
+        value: Processors
+      - type: file
+        name: Exporters heading present
+        path: /workspace/docs/OTEL.md
+        value: Exporters
+      - type: command
+        name: Receivers mention OTLP
+        command: "grep -A3 '^#* *Receivers' /workspace/docs/OTEL.md | grep -Eqi 'OTLP|grpc|http'"
+      - type: command
+        name: Processors mention work
+        command: "grep -A3 '^#* *Processors' /workspace/docs/OTEL.md | grep -Eqi 'batch|sample|filter|memory'"
+      - type: command
+        name: Exporters mention backends
+        command: "grep -A3 '^#* *Exporters' /workspace/docs/OTEL.md | grep -Eqi 'tempo|prometheus|jaeger'"
+      - type: file
+        name: OTel status ok
+        path: /workspace/otel/STATUS.txt
+        value: OTEL_OK
+limits: {cpus: "0.5", memory: 128m, pids: 64, timeout: 1800, network: false}

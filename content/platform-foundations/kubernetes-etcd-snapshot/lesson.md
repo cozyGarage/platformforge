@@ -1,10 +1,17 @@
-# Practice etcd snapshot runbooks
+# Practice etcd Snapshot Runbooks
 
-CKA disaster recovery expects you to know `etcdctl snapshot save` / `restore`. This lab builds the runbook habit and a verifiable companion manifest snapshot (full etcd access varies by cluster distro).
+CKA disaster recovery expects `etcdctl snapshot save` / `restore`. This lab gives you a **real snapshot** taken from the k3d control-plane etcd (host-side, no privileged lab container) plus the companion manifest habit.
 
-## Tasks
+## Why it matters
 
-1. Export `payments/cluster-meta` ConfigMap to `/workspace/backup/etcd/snapshot-manifests.yaml`
-2. Write its sha256 to `/workspace/backup/etcd/SNAPSHOT.sha256`
-3. Author `/workspace/docs/etcd-runbook.md` with **Snapshot**, **Restore**, and **Validation**
-4. Mention `etcdctl snapshot save`, `etcdctl snapshot restore`, and testing restores
+Runbooks without a verifiable snapshot artifact are theater. Inspect status, checksum the bytes, and keep app-consistent manifests beside etcd.
+
+## Ticket focus
+
+1. `etcdctl snapshot status` on the mounted live `snapshot.db`
+2. sha256 of the live snapshot + ConfigMap companion export
+3. Snapshot / Restore / Validation runbook
+
+## Tip codes
+
+- `ETCD_STATUS` — snapshot status on the mounted control-plane artifact
