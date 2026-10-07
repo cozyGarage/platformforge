@@ -21,7 +21,7 @@ else
     build-essential curl git make sqlite3 jq ca-certificates gnupg lsb-release
 fi
 
-GO_VERSION="1.25.12"
+GO_VERSION="1.25.13"
 install_go=false
 if ! need_cmd go; then
   install_go=true
